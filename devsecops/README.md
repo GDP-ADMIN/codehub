@@ -8,7 +8,7 @@
 - Output the public key for easy copying.
 - Clear instructions for adding the key to your GitHub account.
 
-## Usage
+## Installation & Usage
 ```bash
-bash create_ssh_key_github.sh [-e <email>] [-k <key_name>]
+curl -O https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/create_ssh_key_github.sh && bash create_ssh_key_github.sh [-e <email>] [-k <key_name>]
 ```
