@@ -1,5 +1,5 @@
-# SSH Key Generator
-create_ssh_key_github.sh generates a new SSH key pair and outputs the public key. You can easily add the generated public key to your GitHub account by following the provided instructions.
+# SSH Key Generator for GitHub
+[create_ssh_key_github.sh`](create_ssh_key_github.sh`) generates a new SSH key pair and outputs the public key. You can easily add the generated public key to your GitHub account by following the provided instructions.
 
 ## Features
 
