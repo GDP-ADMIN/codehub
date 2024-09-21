@@ -12,3 +12,9 @@
 ```bash
 curl -O https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/create_ssh_key_github.sh && bash create_ssh_key_github.sh [-e <email>] [-k <key_name>]
 ```
+
+## Adding SSH Keys to GitHub
+- Open https://github.com/settings/keys
+- Click 'New SSH Key'
+- Put a Title, select 'Key type: Authentication Key', and paste your SSH key
+- Click 'Add SSH key'
