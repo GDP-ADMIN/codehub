@@ -3,8 +3,8 @@ This repository contains scripts to help you generate SSH keys for GitHub and in
 
 ## Features
 
-- **Generate an SSH key pair** with [create_ssh_key_github.sh](create_ssh_key_github.sh).
-- **Install Python** automatically using [install_python.sh](#install-python-on-linuxmacos) (for Linux/macOS) or [install_python.ps1](#install-python-on-windows-powershell) (for Windows).
+- [**Generate an SSH key pair**](#ssh-key-generator) with [create_ssh_key_github.sh](create_ssh_key_github.sh).
+- **Install Python** automatically using [install_python.sh](install_python.sh) [(for Linux/macOS)](#install-python-on-linuxmacos) or [install_python.ps1](install_python.ps1) [(for Windows)](#install-python-on-windows-powershell).
 
 ## Installation & Usage
 
