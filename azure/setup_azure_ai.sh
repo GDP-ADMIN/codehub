@@ -8,6 +8,8 @@ update_env_file() {
   # Remove existing AZURE_ML_REGISTRY and AZURE_LLM_MODEL lines from the .env file
   grep -v '^AZURE_ML_REGISTRY=' .env > temp.env && mv temp.env .env
   grep -v '^AZURE_LLM_MODEL=' .env > temp.env && mv temp.env .env
+  grep -v '^AZURE_ENDPOINT_PRIMARY_KEY=' .env > temp.env && mv temp.env .env
+  grep -v '^AZURE_ENDPOINT_SCORING_URI=' .env > temp.env && mv temp.env .env
 
   # Add the chosen model configuration to the .env file
   if [ "$model_choice" -eq 1 ]; then
