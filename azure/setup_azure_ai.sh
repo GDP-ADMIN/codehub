@@ -5,21 +5,27 @@ ORIGINAL_DIR="$(cd "$(dirname "$0")" && pwd)"
 update_env_file() {
   model_choice=$1
 
-  # Remove existing AZURE_ML_REGISTRY and AZURE_LLM_MODEL lines from the .env file
+  # Get the existing AZURE_ENDPOINT_NAME from the .env file
+  existing_endpoint_name=$(grep '^AZURE_ENDPOINT_NAME=' .env | cut -d '=' -f2 | tr -d '"')
+
+  # Remove existing AZURE_ML_REGISTRY, AZURE_LLM_MODEL, and AZURE_ENDPOINT_NAME lines from the .env file
   grep -v '^AZURE_ML_REGISTRY=' .env > temp.env && mv temp.env .env
   grep -v '^AZURE_LLM_MODEL=' .env > temp.env && mv temp.env .env
+  grep -v '^AZURE_ENDPOINT_NAME=' .env > temp.env && mv temp.env .env
   grep -v '^AZURE_ENDPOINT_PRIMARY_KEY=' .env > temp.env && mv temp.env .env
   grep -v '^AZURE_ENDPOINT_SCORING_URI=' .env > temp.env && mv temp.env .env
 
-  # Add the chosen model configuration to the .env file
+  # Add the chosen model configuration and append the model-specific suffix to AZURE_ENDPOINT_NAME
   if [ "$model_choice" -eq 1 ]; then
     echo 'AZURE_ML_REGISTRY="azureml://registries/azureml-meta/models/Meta-Llama-3-8B-Instruct"' >> .env
     echo 'AZURE_LLM_MODEL="Meta-Llama-3-8B-Instruct"' >> .env
-    echo "Model set to Meta-Llama-3-8B-Instruct"
+    echo "AZURE_ENDPOINT_NAME=\"${existing_endpoint_name}-meta-llama-3-8b-instruct\"" >> .env
+    echo "Model set to Meta-Llama-3-8B-Instruct and endpoint name updated."
   elif [ "$model_choice" -eq 2 ]; then
     echo 'AZURE_ML_REGISTRY="azureml://registries/azureml/models/Phi-3.5-vision-instruct"' >> .env
     echo 'AZURE_LLM_MODEL="Phi-3.5-vision-instruct"' >> .env
-    echo "Model set to Phi-3.5-vision-instruct"
+    echo "AZURE_ENDPOINT_NAME=\"${existing_endpoint_name}-phi-3-5-vision-instruct\"" >> .env
+    echo "Model set to Phi-3.5-vision-instruct and endpoint name updated."
   else
     echo "Invalid choice."
     exit 1
@@ -31,6 +37,15 @@ echo "Choose the model to deploy:"
 echo "1. Meta-Llama-3-8B-Instruct"
 echo "2. Phi-3.5-vision-instruct"
 read -p "Enter the number corresponding to the model: " model_choice
+
+# Store the original value of AZURE_ENDPOINT_NAME
+original_endpoint_name=$(grep '^AZURE_ENDPOINT_NAME=' .env | cut -d '=' -f2 | tr -d '"')
+
+# Check if original_endpoint_name is not empty
+if [ -z "$original_endpoint_name" ]; then
+  echo "ERROR: Could not find original ENDPOINT_NAME in .env"
+  exit 1
+fi
 
 # Update the .env file based on user input
 update_env_file "$model_choice"
@@ -70,7 +85,7 @@ fi
 # Detect if the system is running on Windows or Unix
 OS="$(uname -s)"
 case "$OS" in
-  Linux*|Darwin*) 
+  Linux*|Darwin*)
     # Create and activate a Python virtual environment on Unix systems
     echo "Creating and activating virtual environment for Unix..."
     python -m venv my_venv
@@ -124,5 +139,13 @@ python create_model_serverless.py "$ORIGINAL_DIR"
 # Test the deployed model
 echo "Testing the deployed model..."
 python model_testing.py
+
+# Reverting ENDPOINT_NAME back to its original value
+echo "Reverting ENDPOINT_NAME back to its original value..."
+
+# Replace the current ENDPOINT_NAME line with the original value in the .env file
+sed -i "/^AZURE_ENDPOINT_NAME=/c\AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"" "$ORIGINAL_DIR/.env"
+
+echo "AZURE_ENDPOINT_NAME reverted to original value: $original_endpoint_name"
 
 echo "Setup complete. Your model is live and tested!"
