@@ -1,4 +1,5 @@
 #!/bin/bash
+ORIGINAL_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Function to update the .env file with the selected model
 update_env_file() {
@@ -106,7 +107,7 @@ pip list --disable-pip-version-check | grep "azure-ai-ml\|azure-identity\|python
 echo "Logging in to Azure..."
 az login --tenant "$AZURE_TENANT_ID"
 
-# Run create_hub.py to create Azure AI Hub
+# Run create_hub.py to create Azure AI Hub - ADMINISTRATOR ONLY
 # echo "Creating Azure AI Hub..."
 # python create_hub.py
 
@@ -116,7 +117,7 @@ python create_workspaces_project.py
 
 # Run create_model_serverless.py to deploy the model
 echo "Deploying model to serverless API..."
-python create_model_serverless.py
+python create_model_serverless.py "$ORIGINAL_DIR"
 
 # Test the deployed model
 echo "Testing the deployed model..."
