@@ -1,4 +1,10 @@
 #!/bin/bash
+# Version Script Information 
+VERSION="1.0.0"
+
+# Print Version Script Information 
+echo "Running script version: $VERSION"
+
 ORIGINAL_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Detect if the system is running on Windows or Unix
@@ -136,9 +142,9 @@ pip list --disable-pip-version-check | grep "azure-ai-ml\|azure-identity\|python
 echo "Logging in to Azure..."
 az login --tenant "$AZURE_TENANT_ID"
 
-# Run create_hub.py to create Azure AI Hub - ADMINISTRATOR ONLY
-echo "Creating Azure AI Hub..."
-$PYTHON_CMD create_hub.py
+# # Run create_hub.py to create Azure AI Hub - **ADMINISTRATOR ONLY**
+# echo "Creating Azure AI Hub..."
+# $PYTHON_CMD create_hub.py
 
 # Run create_workspaces_project.py to create workspaces and project
 echo "Creating workspaces and project..."
