@@ -1,6 +1,23 @@
 #!/bin/bash
 ORIGINAL_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# Detect if the system is running on Windows or Unix
+OS="$(uname -s)"
+case "$OS" in
+  Linux*|Darwin*)
+    # For Unix-like systems, use 'python3'
+    PYTHON_CMD="python3"
+    ;;
+  CYGWIN*|MINGW*|MSYS*)
+    # For Windows-like systems, use 'python'
+    PYTHON_CMD="python"
+    ;;
+  *)
+    echo "Unsupported OS. Exiting..."
+    exit 1
+    ;;
+esac
+
 # Function to update the .env file with the selected model
 update_env_file() {
   model_choice=$1
@@ -76,30 +93,25 @@ if [ -z "$AZURE_TENANT_ID" ]; then
 fi
 
 # Check if Python is installed
-python --version &>/dev/null
+$PYTHON_CMD --version &>/dev/null
 if [ $? -ne 0 ]; then
   echo "Python 3.x is required. Please install Python 3."
   exit 1
 fi
 
-# Detect if the system is running on Windows or Unix
-OS="$(uname -s)"
+# Create and activate a Python virtual environment based on OS
 case "$OS" in
   Linux*|Darwin*)
     # Create and activate a Python virtual environment on Unix systems
     echo "Creating and activating virtual environment for Unix..."
-    python -m venv my_venv
+    $PYTHON_CMD -m venv my_venv
     source my_venv/bin/activate
     ;;
   CYGWIN*|MINGW*|MSYS*)
     # Create and activate a Python virtual environment on Windows systems
     echo "Creating and activating virtual environment for Windows..."
-    python -m venv my_venv
+    $PYTHON_CMD -m venv my_venv
     source my_venv/Scripts/activate
-    ;;
-  *)
-    echo "Unsupported OS. Exiting..."
-    exit 1
     ;;
 esac
 
@@ -125,20 +137,20 @@ echo "Logging in to Azure..."
 az login --tenant "$AZURE_TENANT_ID"
 
 # Run create_hub.py to create Azure AI Hub - ADMINISTRATOR ONLY
-# echo "Creating Azure AI Hub..."
-# python create_hub.py
+echo "Creating Azure AI Hub..."
+$PYTHON_CMD create_hub.py
 
 # Run create_workspaces_project.py to create workspaces and project
 echo "Creating workspaces and project..."
-python create_workspaces_project.py
+$PYTHON_CMD create_workspaces_project.py
 
 # Run create_model_serverless.py to deploy the model
 echo "Deploying model to serverless API..."
-python create_model_serverless.py "$ORIGINAL_DIR"
+$PYTHON_CMD create_model_serverless.py "$ORIGINAL_DIR"
 
 # Test the deployed model
 echo "Testing the deployed model..."
-python model_testing.py
+$PYTHON_CMD model_testing.py
 
 # Reverting ENDPOINT_NAME back to its original value
 echo "Reverting ENDPOINT_NAME back to its original value..."
