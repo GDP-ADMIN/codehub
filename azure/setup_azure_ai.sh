@@ -175,7 +175,7 @@ pip install --disable-pip-version-check python-dotenv==1.0.1 azure-ai-ml==1.19.0
 echo "Checking installed libraries..."
 pip list --disable-pip-version-check | grep "azure-ai-ml\|azure-identity\|python-dotenv"
 
-# Login to Azure using the tenant ID from .env
+# # Login to Azure using the tenant ID from .env
 echo "Logging in to Azure..."
 az login --tenant "$AZURE_TENANT_ID"
 
