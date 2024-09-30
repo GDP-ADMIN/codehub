@@ -9,14 +9,51 @@ ORIGINAL_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Detect if the system is running on Windows or Unix
 OS="$(uname -s)"
+# Function to check if Python is installed
+check_python_installed() {
+  if command -v python3 &>/dev/null; then
+    PYTHON_CMD="python3"
+    echo "Python3 is already installed."
+    return 0
+  elif command -v python &>/dev/null; then
+    PYTHON_CMD="python"
+    echo "Python is already installed."
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Function to install Python on Unix-based systems
+install_python_unix() {
+  echo "Python not found. Installing Python on Unix-like system..."
+  curl -O https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.sh
+  chmod +x install_python.sh
+  ./install_python.sh
+}
+
+# Function to install Python on Windows
+install_python_windows() {
+  echo "Python not found. Installing Python on Windows system..."
+  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.ps1" -OutFile "install_python.ps1"
+  ./install_python.ps1
+}
+
+# OS-specific logic
 case "$OS" in
   Linux*|Darwin*)
-    # For Unix-like systems, use 'python3'
-    PYTHON_CMD="python3"
+    # For Unix-like systems (Linux/macOS)
+    echo "Detected Unix-like system ($OS)."
+    if ! check_python_installed; then
+      install_python_unix
+    fi
     ;;
   CYGWIN*|MINGW*|MSYS*)
-    # For Windows-like systems, use 'python'
-    PYTHON_CMD="python"
+    # For Windows-like systems
+    echo "Detected Windows system ($OS)."
+    if ! check_python_installed; then
+      install_python_windows
+    fi
     ;;
   *)
     echo "Unsupported OS. Exiting..."
