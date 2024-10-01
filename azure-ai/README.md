@@ -24,8 +24,7 @@ Before running the scripts, ensure the following:
 3. **Setup environment variables**: Copy [.env.example](.env.example) and insert the value based on [Scope of Services](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.lfdykfqkf1d5). Full example of .env
 
 ## Setup and Installation
-1. Run 1-click CLI script
-    **Run 1-click CLI Script**
+1. **Run 1-click CLI script**
     - Linux, WSL and MacOS Version (UNIX)
     ```bash
       wget -O setup_azure_ai.sh https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/azure-ai/setup_azure_ai.sh && chmod 755 setup_azure_ai.sh && bash setup_azure_ai.sh
