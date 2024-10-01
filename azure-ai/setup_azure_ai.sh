@@ -64,6 +64,21 @@ case "$OS" in
     ;;
 esac
 
+# Function to ensure AZURE_ENDPOINT_NAME doesn't exceed 52 characters
+validate_and_set_endpoint_name() {
+  local endpoint_name=$1
+  local max_length=52
+
+  # Truncate the endpoint name if it exceeds the maximum length
+  if [ ${#endpoint_name} -gt $max_length ]; then
+    echo "INFO: AZURE_ENDPOINT_NAME is too long (${#endpoint_name} characters). Truncating to ${max_length} characters."
+    endpoint_name="${endpoint_name:0:max_length}"
+  fi
+
+  echo "AZURE_ENDPOINT_NAME=\"$endpoint_name\"" >> .env
+  echo "INFO: AZURE_ENDPOINT_NAME set to: $endpoint_name"
+}
+
 # Function to update the .env file with the selected model
 update_env_file() {
   model_choice=$1
@@ -78,39 +93,50 @@ update_env_file() {
   grep -v '^AZURE_ENDPOINT_PRIMARY_KEY=' .env > temp.env && mv temp.env .env
   grep -v '^AZURE_ENDPOINT_SCORING_URI=' .env > temp.env && mv temp.env .env
 
-  # Add the chosen model configuration and append the model-specific suffix to AZURE_ENDPOINT_NAME
-  if [ "$model_choice" -eq 1 ]; then
-    echo 'AZURE_ML_REGISTRY="azureml://registries/azureml-meta/models/Meta-Llama-3-8B-Instruct"' >> .env
-    echo 'AZURE_LLM_MODEL="Meta-Llama-3-8B-Instruct"' >> .env
-    echo "AZURE_ENDPOINT_NAME=\"${existing_endpoint_name}-meta-llama-3-8b-instruct\"" >> .env
-    echo "Model set to Meta-Llama-3-8B-Instruct and endpoint name updated."
-  elif [ "$model_choice" -eq 2 ]; then
-    echo 'AZURE_ML_REGISTRY="azureml://registries/azureml/models/Phi-3.5-vision-instruct"' >> .env
-    echo 'AZURE_LLM_MODEL="Phi-3.5-vision-instruct"' >> .env
-    echo "AZURE_ENDPOINT_NAME=\"${existing_endpoint_name}-phi-3-5-vision-instruct\"" >> .env
-    echo "Model set to Phi-3.5-vision-instruct and endpoint name updated."
-  else
-    echo "Invalid choice."
-    exit 1
-  fi
-}
+  # Determine model-specific suffix
+  case "$model_choice" in
+    1)
+      model_registry='azureml://registries/azureml-meta/models/Meta-Llama-3-8B-Instruct'
+      model_name='Meta-Llama-3-8B-Instruct'
+      model_suffix='meta-llama-3-8b-instruct'
+      ;;
+    2)
+      model_registry='azureml://registries/azureml/models/Phi-3.5-vision-instruct'
+      model_name='Phi-3.5-vision-instruct'
+      model_suffix='phi-3-5-vision-instruct'
+      ;;
+    *)
+      echo "Invalid choice."
+      exit 1
+      ;;
+  esac
 
-# Prompt user to choose between two models
-echo "Choose the model to deploy:"
-echo "1. Meta-Llama-3-8B-Instruct"
-echo "2. Phi-3.5-vision-instruct"
-read -p "Enter the number corresponding to the model: " model_choice
+  # Add the chosen model configuration
+  echo "AZURE_ML_REGISTRY=\"$model_registry\"" >> .env
+  echo "AZURE_LLM_MODEL=\"$model_name\"" >> .env
+
+  # Append the model-specific suffix to AZURE_ENDPOINT_NAME and validate its length
+  new_endpoint_name="${existing_endpoint_name}-${model_suffix}"
+  validate_and_set_endpoint_name "$new_endpoint_name"
+}
 
 # Store the original value of AZURE_ENDPOINT_NAME
 original_endpoint_name=$(grep '^AZURE_ENDPOINT_NAME=' .env | cut -d '=' -f2 | tr -d '"')
 
 # Check if original_endpoint_name is empty
 if [ -z "$original_endpoint_name" ]; then
-  echo "AZURE_ENDPOINT_NAME=\"default_value\"" >> .env
+  default_endpoint_name="default-value"
+  validate_and_set_endpoint_name "$default_endpoint_name"
   echo "INFO: AZURE_ENDPOINT_NAME not found in .env. Added with default value."
 else
   echo "INFO: Found existing AZURE_ENDPOINT_NAME value: $original_endpoint_name"
 fi
+
+# Prompt user to choose between two models
+echo "Choose the model to deploy:"
+echo "1. Meta-Llama-3-8B-Instruct"
+echo "2. Phi-3.5-vision-instruct"
+read -p "Enter the number corresponding to the model: " model_choice
 
 # Update the .env file based on user input
 update_env_file "$model_choice"
