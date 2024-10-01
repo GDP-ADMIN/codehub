@@ -163,8 +163,19 @@ case "$OS" in
     ;;
 esac
 
-# Clone the repository and navigate to the project directory
-git clone --filter=blob:none --sparse https://github.com/GDP-ADMIN/codehub.git && cd codehub && git sparse-checkout set azure-ai && cd azure-ai
+# Clone the repository if not already present and navigate to the directory
+if [ ! -d "codehub" ]; then
+  git clone --filter=blob:none --sparse https://github.com/GDP-ADMIN/codehub.git
+fi
+
+cd codehub || { echo "Failed to navigate to the codehub directory."; exit 1; }
+
+# Sparse-checkout only if azure-ai folder is not present
+if [ ! -d "azure-ai" ]; then
+  git sparse-checkout set azure-ai
+fi
+
+cd azure-ai || { echo "Failed to navigate to the azure-ai directory."; exit 1; }
 
 # Install required libraries
 pip install --disable-pip-version-check python-dotenv==1.0.1 azure-ai-ml==1.19.0 azure-identity==1.17.1
