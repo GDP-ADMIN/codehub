@@ -164,12 +164,7 @@ case "$OS" in
 esac
 
 # Clone the repository and navigate to the project directory
-git clone git@github.com:GDP-ADMIN/gdplabs-exploration.git
-cd gdplabs-exploration || exit
-git checkout -b azure-ai-serverless-api-endpoint-exploration
-git fetch --all
-git reset --hard origin/azure-ai-serverless-api-endpoint-exploration
-cd azure/ai-serverless-api-endpoint || exit
+git clone --filter=blob:none --sparse https://github.com/GDP-ADMIN/codehub.git && cd codehub && git sparse-checkout set azure-ai && cd azure-ai
 
 # Install required libraries
 pip install --disable-pip-version-check python-dotenv==1.0.1 azure-ai-ml==1.19.0 azure-identity==1.17.1
