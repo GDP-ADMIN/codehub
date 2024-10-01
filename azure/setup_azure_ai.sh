@@ -9,14 +9,54 @@ ORIGINAL_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Detect if the system is running on Windows or Unix
 OS="$(uname -s)"
+# Function to check if Python is installed
+check_python_installed() {
+  if command -v python3 &>/dev/null; then
+    PYTHON_CMD="python3"
+    echo "Python3 is already installed."
+    return 0
+  elif command -v python &>/dev/null; then
+    PYTHON_CMD="python"
+    echo "Python is already installed."
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Function to install Python on Unix-based systems
+install_python_unix() {
+  echo "Python not found. Installing Python on Unix-like system..."
+  curl -O https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.sh
+  chmod +x install_python.sh
+  ./install_python.sh
+}
+
+# Function to install Python on Windows
+install_python_windows() {
+  echo "Python not found. Installing Python on Windows system..."
+  # Set Execution Policy for PowerShell
+  echo "Ensuring PowerShell Execution Policy is set to RemoteSigned..."
+  powershell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
+  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.ps1" -OutFile "install_python.ps1"
+  ./install_python.ps1
+}
+
+# OS-specific logic
 case "$OS" in
   Linux*|Darwin*)
-    # For Unix-like systems, use 'python3'
-    PYTHON_CMD="python3"
+    # For Unix-like systems (Linux/macOS)
+    echo "Detected Unix-like system ($OS)."
+    if ! check_python_installed; then
+      install_python_unix
+    fi
     ;;
   CYGWIN*|MINGW*|MSYS*)
-    # For Windows-like systems, use 'python'
-    PYTHON_CMD="python"
+    # For Windows-like systems
+    echo "Detected Windows system ($OS)."
+    if ! check_python_installed; then
+      install_python_windows
+    fi
     ;;
   *)
     echo "Unsupported OS. Exiting..."
@@ -138,13 +178,9 @@ pip install --disable-pip-version-check python-dotenv==1.0.1 azure-ai-ml==1.19.0
 echo "Checking installed libraries..."
 pip list --disable-pip-version-check | grep "azure-ai-ml\|azure-identity\|python-dotenv"
 
-# Login to Azure using the tenant ID from .env
+# # Login to Azure using the tenant ID from .env
 echo "Logging in to Azure..."
 az login --tenant "$AZURE_TENANT_ID"
-
-# # Run create_hub.py to create Azure AI Hub - **ADMINISTRATOR ONLY**
-# echo "Creating Azure AI Hub..."
-# $PYTHON_CMD create_hub.py
 
 # Run create_workspaces_project.py to create workspaces and project
 echo "Creating workspaces and project..."
