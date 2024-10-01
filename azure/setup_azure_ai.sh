@@ -35,6 +35,9 @@ install_python_unix() {
 # Function to install Python on Windows
 install_python_windows() {
   echo "Python not found. Installing Python on Windows system..."
+  # Set Execution Policy for PowerShell
+  echo "Ensuring PowerShell Execution Policy is set to RemoteSigned..."
+  powershell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.ps1" -OutFile "install_python.ps1"
   ./install_python.ps1
 }
@@ -178,10 +181,6 @@ pip list --disable-pip-version-check | grep "azure-ai-ml\|azure-identity\|python
 # # Login to Azure using the tenant ID from .env
 echo "Logging in to Azure..."
 az login --tenant "$AZURE_TENANT_ID"
-
-# # Run create_hub.py to create Azure AI Hub - **ADMINISTRATOR ONLY**
-# echo "Creating Azure AI Hub..."
-# $PYTHON_CMD create_hub.py
 
 # Run create_workspaces_project.py to create workspaces and project
 echo "Creating workspaces and project..."
