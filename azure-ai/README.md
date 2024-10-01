@@ -21,19 +21,19 @@ Sends a test HTTP request to the serverless endpoint to validate the model deplo
 Before running the scripts, ensure the following:
 1. **Documentation**: Review the [Azure AI: Serverless API Endpoint](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit?usp=sharing) document for additional details
 2. **Azure Client ID & Client Secret**: Contact ticket@gdplabs.id to get access Azure Account (Client ID and Client Secret)
-3. **Setup environment variables**: Copy [.env.example](.env.example) and insert the value based on [Scope of Services](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.lfdykfqkf1d5)
+3. **Setup environment variables**: Copy [.env.example](.env.example) and insert the value based on [Scope of Services](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.lfdykfqkf1d5). Full example of .env
 
 ## Setup and Installation
 1. Run 1-click CLI script
     **Run 1-click CLI Script**
     - Linux, WSL and MacOS Version (UNIX)
     ```bash
-      wget -O setup_azure_ai.sh https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/azure/setup_azure_ai.sh && chmod 755 setup_azure_ai.sh && bash setup_azure_ai.sh
+      wget -O setup_azure_ai.sh https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/azure-ai/setup_azure_ai.sh && chmod 755 setup_azure_ai.sh && bash setup_azure_ai.sh
     ```
 
     - Windows Version
     ```powershell
-      Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/azure/setup_azure_ai.sh" -OutFile "setup_azure_ai.sh"
+      Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/azure-ai/setup_azure_ai.sh" -OutFile "setup_azure_ai.sh"
       wsl ./setup_azure_ai.sh
     ```
 

@@ -1,8 +1,8 @@
 #!/bin/bash
-# Version Script Information 
-VERSION="1.0.0"
+# Version Script Information
+VERSION="1.0.1"
 
-# Print Version Script Information 
+# Print Version Script Information
 echo "Running script version: $VERSION"
 
 ORIGINAL_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -104,10 +104,12 @@ read -p "Enter the number corresponding to the model: " model_choice
 # Store the original value of AZURE_ENDPOINT_NAME
 original_endpoint_name=$(grep '^AZURE_ENDPOINT_NAME=' .env | cut -d '=' -f2 | tr -d '"')
 
-# Check if original_endpoint_name is not empty
+# Check if original_endpoint_name is empty
 if [ -z "$original_endpoint_name" ]; then
-  echo "ERROR: Could not find original ENDPOINT_NAME in .env"
-  exit 1
+  echo "AZURE_ENDPOINT_NAME=\"default_value\"" >> .env
+  echo "INFO: AZURE_ENDPOINT_NAME not found in .env. Added with default value."
+else
+  echo "INFO: Found existing AZURE_ENDPOINT_NAME value: $original_endpoint_name"
 fi
 
 # Update the .env file based on user input
@@ -162,7 +164,6 @@ case "$OS" in
 esac
 
 # Clone the repository and navigate to the project directory
-echo "Cloning the repository..."
 git clone git@github.com:GDP-ADMIN/gdplabs-exploration.git
 cd gdplabs-exploration || exit
 git checkout -b azure-ai-serverless-api-endpoint-exploration
@@ -171,35 +172,27 @@ git reset --hard origin/azure-ai-serverless-api-endpoint-exploration
 cd azure/ai-serverless-api-endpoint || exit
 
 # Install required libraries
-echo "Installing required libraries..."
 pip install --disable-pip-version-check python-dotenv==1.0.1 azure-ai-ml==1.19.0 azure-identity==1.17.1
 
 # Confirm installation
-echo "Checking installed libraries..."
 pip list --disable-pip-version-check | grep "azure-ai-ml\|azure-identity\|python-dotenv"
 
-# # Login to Azure using the tenant ID from .env
-echo "Logging in to Azure..."
-az login --tenant "$AZURE_TENANT_ID"
-
 # Run create_workspaces_project.py to create workspaces and project
-echo "Creating workspaces and project..."
 $PYTHON_CMD create_workspaces_project.py
 
 # Run create_model_serverless.py to deploy the model
-echo "Deploying model to serverless API..."
 $PYTHON_CMD create_model_serverless.py "$ORIGINAL_DIR"
 
 # Test the deployed model
-echo "Testing the deployed model..."
 $PYTHON_CMD model_testing.py
 
 # Reverting ENDPOINT_NAME back to its original value
-echo "Reverting ENDPOINT_NAME back to its original value..."
-
-# Replace the current ENDPOINT_NAME line with the original value in the .env file
-sed -i "/^AZURE_ENDPOINT_NAME=/c\AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"" "$ORIGINAL_DIR/.env"
-
-echo "AZURE_ENDPOINT_NAME reverted to original value: $original_endpoint_name"
-
-echo "Setup complete. Your model is live and tested!"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS specific sed command
+  sed -i '' -e "/^AZURE_ENDPOINT_NAME=/c\\
+AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"" "$ORIGINAL_DIR/.env"
+else
+  # Linux specific sed command
+  sed -i "/^AZURE_ENDPOINT_NAME=/c\\
+AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"" "$ORIGINAL_DIR/.env"
+fi
