@@ -37,7 +37,7 @@ Before running the scripts, ensure the following:
       wsl ./setup_azure_ai.sh
     ```
 
-2. Select the model to be deployed:
+2. Select the model to be deployed: \
    Choose **1** For *Meta-Llama-3-8B-Instruct* model \
    Choose **2** For *Phi-3.5-vision-instruct* model
 

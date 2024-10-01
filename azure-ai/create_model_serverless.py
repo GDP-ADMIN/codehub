@@ -90,5 +90,3 @@ env_path = os.path.join(script_dir, ".env")
 # Write the primary key and endpoint URL to the .env file
 set_key(env_path, "AZURE_ENDPOINT_PRIMARY_KEY", endpoint_keys.primary_key)
 set_key(env_path, "AZURE_ENDPOINT_SCORING_URI", endpoint_model_name.scoring_uri)
-
-print(f"Values successfully written to {env_path}")
