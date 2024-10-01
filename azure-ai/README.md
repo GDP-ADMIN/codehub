@@ -20,14 +20,10 @@ Sends a test HTTP request to the serverless endpoint to validate the model deplo
 ## Prerequisites
 Before running the scripts, ensure the following:
 1. **Documentation**: Review the [Azure AI: Serverless API Endpoint](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit?usp=sharing) document for additional details.
-2. **Azure Account**: Contact ticket@gdplabs.id to get access Azure Account @gdplabs.onmicrosoft.com.
-3. **Azure CLI**: Install the [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) for managing Azure resources
+2. **Setup environment variables**: Copy [.env.example](.env.example) and insert the value based on [Scope of Services](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.lfdykfqkf1d5)
 
 ## Setup and Installation
-1. Update .env and run 1-click CLI script
-    - **Update .env**
-    - Copy ![Red Text](https://img.shields.io/badge/.env.example-FF0000) and set up the environment variable based on prerequisites [Example .env](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.bxaf2a790acn) in your IDE / Text Editor
-
+1. Run 1-click CLI script
     **Run 1-click CLI Script**
     - Linux, WSL and MacOS Version (UNIX)
     ```bash
@@ -43,10 +39,6 @@ Before running the scripts, ensure the following:
 2. Select the model to be deployed:
    Choose **1** For *Meta-Llama-3-8B-Instruct* model \
    Choose **2** For *Phi-3.5-vision-instruct* model
-
-3. It will open a browser 1 times, asking you to login to the Azure Account as below
-   <img width="467" alt="Login to Azure" src="https://github.com/user-attachments/assets/f811775c-d0fa-4966-a4f2-e575ecad4199"> \
-   It will prompt to select subscription and tenant. Just ***press Enter***
 
 ## Results
 Example of successful requests
