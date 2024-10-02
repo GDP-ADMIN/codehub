@@ -12,38 +12,41 @@ OS="$(uname -s 2>/dev/null || echo "Windows")"
 
 # Function to check if Python is installed
 check_python_installed() {
-  if [ "$OS" = "Windows" ]; then
-    # On Windows, check for 'python' first
-    if command -v python &>/dev/null; then
-      PYTHON_CMD="python"
-      echo "Python (likely Python 3) is already installed on Windows."
-      return 0
-    elif command -v python3 &>/dev/null; then
-      PYTHON_CMD="python3"
-      echo "Python3 is already installed on Windows."
-      return 0
-    else
-      return 1
-    fi
-  else
-    # On Unix-like systems, prioritize 'python3'
-    if command -v python3 &>/dev/null; then
-      PYTHON_CMD="python3"
-      echo "Python3 is already installed."
-      return 0
-    elif command -v python &>/dev/null; then
-      PYTHON_CMD="python"
-      echo "Python is already installed."
-      return 0
-    else
-      return 1
-    fi
-  fi
+  case "$OS" in
+    CYGWIN*|MINGW*|MSYS*)
+      # On Windows-like systems (Cygwin, MinGW, MSYS)
+      if command -v python &>/dev/null; then
+        PYTHON_CMD="python"
+        echo "Python (likely Python 3) is already installed on Windows."
+        return 0
+      elif command -v python3 &>/dev/null; then
+        PYTHON_CMD="python3"
+        echo "Python3 is already installed on Windows."
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    Linux*|Darwin*)
+      # On Unix-like systems (Linux/macOS)
+      if command -v python3 &>/dev/null; then
+        PYTHON_CMD="python3"
+        echo "Python3 is already installed."
+        return 0
+      elif command -v python &>/dev/null; then
+        PYTHON_CMD="python"
+        echo "Python is already installed."
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    *)
+      echo "Unsupported OS: $OS. Exiting..."
+      exit 1
+      ;;
+  esac
 }
-
-# Run the function
-check_python_installed
-
 
 # Function to install Python on Unix-based systems
 install_python_unix() {
