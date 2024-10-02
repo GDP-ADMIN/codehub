@@ -5,7 +5,7 @@ This project contains scripts to set up and manage Azure AI Hub, Azure Machine L
 ## Prerequisites
 Before running the scripts, ensure the following:
 1. **Documentation**: Review the [Azure AI: Serverless API Endpoint](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit?usp=sharing) document for additional details
-2. **Azure Client ID & Client Secret**: Contact ticket@gdplabs.id to get access Azure Account (Client ID and Client Secret)
+2. **Azure Client ID & Client Secret**: Contact ticket@gdplabs.id to get access Azure Account (Client ID and Client Secret) with Azure AI Developer and gl-workspaces roles access
 3. **Setup environment variables**: Copy [.env.example](.env.example) and insert the value based on [Scope of Services](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.lfdykfqkf1d5), and save the file as `.env` on your working folder
 
 ## Setup and Installation
@@ -35,6 +35,29 @@ Example of successful requests
     'cmpl-93725ebf48344df2a0c32127082c0522', 'model': 'phi35-vision-instruct', 'object': 'chat.completion',
     'usage': {'completion_tokens': 100, 'prompt_tokens': 33, 'total_tokens': 133}}
    ```
+
+## [Optional] TEST THE DEPLOYED MODEL
+If you want to run model_testing.py by changing the prompting, you can follow this flow.
+1. Ensure you have .env files with value based on the Scope of Services, my_venv folder in your working folder and already activated my_venv.   
+  **Linux**
+```bash
+  source my_venv/bin/activate
+```
+  **Windows**
+```bash
+  source my_venv/Scripts/activate
+```
+
+2. copy a file named (model_testing.py)[https://github.com/GDP-ADMIN/codehub/blob/main/azure-ai/model_testing.py] and save it in your working folder. 
+3. Run the script \
+    **Binary python3**
+    ```bash
+      python3 model_testing.py
+    ```
+    **Binary python**
+    ```bash
+      python model_testing.py
+    ```
 
 ## Included Scripts:
 - ![Red Text](https://img.shields.io/badge/Administrator%20Only-FF0000) - [create_hub.py](create_hub.py) : Creates an Azure AI Hub \
