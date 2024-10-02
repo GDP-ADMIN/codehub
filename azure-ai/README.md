@@ -12,13 +12,13 @@ Before running the scripts, ensure the following:
 1. **Run 1-click CLI script**
     - Linux, WSL and MacOS Version (UNIX)
     ```bash
-      curl -o setup_azure_ai.sh https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/azure-ai/setup_azure_ai.sh && chmod 755 setup_azure_ai.sh && bash setup_azure_ai.sh
+    curl -o setup_azure_ai.sh https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/azure-ai/setup_azure_ai.sh && chmod 755 setup_azure_ai.sh && bash setup_azure_ai.sh
     ```
 
     - Windows Version
     ```powershell
-      Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/azure-ai/setup_azure_ai.sh" -OutFile "setup_azure_ai.sh"
-      wsl ./setup_azure_ai.sh
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/azure-ai/setup_azure_ai.sh" -OutFile "setup_azure_ai.sh"
+    wsl ./setup_azure_ai.sh
     ```
 
 2. Select the model to be deployed: \
@@ -39,23 +39,22 @@ Example of successful requests
 ## [Optional] TEST THE DEPLOYED MODEL
 If you want to run model_testing.py by changing the prompting, you can follow this flow.
 1. Ensure you have .env files with value based on the Scope of Services, my_venv folder in your working folder and already activated my_venv.   
-  **Linux**
-```bash
-  source my_venv/bin/activate
-```
-  **Windows**
-```bash
-  source my_venv/Scripts/activate
-```
-
-2. copy a file named (model_testing.py)[https://github.com/GDP-ADMIN/codehub/blob/main/azure-ai/model_testing.py] and save it in your working folder. 
-3. Run the script \
+  - Linux
     ```bash
-      python model_testing.py
+    source my_venv/bin/activate
+    ``` 
+  
+  - Windows
+    ```bash
+    source my_venv/Scripts/activate
+    ```
+2. Run the script \
+    ```bash
+    python codehub/azure-ai/model_testing.py
     ```
     **or**
     ```bash
-      python3 model_testing.py
+    python3 codehub/azure-ai/model_testing.py
     ```
 
 ## Included Scripts:
