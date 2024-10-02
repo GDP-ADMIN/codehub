@@ -1,6 +1,6 @@
 #!/bin/bash
 # Version Script Information
-VERSION="1.0.2"
+VERSION="1.0.3"
 
 # Print Version Script Information
 echo "Running script version: $VERSION"
@@ -59,8 +59,6 @@ install_python_unix() {
 # Function to install Python on Windows
 install_python_windows() {
   echo "Python not found. Installing Python on Windows system..."
-  # Set Execution Policy for PowerShell
-  echo "Ensuring PowerShell Execution Policy is set to RemoteSigned..."
   powershell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
   powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.ps1' -OutFile 'install_python.ps1'"
   powershell -File install_python.ps1
@@ -69,14 +67,12 @@ install_python_windows() {
 # OS-specific logic
 case "$OS" in
   Linux*|Darwin*)
-    # For Unix-like systems (Linux/macOS)
     echo "Detected Unix-like system ($OS)."
     if ! check_python_installed; then
       install_python_unix
     fi
     ;;
   CYGWIN*|MINGW*|MSYS*|Windows*)
-    # For Windows-like systems
     echo "Detected Windows system ($OS)."
     if ! check_python_installed; then
       install_python_windows
@@ -88,32 +84,35 @@ case "$OS" in
     ;;
 esac
 
-# Function to ensure AZURE_ENDPOINT_NAME doesn't exceed 52 characters
-validate_and_set_endpoint_name() {
-  local endpoint_name=$1
-  local max_length=52
+# Function to ensure a variable doesn't exceed the specified character length
+validate_and_set_env_var() {
+  local var_name=$1
+  local var_value=$2
+  local max_length=$3
 
-  # Truncate the endpoint name if it exceeds the maximum length
-  if [ ${#endpoint_name} -gt $max_length ]; then
-    echo "INFO: AZURE_ENDPOINT_NAME is too long (${#endpoint_name} characters). Truncating to ${max_length} characters."
-    endpoint_name="${endpoint_name:0:max_length}"
+  # Truncate the variable value if it exceeds the maximum length
+  if [ ${#var_value} -gt $max_length ]; then
+    echo "INFO: $var_name is too long (${#var_value} characters). Truncating to ${max_length} characters."
+    var_value="${var_value:0:max_length}"
   fi
 
-  echo "AZURE_ENDPOINT_NAME=\"$endpoint_name\"" >> .env
-  echo "INFO: AZURE_ENDPOINT_NAME set to: $endpoint_name"
+  echo "$var_name=\"$var_value\"" >> .env
+  echo "INFO: $var_name set to: $var_value"
 }
 
 # Function to update the .env file with the selected model
 update_env_file() {
   model_choice=$1
 
-  # Get the existing AZURE_ENDPOINT_NAME from the .env file
+  # Get the existing AZURE_ENDPOINT_NAME and AZURE_WORKSPACE_NAME from the .env file
   existing_endpoint_name=$(grep '^AZURE_ENDPOINT_NAME=' .env | cut -d '=' -f2 | tr -d '"')
+  existing_workspace_name=$(grep '^AZURE_WORKSPACE_NAME=' .env | cut -d '=' -f2 | tr -d '"')
 
-  # Remove existing AZURE_ML_REGISTRY, AZURE_LLM_MODEL, and AZURE_ENDPOINT_NAME lines from the .env file
+  # Remove existing variables from the .env file
   grep -v '^AZURE_ML_REGISTRY=' .env > temp.env && mv temp.env .env
   grep -v '^AZURE_LLM_MODEL=' .env > temp.env && mv temp.env .env
   grep -v '^AZURE_ENDPOINT_NAME=' .env > temp.env && mv temp.env .env
+  grep -v '^AZURE_WORKSPACE_NAME=' .env > temp.env && mv temp.env .env
   grep -v '^AZURE_ENDPOINT_PRIMARY_KEY=' .env > temp.env && mv temp.env .env
   grep -v '^AZURE_ENDPOINT_SCORING_URI=' .env > temp.env && mv temp.env .env
 
@@ -139,21 +138,34 @@ update_env_file() {
   echo "AZURE_ML_REGISTRY=\"$model_registry\"" >> .env
   echo "AZURE_LLM_MODEL=\"$model_name\"" >> .env
 
-  # Append the model-specific suffix to AZURE_ENDPOINT_NAME and validate its length
+  # Validate and set AZURE_ENDPOINT_NAME
   new_endpoint_name="${existing_endpoint_name}-${model_suffix}"
-  validate_and_set_endpoint_name "$new_endpoint_name"
+  validate_and_set_env_var "AZURE_ENDPOINT_NAME" "$new_endpoint_name" 52
+
+  # Validate and set AZURE_WORKSPACE_NAME
+  validate_and_set_env_var "AZURE_WORKSPACE_NAME" "$existing_workspace_name" 33
 }
 
-# Store the original value of AZURE_ENDPOINT_NAME
+# Store the original value of AZURE_ENDPOINT_NAME and AZURE_WORKSPACE_NAME
 original_endpoint_name=$(grep '^AZURE_ENDPOINT_NAME=' .env | cut -d '=' -f2 | tr -d '"')
+original_workspace_name=$(grep '^AZURE_WORKSPACE_NAME=' .env | cut -d '=' -f2 | tr -d '"')
 
-# Check if original_endpoint_name is empty
+# Check if original_endpoint_name is empty and set a default if necessary
 if [ -z "$original_endpoint_name" ]; then
   default_endpoint_name="default-value"
-  validate_and_set_endpoint_name "$default_endpoint_name"
+  validate_and_set_env_var "AZURE_ENDPOINT_NAME" "$default_endpoint_name" 52
   echo "INFO: AZURE_ENDPOINT_NAME not found in .env. Added with default value."
 else
   echo "INFO: Found existing AZURE_ENDPOINT_NAME value: $original_endpoint_name"
+fi
+
+# Check if original_workspace_name is empty and set a default if necessary
+if [ -z "$original_workspace_name" ]; then
+  default_workspace_name="default-workspace"
+  validate_and_set_env_var "AZURE_WORKSPACE_NAME" "$default_workspace_name" 33
+  echo "INFO: AZURE_WORKSPACE_NAME not found in .env. Added with default value."
+else
+  echo "INFO: Found existing AZURE_WORKSPACE_NAME value: $original_workspace_name"
 fi
 
 # Prompt user to choose between two models
@@ -169,11 +181,8 @@ update_env_file "$model_choice"
 if [ -f .env ]; then
   # Export all variables in the .env file, ignoring commented lines and empty lines
   set -a
-  # Use a more robust approach to source the .env file and handle quotes
   while IFS='=' read -r key value; do
-    # Ignore lines starting with '#', empty lines, or lines without '='
     if [[ ! $key =~ ^# && $key && $value ]]; then
-      # Strip quotes from values, if any
       value=$(echo "$value" | sed 's/^"\(.*\)"$/\1/')
       export "$key=$value"
     fi
@@ -193,13 +202,11 @@ fi
 # Create and activate a Python virtual environment based on OS
 case "$OS" in
   Linux*|Darwin*)
-    # Create and activate a Python virtual environment on Unix systems
     echo "Creating and activating virtual environment for Unix..."
     $PYTHON_CMD -m venv my_venv
     source my_venv/bin/activate
     ;;
   CYGWIN*|MINGW*|MSYS*|Windows*)
-    # Create and activate a Python virtual environment on Windows systems
     echo "Creating and activating virtual environment for Windows..."
     $PYTHON_CMD -m venv my_venv
     source my_venv/Scripts/activate
@@ -235,19 +242,24 @@ $PYTHON_CMD create_model_serverless.py "$ORIGINAL_DIR"
 # Test the deployed model
 $PYTHON_CMD model_testing.py
 
-# Reverting ENDPOINT_NAME back to its original value
+# Reverting AZURE_ENDPOINT_NAME and AZURE_WORKSPACE_NAME back to their original values
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS specific sed command
   sed -i '' -e "/^AZURE_ENDPOINT_NAME=/c\\
 AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"" "$ORIGINAL_DIR/.env"
+  sed -i '' -e "/^AZURE_WORKSPACE_NAME=/c\\
+AZURE_WORKSPACE_NAME=\"$original_workspace_name\"" "$ORIGINAL_DIR/.env"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   # Linux specific sed command
   sed -i "/^AZURE_ENDPOINT_NAME=/c\\
 AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"" "$ORIGINAL_DIR/.env"
+  sed -i "/^AZURE_WORKSPACE_NAME=/c\\
+AZURE_WORKSPACE_NAME=\"$original_workspace_name\"" "$ORIGINAL_DIR/.env"
 elif [[ "$OS" == "Windows_NT" || "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win"* ]]; then
   # Windows PowerShell command to modify .env file
   powershell -Command "(Get-Content -Path '$ORIGINAL_DIR\\.env') -replace '^AZURE_ENDPOINT_NAME=.*', 'AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"' | Set-Content -Path '$ORIGINAL_DIR\\.env'"
+  powershell -Command "(Get-Content -Path '$ORIGINAL_DIR\\.env') -replace '^AZURE_WORKSPACE_NAME=.*', 'AZURE_WORKSPACE_NAME=\"$original_workspace_name\"' | Set-Content -Path '$ORIGINAL_DIR\\.env'"
 else
-  echo "Unsupported OS. Unable to modify AZURE_ENDPOINT_NAME in the .env file."
+  echo "Unsupported OS. Unable to modify AZURE_ENDPOINT_NAME and AZURE_WORKSPACE_NAME in the .env file."
   exit 1
 fi
