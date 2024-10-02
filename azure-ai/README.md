@@ -50,13 +50,12 @@ If you want to run model_testing.py by changing the prompting, you can follow th
 
 2. copy a file named (model_testing.py)[https://github.com/GDP-ADMIN/codehub/blob/main/azure-ai/model_testing.py] and save it in your working folder. 
 3. Run the script \
-    **Binary python3**
-    ```bash
-      python3 model_testing.py
-    ```
-    **Binary python**
     ```bash
       python model_testing.py
+    ```
+    **or**
+    ```bash
+      python3 model_testing.py
     ```
 
 ## Included Scripts:
