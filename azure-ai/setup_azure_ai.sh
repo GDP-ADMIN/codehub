@@ -13,7 +13,7 @@ OS="$(uname -s 2>/dev/null || echo "Windows")"
 # Function to check if Python is installed
 check_python_installed() {
   case "$OS" in
-    CYGWIN*|MINGW*|MSYS*)
+    WINDOWS*|CYGWIN*|MINGW*|MSYS*)
       # On Windows-like systems (Cygwin, MinGW, MSYS)
       if command -v python &>/dev/null; then
         PYTHON_CMD="python"
