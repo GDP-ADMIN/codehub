@@ -62,8 +62,8 @@ install_python_windows() {
   # Set Execution Policy for PowerShell
   echo "Ensuring PowerShell Execution Policy is set to RemoteSigned..."
   powershell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
-  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.ps1" -OutFile "install_python.ps1"
-  ./install_python.ps1
+  powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.ps1' -OutFile 'install_python.ps1'"
+  powershell -File install_python.ps1
 }
 
 # OS-specific logic
@@ -75,7 +75,7 @@ case "$OS" in
       install_python_unix
     fi
     ;;
-  CYGWIN*|MINGW*|MSYS*)
+  CYGWIN*|MINGW*|MSYS*|Windows*)
     # For Windows-like systems
     echo "Detected Windows system ($OS)."
     if ! check_python_installed; then
@@ -198,7 +198,7 @@ case "$OS" in
     $PYTHON_CMD -m venv my_venv
     source my_venv/bin/activate
     ;;
-  CYGWIN*|MINGW*|MSYS*)
+  CYGWIN*|MINGW*|MSYS*|Windows*)
     # Create and activate a Python virtual environment on Windows systems
     echo "Creating and activating virtual environment for Windows..."
     $PYTHON_CMD -m venv my_venv
@@ -240,8 +240,14 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS specific sed command
   sed -i '' -e "/^AZURE_ENDPOINT_NAME=/c\\
 AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"" "$ORIGINAL_DIR/.env"
-else
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
   # Linux specific sed command
   sed -i "/^AZURE_ENDPOINT_NAME=/c\\
 AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"" "$ORIGINAL_DIR/.env"
+elif [[ "$OS" == "Windows_NT" || "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win"* ]]; then
+  # Windows PowerShell command to modify .env file
+  powershell -Command "(Get-Content -Path '$ORIGINAL_DIR\\.env') -replace '^AZURE_ENDPOINT_NAME=.*', 'AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"' | Set-Content -Path '$ORIGINAL_DIR\\.env'"
+else
+  echo "Unsupported OS. Unable to modify AZURE_ENDPOINT_NAME in the .env file."
+  exit 1
 fi
