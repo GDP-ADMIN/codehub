@@ -1,6 +1,6 @@
 #!/bin/bash
 # Version Script Information
-VERSION="1.0.1"
+VERSION="1.0.2"
 
 # Print Version Script Information
 echo "Running script version: $VERSION"
@@ -8,21 +8,42 @@ echo "Running script version: $VERSION"
 ORIGINAL_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Detect if the system is running on Windows or Unix
-OS="$(uname -s)"
+OS="$(uname -s 2>/dev/null || echo "Windows")"
+
 # Function to check if Python is installed
 check_python_installed() {
-  if command -v python3 &>/dev/null; then
-    PYTHON_CMD="python3"
-    echo "Python3 is already installed."
-    return 0
-  elif command -v python &>/dev/null; then
-    PYTHON_CMD="python"
-    echo "Python is already installed."
-    return 0
+  if [ "$OS" = "Windows" ]; then
+    # On Windows, check for 'python' first
+    if command -v python &>/dev/null; then
+      PYTHON_CMD="python"
+      echo "Python (likely Python 3) is already installed on Windows."
+      return 0
+    elif command -v python3 &>/dev/null; then
+      PYTHON_CMD="python3"
+      echo "Python3 is already installed on Windows."
+      return 0
+    else
+      return 1
+    fi
   else
-    return 1
+    # On Unix-like systems, prioritize 'python3'
+    if command -v python3 &>/dev/null; then
+      PYTHON_CMD="python3"
+      echo "Python3 is already installed."
+      return 0
+    elif command -v python &>/dev/null; then
+      PYTHON_CMD="python"
+      echo "Python is already installed."
+      return 0
+    else
+      return 1
+    fi
   fi
 }
+
+# Run the function
+check_python_installed
+
 
 # Function to install Python on Unix-based systems
 install_python_unix() {
@@ -163,13 +184,6 @@ fi
 # Check if AZURE_TENANT_ID is set
 if [ -z "$AZURE_TENANT_ID" ]; then
   echo "AZURE_TENANT_ID is not set in the .env file."
-  exit 1
-fi
-
-# Check if Python is installed
-$PYTHON_CMD --version &>/dev/null
-if [ $? -ne 0 ]; then
-  echo "Python 3.x is required. Please install Python 3."
   exit 1
 fi
 
