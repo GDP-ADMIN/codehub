@@ -8,6 +8,7 @@ Before running the scripts, ensure the following:
 2. **Azure Client ID & Client Secret**: Contact ticket@gdplabs.id to get access Azure Account (Client ID and Client Secret) with Azure AI Developer and gl-workspaces roles access
 3. **Setup environment variables**: Copy [.env.example](.env.example) and insert the value based on [Scope of Services](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.lfdykfqkf1d5), and save the file as `.env` on your working folder
 
+
 ## Setup and Installation
 1. **Run 1-click CLI script**
     - Linux, WSL and MacOS Version (UNIX)
