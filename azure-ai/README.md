@@ -68,18 +68,18 @@ If you want to run model_testing.py by changing the prompting, you can follow th
       ```bash
       source my_venv/Scripts/activate
       ```
-2. Update the `codehub/azure-ai/model_testing.py` file at line 28 in the `" {"role": "user", "content": "Hello, Who is the 4th President of Indonesia?"} " section.`
+2. Update the `codehub/azure-ai/model_testing.py` file at line 28 in the `" {"role": "user", "content": "Hello, Who is the 4th President of Indonesia?"} "` section.
     - Linux, WSL
       ```bash
-      sed -i 's/Hello, Siapa Presiden Indonesia ke-4 ?/Show Hello World ?/' codehub/azure-ai/model_testing.py
+      sed -i 's/Hello, Siapa Presiden Indonesia ke-4 ?/Show Hello World!/' codehub/azure-ai/model_testing.py
       ```
     - MacOS
       ```bash
-      sed -i '' 's/Hello, Siapa Presiden Indonesia ke-4 ?/Show Hello World ?/' codehub/azure-ai/model_testing.py
+      sed -i '' 's/Hello, Siapa Presiden Indonesia ke-4 ?/Show Hello World!/' codehub/azure-ai/model_testing.py
       ```
     - Windows PowerShell
       ```bash
-      (Get-Content "codehub/azure-ai/model_testing.py") -replace 'Hello, Siapa Presiden Indonesia ke-4 ?', 'Show Hello World ?' | Set-Content "codehub/azure-ai/model_testing.py"
+      (Get-Content "codehub/azure-ai/model_testing.py") -replace 'Hello, Siapa Presiden Indonesia ke-4 ?', 'Show Hello World!' | Set-Content "codehub/azure-ai/model_testing.py"
       ```
 3. Run the script 
     - Linux, WSL and MacOS Version (UNIX)
@@ -101,20 +101,20 @@ If you want to run model_testing.py by changing the prompting, you can follow th
                 "finish_reason": "stop",
                 "index": 0,
                 "message": {
-                    "content": "A classic request!\n\nHere is a traditional \"Hello, World!\" message:\n\n**Hello, World!**\n\nI hope that brings a smile to your face!",
+                    "content": "Hello World!",
                     "role": "assistant",
                     "tool_calls": []
                 }
             }
         ],
-        "created": 1727961028,
-        "id": "cmpl-eb9724cdd8604227bc7e22a7744f3b99",
+        "created": 1727961476,
+        "id": "cmpl-08ecbc31829140649b87fcf00022f413",
         "model": "Meta-Llama-3-8B-Instruct",
         "object": "chat.completion",
         "usage": {
-            "completion_tokens": 32,
+            "completion_tokens": 4,
             "prompt_tokens": 25,
-            "total_tokens": 57
+            "total_tokens": 29
         }
     }
     </pre>
