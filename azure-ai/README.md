@@ -66,7 +66,7 @@ If you want to run model_testing.py by changing the prompting, you can follow th
       ```bash
       python codehub/azure-ai/model_testing.py
       ```
-4. Example of prompt requests
+4. Example of prompt requests \
     `data = {
   "model": os.getenv("AZURE_LLM_MODEL"),  # Model name from .env file
   "messages": [
@@ -77,7 +77,7 @@ If you want to run model_testing.py by changing the prompting, you can follow th
   "temperature": 0.7  # Control randomness; optional
 }`
 
-5. Example of successful requests
+5. Example of successful requests \
     `API Endpoint: https://dso-ai-endpoint-user-name-email-gdplabs-meta-llama-3-8b-in.eastus2.models.ai.azure.com/chat/completions
 Chat response:  {'choices': [{'finish_reason': 'length', 'index': 0, 'message': {'content': 'A classic request!\n\nHere is a simple "Hello World" program in a few popular programming languages:\n\n**C**\n```c\n#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}\n```\n\n**Java**\n```java\npublic class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}\n```\n\n**Python**\n```python\nprint("Hello, World!")\n```\n\n', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727938380, 'id': 'cmpl-b6d6a0a551a44b8b99a4049979c73403', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 100, 'prompt_tokens': 25, 'total_tokens': 125}}`
 
