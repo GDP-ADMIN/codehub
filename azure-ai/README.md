@@ -27,14 +27,14 @@ Before running the scripts, ensure the following:
 
 3. Example of successful requests
     ```
-    Endpoint URL: https://dso-ai-endpoint-<user-name-email-gdplabs>-meta-llama-3-8b-in.eastus2.models.ai.azure.com
-    API Endpoint: https://dso-ai-endpoint-<user-name-email-gdplabs>-meta-llama-3-8b-in.eastus2.models.ai.azure.com/chat/completions
-    Chat response:  {'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': 'Hello!\n\nThe 4th President of Indonesia is Abdul Haris Nasution.', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727937672, 'id': 'cmpl-05a37956aea3401799cecf8180e90235', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 17, 'prompt_tokens': 32, 'total_tokens': 49}}
+    Endpoint URL: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com
+    API Endpoint: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
+    Chat response:  {'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': "Halo!\n\nThe 4th President of Indonesia is Abdul Halim Muafiah. However, he only served as acting President for a short period of time, from March 16, 1963, to July 21, 1963.\n\nIf you're looking for the 4th President who served a full term, it would be Sukarno. He was the 1st President of Indonesia from 1945 to 1967.", 'role': 'assistant', 'tool_calls': []}}], 'created': 1727958018, 'id': 'cmpl-751b79fc8a334e99b99c675c193c60aa', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 93, 'prompt_tokens': 32, 'total_tokens': 125}}
     ```
 
-**Notes** : Execution time < 3 minutes
+**Notes** : Execution time will take about 2 to 5 minutes depending your internet connection
 
-## (Optional) TEST THE DEPLOYED MODEL
+## (Optional) Test the Deployed Model
 If you want to run model_testing.py by changing the prompting, you can follow this flow.
 1. Ensure you have .env files with value based on the Scope of Services, my_venv folder in your working directory and already activated my_venv.   
     - Linux, WSL and MacOS Version (UNIX)
@@ -49,15 +49,15 @@ If you want to run model_testing.py by changing the prompting, you can follow th
 2. Update the `codehub/azure-ai/model_testing.py` file at line 28 in the `" {"role": "user", "content": "Hello, Who is the 4th President of Indonesia?"} " section.`
     - Linux, WSL
       ```bash
-      sed -i 's/Hello, Siapa Presiden Indonesia ke-4 ?/**Create Hello World** ?/' codehub/azure-ai/model_testing.py
+      sed -i 's/Hello, Siapa Presiden Indonesia ke-4 ?/Show Hello World ?/' codehub/azure-ai/model_testing.py
       ```
     - MacOS
       ```bash
-      sed -i '' 's/Hello, Siapa Presiden Indonesia ke-4 ?/**Create Hello World** ?/' codehub/azure-ai/model_testing.py
+      sed -i '' 's/Hello, Siapa Presiden Indonesia ke-4 ?/Show Hello World ?/' codehub/azure-ai/model_testing.py
       ```
     - Windows PowerShell
       ```bash
-      (Get-Content "codehub/azure-ai/model_testing.py") -replace 'Hello, Siapa Presiden Indonesia ke-4 ?', '**Create Hello World** ?' | Set-Content "codehub/azure-ai/model_testing.py"
+      (Get-Content "codehub/azure-ai/model_testing.py") -replace 'Hello, Siapa Presiden Indonesia ke-4 ?', 'Show Hello World ?' | Set-Content "codehub/azure-ai/model_testing.py"
       ```
 3. Run the script 
     - Linux, WSL and MacOS Version (UNIX)
@@ -73,7 +73,7 @@ If you want to run model_testing.py by changing the prompting, you can follow th
   "model": os.getenv("AZURE_LLM_MODEL"),  # Model name from .env file
   "messages": [
       {"role": "system", "content": "You are a helpful assistant."},
-      {"role": "user", "content": "**Create Hello World** ?"}
+      {"role": "user", "content": "Show Hello World ?"}
   ],
   "max_tokens": 100,  # Example for setting a token limit
   "temperature": 0.7  # Control randomness; optional
