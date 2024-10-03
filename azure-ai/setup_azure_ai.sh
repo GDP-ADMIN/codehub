@@ -193,12 +193,6 @@ else
   exit 1
 fi
 
-# Check if AZURE_TENANT_ID is set
-if [ -z "$AZURE_TENANT_ID" ]; then
-  echo "AZURE_TENANT_ID is not set in the .env file."
-  exit 1
-fi
-
 # Create and activate a Python virtual environment based on OS
 case "$OS" in
   Linux*|Darwin*)

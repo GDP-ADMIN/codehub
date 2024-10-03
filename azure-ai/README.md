@@ -45,13 +45,17 @@ If you want to run model_testing.py by changing the prompting, you can follow th
       source my_venv/Scripts/activate
       ```
 2. Update the codehub/azure-ai/model_testing.py file at line 28 in the " {"role": "user", "content": "Hello, Who is the 4th President of Indonesia?"} " section.
-    - Linux, WSL and MacOS Version (UNIX)
+    - Linux specific sed command 
       ```bash
       sed -i 's/Hello, Siapa Presiden Indonesia ke-4 ?/**Create Hello World** ?/' codehub/azure-ai/model_testing.py
       ```
-    - Windows Version
+    - macOS specific sed command
       ```bash
-      sed -i '28s/Hello, Who is the 4th President of Indonesia?/**Create Hello World** ?/' codehub/azure-ai/model_testing.py
+      sed -i '' 's/Hello, Siapa Presiden Indonesia ke-4 ?/**Create Hello World** ?/' codehub/azure-ai/model_testing.py
+      ```
+    - Windows PowerShell command
+      ```bash
+      (Get-Content "codehub/azure-ai/model_testing.py") -replace 'Hello, Siapa Presiden Indonesia ke-4 ?', '**Create Hello World** ?' | Set-Content "codehub/azure-ai/model_testing.py"
       ```
 3. Run the script 
     - Linux, WSL and MacOS Version (UNIX)
