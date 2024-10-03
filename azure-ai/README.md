@@ -26,7 +26,7 @@ Before running the scripts, ensure the following:
    Choose **2** For *Phi-3.5-vision-instruct* model
 
 3. Example of successful requests
-    > Endpoint URL: https://dso-ai-endpoint-bukhori-m-baihaqi-meta-llama-3-8b-in.eastus2.models.ai.azure.com
+    > Endpoint URL: https://dso-ai-endpoint-<user-name-email-gdp labs>-meta-llama-3-8b-in.eastus2.models.ai.azure.com
 API Endpoint: https://dso-ai-endpoint-bukhori-m-baihaqi-meta-llama-3-8b-in.eastus2.models.ai.azure.com/chat/completions
 Chat response:  {'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': 'Hello!\n\nThe 4th President of Indonesia is Abdul Haris Nasution.', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727937672, 'id': 'cmpl-05a37956aea3401799cecf8180e90235', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 17, 'prompt_tokens': 32, 'total_tokens': 49}}
 
@@ -44,7 +44,16 @@ If you want to run model_testing.py by changing the prompting, you can follow th
       ```bash
       source my_venv/Scripts/activate
       ```
-2. Run the script 
+2. Update the codehub/azure-ai/model_testing.py file at line 28 in the " {"role": "user", "content": "Hello, Who is the 4th President of Indonesia?"} " section.
+    - Linux, WSL and MacOS Version (UNIX)
+      ```bash
+      sed -i 's/Hello, Siapa Presiden Indonesia ke-4 ?/**Create Hello World** ?/' codehub/azure-ai/model_testing.py
+      ```
+    - Windows Version
+      ```bash
+      sed -i '28s/Hello, Who is the 4th President of Indonesia?/**Create Hello World** ?/' codehub/azure-ai/model_testing.py
+      ```
+3. Run the script 
     - Linux, WSL and MacOS Version (UNIX)
       ```bash
       python3 codehub/azure-ai/model_testing.py
@@ -53,7 +62,7 @@ If you want to run model_testing.py by changing the prompting, you can follow th
       ```bash
       python codehub/azure-ai/model_testing.py
       ```
-3. Example of prompt requests
+4. Example of prompt requests
     > data = {
   "model": os.getenv("AZURE_LLM_MODEL"),  # Model name from .env file
   "messages": [
@@ -64,8 +73,8 @@ If you want to run model_testing.py by changing the prompting, you can follow th
   "temperature": 0.7  # Control randomness; optional
 }
 
-4. Example of successful requests
-    > API Endpoint: https://dso-ai-endpoint-bukhori-m-baihaqi-meta-llama-3-8b-in.eastus2.models.ai.azure.com/chat/completions
+5. Example of successful requests
+    > API Endpoint: https://dso-ai-endpoint-<user-name-email-gdp labs>-meta-llama-3-8b-in.eastus2.models.ai.azure.com/chat/completions
 Chat response:  {'choices': [{'finish_reason': 'length', 'index': 0, 'message': {'content': 'A classic request!\n\nHere is a simple "Hello World" program in a few popular programming languages:\n\n**C**\n```c\n#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}\n```\n\n**Java**\n```java\npublic class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}\n```\n\n**Python**\n```python\nprint("Hello, World!")\n```\n\n', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727938380, 'id': 'cmpl-b6d6a0a551a44b8b99a4049979c73403', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 100, 'prompt_tokens': 25, 'total_tokens': 125}}
 
 
