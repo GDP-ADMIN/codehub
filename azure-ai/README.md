@@ -26,7 +26,7 @@ Before running the scripts, ensure the following:
    Choose **2** For *Phi-3.5-vision-instruct* model
 
 3. Example of successful requests
-    ```
+    <pre>
     Endpoint URL: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com
     API Endpoint: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
     Chat response:  {'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': "Halo!\n\nThe 4th President of Indonesia 
@@ -34,7 +34,7 @@ Before running the scripts, ensure the following:
     \n\nIf you're looking for the 4th President who served a full term, it would be Sukarno. He was the 1st President 
     of Indonesia from 1945 to 1967.", 'role': 'assistant', 'tool_calls': []}}], 'created': 1727958018, 'id': 'cmpl-751b79fc8a334e99b99c675c193c60aa',
      'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 93, 'prompt_tokens': 32, 'total_tokens': 125}}
-    ```
+    </pre>
 
 **Notes** : Execution time will take about 2 to 5 minutes depending your internet connection
 
