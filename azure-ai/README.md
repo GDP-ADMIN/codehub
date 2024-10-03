@@ -80,8 +80,10 @@ If you want to run model_testing.py by changing the prompting, you can follow th
 }`
 
 5. Example of successful requests \
-    `API Endpoint: https://dso-ai-endpoint-user-name-email-gdplabs-meta-llama-3-8b-in.eastus2.models.ai.azure.com/chat/completions
-Chat response:  {'choices': [{'finish_reason': 'length', 'index': 0, 'message': {'content': 'A classic request!\n\nHere is a simple "Hello World" program in a few popular programming languages:\n\n**C**\n```c\n#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}\n```\n\n**Java**\n```java\npublic class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}\n```\n\n**Python**\n```python\nprint("Hello, World!")\n```\n\n', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727938380, 'id': 'cmpl-b6d6a0a551a44b8b99a4049979c73403', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 100, 'prompt_tokens': 25, 'total_tokens': 125}}`
+    ```
+    API Endpoint: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
+Chat response:  {'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': 'Here is the classic "Hello World" output:\n\n**Hello World!**\n\nI hope you\'re having a great day! Is there anything else I can help you with?', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727958396, 'id': 'cmpl-0ccc32e9a87c432f925514ecd44066c9', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 35, 'prompt_tokens': 25, 'total_tokens': 60}}
+    ```
 
 
 ## Included Scripts:
