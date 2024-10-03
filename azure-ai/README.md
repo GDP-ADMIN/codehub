@@ -27,8 +27,8 @@ Before running the scripts, ensure the following:
 
 3. Example of successful requests
     <pre>
-    Endpoint URL: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com
-    API Endpoint: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
+    Endpoint URL: https://dso-ai-workspaces-&lt;user-name-email-gdplabs&gt;-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com
+    API Endpoint: https://dso-ai-workspaces-&lt;user-name-email-gdplabs&gt;-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
     Chat response:
     {
         "choices": [
@@ -93,7 +93,7 @@ If you want to run model_testing.py by changing the prompting, you can follow th
 
 4. Example of successful requests
     <pre>
-    API Endpoint: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
+    API Endpoint: https://dso-ai-workspaces-&lt;user-name-email-gdplabs&gt;-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
     Chat response:
     {
         "choices": [
