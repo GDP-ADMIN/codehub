@@ -74,14 +74,10 @@ If you want to run model_testing.py by changing the prompting, you can follow th
       ```
 
 4. Example of successful requests
-    ```
+    <pre>
     API Endpoint: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
-    Chat response:  {'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': 'Here is the classic 
-    "Hello World" output:\n\n**Hello World!**\n\nI hope you\'re having a great day! Is there anything else I can help 
-    you with?', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727958396, 'id': 'cmpl-0ccc32e9a87c432f925514ecd44066c9', 
-    'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 
-    'usage': {'completion_tokens': 35, 'prompt_tokens': 25, 'total_tokens': 60}}
-    ```
+    Chat response:  {'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': 'Here is the classic "Hello World" output:\n\n**Hello World!**\n\nI hope you\'re having a great day! Is there anything else I can help you with?', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727958396, 'id': 'cmpl-0ccc32e9a87c432f925514ecd44066c9', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 35, 'prompt_tokens': 25, 'total_tokens': 60}}
+    </pre>
 
 
 ## Included Scripts:
