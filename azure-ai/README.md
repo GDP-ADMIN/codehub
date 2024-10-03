@@ -29,7 +29,29 @@ Before running the scripts, ensure the following:
     <pre>
     Endpoint URL: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com
     API Endpoint: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
-    Chat response:  {'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': "Halo!\n\nThe 4th President of Indonesia is Abdul Halim Muafiah. However, he only served as acting President for a short period of time, from March 16, 1963, to July 21, 1963.\n\nIf you're looking for the 4th President who served a full term, it would be Sukarno. He was the 1st President of Indonesia from 1945 to 1967.", 'role': 'assistant', 'tool_calls': []}}], 'created': 1727958018, 'id': 'cmpl-751b79fc8a334e99b99c675c193c60aa','model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 93, 'prompt_tokens': 32, 'total_tokens': 125}}
+    Chat response:
+    {
+        "choices": [
+            {
+                "finish_reason": "stop",
+                "index": 0,
+                "message": {
+                    "content": "Hello!\n\nThe 4th President of Indonesia was Abdurrahman Wahid, also known as Gus Dur. He served from May 20, 1999, to July 23, 2001.",
+                    "role": "assistant",
+                    "tool_calls": []
+                }
+            }
+        ],
+        "created": 1727960766,
+        "id": "cmpl-e88b41d8aa384f51bf827af09a722dcb",
+        "model": "Meta-Llama-3-8B-Instruct",
+        "object": "chat.completion",
+        "usage": {
+            "completion_tokens": 44,
+            "prompt_tokens": 32,
+            "total_tokens": 76
+        }
+    }
     </pre>
 
 **Notes** : Execution time will take about 2 to 5 minutes depending your internet connection
@@ -72,7 +94,29 @@ If you want to run model_testing.py by changing the prompting, you can follow th
 4. Example of successful requests
     <pre>
     API Endpoint: https://dso-ai-workspaces-<user-name-email-gdplabs>-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
-    Chat response:  {'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': 'Here is the classic "Hello World" output:\n\n**Hello World!**\n\nI hope you\'re having a great day! Is there anything else I can help you with?', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727958396, 'id': 'cmpl-0ccc32e9a87c432f925514ecd44066c9', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 35, 'prompt_tokens': 25, 'total_tokens': 60}}
+    Chat response:
+    {
+        "choices": [
+            {
+                "finish_reason": "stop",
+                "index": 0,
+                "message": {
+                    "content": "A classic request!\n\nHere is a traditional \"Hello, World!\" message:\n\n**Hello, World!**\n\nI hope that brings a smile to your face!",
+                    "role": "assistant",
+                    "tool_calls": []
+                }
+            }
+        ],
+        "created": 1727961028,
+        "id": "cmpl-eb9724cdd8604227bc7e22a7744f3b99",
+        "model": "Meta-Llama-3-8B-Instruct",
+        "object": "chat.completion",
+        "usage": {
+            "completion_tokens": 32,
+            "prompt_tokens": 25,
+            "total_tokens": 57
+        }
+    }
     </pre>
 
 
