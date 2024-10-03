@@ -37,7 +37,9 @@ try:
 
   # Check if the request was successful
   if response.status_code == 200:
-      print("Chat response: ", response.json())
+      # Pretty-print the JSON response with indentation
+      chat_response = response.json()
+      print("Chat response:\n", json.dumps(chat_response, indent=4))
   else:
       print(f"Failed to connect. Status code: {response.status_code}")
       print("Response: ", response.text)
