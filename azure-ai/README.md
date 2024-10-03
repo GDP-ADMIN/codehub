@@ -26,9 +26,11 @@ Before running the scripts, ensure the following:
    Choose **2** For *Phi-3.5-vision-instruct* model
 
 3. Example of successful requests
-  - Endpoint URL: `https://dso-ai-endpoint-<user-name-email-gdplabs>-meta-llama-3-8b-in.eastus2.models.ai.azure.com`
-  - API Endpoint: `https://dso-ai-endpoint-<user-name-email-gdplabs>-meta-llama-3-8b-in.eastus2.models.ai.azure.com/chat/completions`
-  - Chat response: `{'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': 'Hello!\n\nThe 4th President of Indonesia is Abdul Haris Nasution.', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727937672, 'id': 'cmpl-05a37956aea3401799cecf8180e90235', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 17, 'prompt_tokens': 32, 'total_tokens': 49}}`
+    <pre><code>
+    Endpoint URL: https://dso-ai-endpoint-<user-name-email-gdplabs>-meta-llama-3-8b-in.eastus2.models.ai.azure.com
+    API Endpoint: https://dso-ai-endpoint-<user-name-email-gdplabs>-meta-llama-3-8b-in.eastus2.models.ai.azure.com/chat/completions
+    Chat response:  {'choices': [{'finish_reason': 'stop', 'index': 0, 'message': {'content': 'Hello!\n\nThe 4th President of Indonesia is Abdul Haris Nasution.', 'role': 'assistant', 'tool_calls': []}}], 'created': 1727937672, 'id': 'cmpl-05a37956aea3401799cecf8180e90235', 'model': 'Meta-Llama-3-8B-Instruct', 'object': 'chat.completion', 'usage': {'completion_tokens': 17, 'prompt_tokens': 32, 'total_tokens': 49}}
+    </code></pre>
 
 **Notes** : Execution time < 3 minutes
 
