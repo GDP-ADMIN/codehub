@@ -25,6 +25,7 @@ Notes : We hide ticket email addresses to prevent phishing and spamming.
    Choose **2** For *Phi-3.5-vision-instruct* model
 
 3. Example of successful requests
+    **Notes** : Execution time will take about 2 to 5 minutes depending your internet connection
     <pre>
     Endpoint URL: https://dso-ai-workspaces-&lt;user-name-email-gdplabs&gt;-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com
     API Endpoint: https://dso-ai-workspaces-&lt;user-name-email-gdplabs&gt;-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
@@ -52,8 +53,6 @@ Notes : We hide ticket email addresses to prevent phishing and spamming.
         }
     }
     </pre>
-
-**Notes** : Execution time will take about 2 to 5 minutes depending your internet connection
 
 ## (Optional) Test the Deployed Model
 If you want to run model_testing.py by changing the prompting, you can follow this flow.
@@ -133,7 +132,7 @@ Deploys a machine learning model to an Azure Serverless API and sets up an endpo
 Sends a test HTTP request to the serverless endpoint to validate the model deployment.
 
 ## References
-1. **Documentation**: Review the [Azure AI: Serverless API Endpoint](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit?usp=sharing) document for additional details
+1. Documentation : [Azure AI: Serverless API Endpoint](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit?usp=sharing)
 
 ## Notes
 If you experience any problems, please do not hesitate to contact us at ticket@gdplabs.id
