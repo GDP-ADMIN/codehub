@@ -1,13 +1,11 @@
 # Azure AI Hub and Serverless Model Deployment
-
 This project contains scripts to set up and manage Azure AI Hub, Azure Machine Learning Workspaces, and deploy models via Azure Serverless API endpoints.
 
 ## Prerequisites
 Before running the scripts, ensure the following:
-1. **(Optional) Documentation**: Review the [Azure AI: Serverless API Endpoint](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit?usp=sharing) document for additional details
-2. **Azure Client ID & Client Secret**: Contact our [ticket system](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.3bryigm0r34y) to get access Azure Account (Client ID and Client Secret) with Azure AI Developer and gl-workspaces roles access \
+1. **Azure Client ID & Client Secret**: Contact our [ticket system](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.3bryigm0r34y) to get access Azure Account (Client ID and Client Secret) with Azure AI Developer and gl-workspaces roles access \
 Notes : We hide ticket email addresses to prevent phishing and spamming.
-3. **Setup environment variables**: Copy [.env.example](.env.example) and insert the value based on [Scope of Services](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.lfdykfqkf1d5), and save the file as `.env` on your working folder
+2. **Setup environment variables**: Copy [.env.example](.env.example) and insert the value based on [Scope of Services](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.lfdykfqkf1d5), and save the file as `.env` on your working folder
 
 ## Setup and Installation
 1. **Run 1-click CLI script**
@@ -133,6 +131,9 @@ Deploys a machine learning model to an Azure Serverless API and sets up an endpo
 
 - [model_testing.py](model_testing.py) : Tests the deployed model via an HTTP request to the Azure Serverless API \
 Sends a test HTTP request to the serverless endpoint to validate the model deployment.
+
+## References
+1. **Documentation**: Review the [Azure AI: Serverless API Endpoint](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit?usp=sharing) document for additional details
 
 ## Notes
 If you experience any problems, please do not hesitate to contact us at ticket@gdplabs.id
