@@ -5,7 +5,7 @@ This project contains scripts to set up and manage Azure AI Hub, Azure Machine L
 Before running the scripts, ensure the following:
 1. **Azure Client ID & Client Secret**: Contact our [ticket system](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.3bryigm0r34y) to get access Azure Account (Client ID and Client Secret) with Azure AI Developer and gl-workspaces roles access \
 Notes : We hide ticket email addresses to prevent phishing and spamming.
-2. **Setup environment variables**: Copy [.env.example](.env.example) and insert the value based on [Scope of Services](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.lfdykfqkf1d5), and save the file as `.env` on your working folder
+2. **Setup environment variables**: Copy [.env.example](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.bxaf2a790acn) and insert the value based on [Scope of Services](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.lfdykfqkf1d5), and save the file as `.env` on your working folder
 
 ## Setup and Installation
 1. **Run 1-click CLI script**
