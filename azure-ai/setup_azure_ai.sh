@@ -270,12 +270,24 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
 AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"" "$ORIGINAL_DIR/.env"
   sed -i "/^AZURE_WORKSPACE_NAME=/c\\
 AZURE_WORKSPACE_NAME=\"$original_workspace_name\"" "$ORIGINAL_DIR/.env"
-elif [[ "$OS" == "Windows_NT" || "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win"* ]]; then
-  # Windows PowerShell command to modify .env file
-  # Use escaped paths and double backslashes
-  windows_env_path=$(echo "$ORIGINAL_DIR/.env" | sed 's|/|\\|g')
+elif [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win"* || "$OSTYPE" == "MINGW"* ]]; then
+  # Windows and MINGW PowerShell command to modify .env file
+
+  # Convert the path to Windows format using built-in Git Bash conversion
+  windows_env_path=$(cygpath -w "$ORIGINAL_DIR/.env")
+
+  # Check if the path conversion was successful
+  if [ -z "$windows_env_path" ]; then
+    echo "ERROR: Failed to convert the path to Windows format. Please check the .env file path."
+    exit 1
+  fi
+
+  echo "Using Windows path for .env: $windows_env_path"
+
+  # Use PowerShell commands to update the .env file
   powershell -Command "(Get-Content -Path '$windows_env_path') -replace '^AZURE_ENDPOINT_NAME=.*', 'AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"' | Set-Content -Path '$windows_env_path'"
   powershell -Command "(Get-Content -Path '$windows_env_path') -replace '^AZURE_WORKSPACE_NAME=.*', 'AZURE_WORKSPACE_NAME=\"$original_workspace_name\"' | Set-Content -Path '$windows_env_path'"
+
 else
   echo "Unsupported OS. Unable to modify AZURE_ENDPOINT_NAME and AZURE_WORKSPACE_NAME in the .env file."
   exit 1
