@@ -1,6 +1,6 @@
 #!/bin/bash
 # Version Script Information
-VERSION="1.0.3"
+VERSION="1.0.4"
 
 # Print Version Script Information
 echo "Running script version: $VERSION"
@@ -48,7 +48,22 @@ check_python_installed() {
   esac
 }
 
-# Function to install Python on Unix-based systems
+# Function to install Python3 and venv on Debian/Ubuntu-based systems
+install_python3_venv() {
+  echo "Python3 or python3-venv not found. Installing necessary packages..."
+  if [[ "$OS" == "Linux" ]]; then
+    sudo apt update
+    sudo apt install -y python3 python3-venv
+    if [ $? -eq 0 ]; then
+      echo "Successfully installed python3 and python3-venv."
+    else
+      echo "Failed to install python3 or python3-venv. Exiting..."
+      exit 1
+    fi
+  fi
+}
+
+# Function to install Python on Unix-based systems (if not already installed)
 install_python_unix() {
   echo "Python not found. Installing Python on Unix-like system..."
   curl -O https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.sh
@@ -70,6 +85,12 @@ case "$OS" in
     echo "Detected Unix-like system ($OS)."
     if ! check_python_installed; then
       install_python_unix
+    else
+      # Check if python3-venv is installed, and install if not
+      if ! dpkg -s python3-venv >/dev/null 2>&1; then
+        echo "python3-venv is not installed. Installing it now..."
+        install_python3_venv
+      fi
     fi
     ;;
   CYGWIN*|MINGW*|MSYS*|Windows*)
