@@ -28,8 +28,8 @@ Notes : We hide ticket email addresses to prevent phishing and spamming.
 
 3. Example of successful requests \
     <pre>
-    Endpoint URL: https://&lt;AZURE_WORKSPACE_NAME&gt;-workspaces-&lt;user-name-email-gdplabs&gt;-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com
-    API Endpoint: https://&lt;AZURE_WORKSPACE_NAME&gt;-workspaces-&lt;user-name-email-gdplabs&gt;-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
+    Endpoint URL: https://&lt;AZURE_WORKSPACE_NAME&gt;-workspaces-&lt;user-name-email-gdplabs&gt;-&lt;model-choosen&gt;.eastus2.models.ai.azure.com
+    API Endpoint: https://&lt;AZURE_WORKSPACE_NAME&gt;-workspaces-&lt;user-name-email-gdplabs&gt;-&lt;model-choosen&gt;.eastus2.models.ai.azure.com/chat/completions
     Chat response:
     {
         "choices": [
@@ -45,7 +45,7 @@ Notes : We hide ticket email addresses to prevent phishing and spamming.
         ],
         "created": 1727960766,
         "id": "cmpl-e88b41d8aa384f51bf827af09a722dcb",
-        "model": "Meta-Llama-3-8B-Instruct",
+        "model": "&lt;model-choosen&gt;",
         "object": "chat.completion",
         "usage": {
             "completion_tokens": 44,
@@ -92,7 +92,7 @@ If you want to run model_testing.py by changing the prompting, you can follow th
 
 4. Example of successful requests
     <pre>
-    API Endpoint: https://&lt;AZURE_WORKSPACE_NAME&gt;-workspaces-&lt;user-name-email-gdplabs&gt;-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
+    API Endpoint: https://&lt;AZURE_WORKSPACE_NAME&gt;-workspaces-&lt;user-name-email-gdplabs&gt;-&lt;model-choosen&gt;.eastus2.models.ai.azure.com/chat/completions
     Chat response:
     {
         "choices": [
@@ -108,7 +108,7 @@ If you want to run model_testing.py by changing the prompting, you can follow th
         ],
         "created": 1727961476,
         "id": "cmpl-08ecbc31829140649b87fcf00022f413",
-        "model": "Meta-Llama-3-8B-Instruct",
+        "model": "&lt;model-choosen&gt;",
         "object": "chat.completion",
         "usage": {
             "completion_tokens": 4,

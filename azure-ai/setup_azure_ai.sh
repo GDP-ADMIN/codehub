@@ -251,8 +251,10 @@ AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"" "$ORIGINAL_DIR/.env"
 AZURE_WORKSPACE_NAME=\"$original_workspace_name\"" "$ORIGINAL_DIR/.env"
 elif [[ "$OS" == "Windows_NT" || "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win"* ]]; then
   # Windows PowerShell command to modify .env file
-  powershell -Command "(Get-Content -Path '$ORIGINAL_DIR\\.env') -replace '^AZURE_ENDPOINT_NAME=.*', 'AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"' | Set-Content -Path '$ORIGINAL_DIR\\.env'"
-  powershell -Command "(Get-Content -Path '$ORIGINAL_DIR\\.env') -replace '^AZURE_WORKSPACE_NAME=.*', 'AZURE_WORKSPACE_NAME=\"$original_workspace_name\"' | Set-Content -Path '$ORIGINAL_DIR\\.env'"
+  # Use escaped paths and double backslashes
+  windows_env_path=$(echo "$ORIGINAL_DIR/.env" | sed 's|/|\\|g')
+  powershell -Command "(Get-Content -Path '$windows_env_path') -replace '^AZURE_ENDPOINT_NAME=.*', 'AZURE_ENDPOINT_NAME=\"$original_endpoint_name\"' | Set-Content -Path '$windows_env_path'"
+  powershell -Command "(Get-Content -Path '$windows_env_path') -replace '^AZURE_WORKSPACE_NAME=.*', 'AZURE_WORKSPACE_NAME=\"$original_workspace_name\"' | Set-Content -Path '$windows_env_path'"
 else
   echo "Unsupported OS. Unable to modify AZURE_ENDPOINT_NAME and AZURE_WORKSPACE_NAME in the .env file."
   exit 1
