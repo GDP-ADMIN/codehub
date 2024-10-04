@@ -24,8 +24,9 @@ Notes : We hide ticket email addresses to prevent phishing and spamming.
    Choose **1** For *Meta-Llama-3-8B-Instruct* model \
    Choose **2** For *Phi-3.5-vision-instruct* model
 
+   **Notes** : Execution time will take about 2 to 5 minutes depending your internet connection
+
 3. Example of successful requests \
-    **Notes** : Execution time will take about 2 to 5 minutes depending your internet connection
     <pre>
     Endpoint URL: https://dso-ai-workspaces-&lt;user-name-email-gdplabs&gt;-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com
     API Endpoint: https://dso-ai-workspaces-&lt;user-name-email-gdplabs&gt;-meta-llama-3-8b-instruct.eastus2.models.ai.azure.com/chat/completions
