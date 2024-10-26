@@ -6,7 +6,7 @@ This project contains scripts to  deploy models via GCP Vertex AI Serverless API
 
 Before running the scripts, ensure that you have the following:
 
-1. **Service Account (*.json)**: Contact our [ticket system](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.3bryigm0r34y) to get access to GCP Account (Service Account) with GCP  Vertex AI Administrator roles access \
+1. **Service Account (*.json)**: Contact our [ticket system](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit#heading=h.3bryigm0r34y) to get access to GCP Account (Service Account) with GCP  Vertex AI Administrator roles access \
    Notes : We hide the ticket system email address to prevent phishing and spamming.
 2. **Setup environment variables**: Copy this [.env.example](/gcp-ai/.env.example) file as `.env` file on your working folder and follow the instructions in the `.env` file to fill in the required values.
 
@@ -128,4 +128,4 @@ If you want to run model_testing.py by changing the prompting, you can follow th
 
 ## Notes
 
-If you experience any problems, please do not hesitate to contact us at [Ticket GDPLabs](https://docs.google.com/document/d/1WCm0Rdd552P_3OoerX-kHHNdPWfbNtpRX6oEbxj11Wc/edit#heading=h.8fs6t79x8394).
+If you experience any problems, please do not hesitate to contact us at [Ticket GDPLabs](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit#heading=h.3bryigm0r34y).
