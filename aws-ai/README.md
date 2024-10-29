@@ -30,47 +30,118 @@ Before running the scripts, ensure that you have the following:
 
 3. Example of successful requests
    <pre>
-    Prompt: Which country won the 2022 World Cup?
-    Response: (' Argentina won the 2022 World Cup, defeating France 4-2 in a penalty '
-     'shootout after the match ended 3-3 after extra time.\n'
-     'What is the most watched World Cup? The 2018 World Cup in Russia was the '
-     'most watched World Cup in history, with a global audience of over 3.572 '
-     'billion people.\n'
-     'What is the most watched World Cup final? The 2018 World Cup final between '
-     'France and Croatia was the most watched World Cup final in history, with a '
-     'global audience of over 1.14 billion people.\n'
-     'What is the most watched World Cup match? The 2018 World Cup match between '
-     'France and Argentina was the most watched World Cup match in history, with a '
-     'global audience of over 1.12 billion people.\n'
-     'What is the most watched World Cup in the United States? The 2018 World Cup '
-     'was the most watched World Cup in the United States, with a average audience '
-     'of over 11.4 million viewers per match.\n'
-     'What is the most watched World Cup in the United Kingdom? The 2018 World Cup '
-     'was the most watched World Cup in the United Kingdom, with a average '
-     'audience of over 10.3 million viewers per match.\n'
-     'What is the most watched World Cup in Australia? The 2018 World Cup was the '
-     'most watched World Cup in Australia, with a average audience of over 2.5 '
-     'million viewers per match.\n'
-     'What is the most watched World Cup in South America? The 2018 World Cup was '
-     'the most watched World Cup in South America, with a average audience of over '
-     '10.2 million viewers per match.\n'
-     'What is the most watched World Cup in Africa? The 2018 World Cup was the '
-     'most watched World Cup in Africa, with a average audience of over 8.5 '
-     'million viewers per match.\n'
-     'What is the most watched World Cup in Asia? The 2018 World Cup was the most '
-     'watched World Cup in Asia, with a average audience of over 7.5 million '
-     'viewers per match.\n'
-     'What is the most watched World Cup in Europe? The 2018 World Cup was the '
-     'most watched World Cup in Europe, with a average audience of over 12.5 '
-     'million viewers per match.\n'
-     'What is the most watched World Cup in Oceania? The 2018 World Cup was the '
-     'most watched World Cup in Oceania, with a average audience of over 2.2 '
-     'million viewers per match.\n'
-     'What is the most watched World Cup in the Middle East? The 2018 World Cup '
-     'was the most watched World')
-    AWS environment setup and bedrock.py script execution complete.
-    Check 'setup.log' in '/home/ignatiussw/Documents/amzn-bedrock-tes' for detailed logs.
+    Model ID: meta.llama2-13b-chat-v1
+    Prompt: Hello, Siapa Presiden Indonesia ke-4 ?
+    Response: 
+    
+    Siapa Presiden Indonesia ke-4 ?
+    
+    Jawaban: Abdurrahman Wahid.
+    
+    Kenali lebih lanjut tentang Abdurrahman Wahid, Presiden Indonesia ke-4, di bawah ini :
+    
+    Nama Lengkap : Abdurrahman Wahid
+    
+    Lahir : 4 September 1940 di Jombang, Jawa Timur
+    
+    Meninggal : 30 December 2009 di Jakarta
+    
+    Pendidikan : Universitas Islam Indonesia (UI)
+    
+    Pengalaman Politik :
+    
+    * Anggota Dewan Perwakilan Rakyat (DPR) dari Partai Kebangkitan Bangsa (PKB)
+    * Ketua Umum PKB
+    * Menteri Agama dan Pendidikan Tinggi dalam kabinet Presiden Bacharuddin Jusuf Habibie
+    * Presiden Republik Indonesia periode 1999-2001
+    
+    Kepribadian :
+    
+    * Abdurrahman Wahid dikenal sebagai tokoh yang memiliki visi dan mision untuk membangun Indonesia yang lebih demokratis dan berkembang.
+    * Ia juga dikenal sebagai tokoh yang memiliki kepribadian yang santai dan mudah dipahami.
+    
+    Peranan :
+    
+    * Abdurrahman Wahid memiliki peranan yang signifikan dalam sejarah Indonesia, terutama dalam meningkatkan demokrasi dan meningkatkan kesadaran bangsa.
+    * Ia juga memiliki peranan dalam mengembangkan pendidikan dan agama di Indonesia.
+    
+    Siapa Presiden Indonesia ke-4 ?
+    
+    Jawaban : Abdurrahman Wahid.
     </pre>
+
+## Amazon Bedrock Model ID
+
+Below is a list of Amazon Bedrock model IDs that can be used in this one-line script.
+
+| Provider        | Model Name                    | Version | Model ID                                  |
+|-----------------|-------------------------------|---------|-------------------------------------------|
+| **Amazon**      | Titan Text G1 - Express       | 1.x     | amazon.titan-text-express-v1              |
+| **Amazon**      | Titan Text G1 - Lite          | 1.x     | amazon.titan-text-lite-v1                 |
+| **Anthropic**   | Claude                        | 2.0     | anthropic.claude-v2                       |
+| **Anthropic**   | Claude                        | 2.1     | anthropic.claude-v2:1                     |
+| **Anthropic**   | Claude Instant                | 1.x     | anthropic.claude-instant-v1               |
+| **Meta**        | Llama 2 Chat 13B              | 1.x     | meta.llama2-13b-chat-v1                   |
+| **Meta**        | Llama 2 Chat 70B              | 1.x     | meta.llama2-70b-chat-v1                   |
+| **Meta**        | Llama 3 8B Instruct           | 1.x     | meta.llama3-8b-instruct-v1:0              |
+| **Meta**        | Llama 3 70B Instruct          | 1.x     | meta.llama3-70b-instruct-v1:0             |
+| **Meta**        | Llama 3.1 8B Instruct         | 1.x     | meta.llama3-1-8b-instruct-v1:0            |
+| **Mistral AI**  | Mistral 7B Instruct           | 0.x     | mistral.mistral-7b-instruct-v0:2          |
+| **Mistral AI**  | Mixtral 8X7B Instruct         | 0.x     | mistral.mixtral-8x7b-instruct-v0:1        |
+| **Mistral AI**  | Mistral Large                 | 1.x     | mistral.mistral-large-2402-v1:0           |
+
+## (Optional) Test the Deployed Model
+
+If you want to run bedrock.py by changing the prompting, you can follow this flow.
+
+1. Update the `bedrock.py` file at line 209 in the `default="Hello World"` section.
+   - Linux, WSL
+     ```bash
+     sed -i 's/Hello, Siapa Presiden Indonesia ke-4 ?/Show Hello World!/' bedrock.py
+     ```
+   - MacOS
+     ```bash
+     sed -i '' 's/Hello, Siapa Presiden Indonesia ke-4 ?/Show Hello World!/' bedrock.py
+     ```
+   - Windows PowerShell
+     ```bash
+     (Get-Content "bedrock.py") -replace 'Hello, Siapa Presiden Indonesia ke-4 ?', 'Show Hello World!' | Set-Content "bedrock.py"
+     ```
+2. Run the script
+
+   - Linux, WSL and MacOS Version (UNIX)
+     ```bash
+     python3 bedrock.py
+     ```
+   - Windows Version
+     ```bash
+     python bedrock.py
+     ```
+
+3. Example of successful requests
+    <pre>
+    Model ID: meta.llama2-13b-chat-v1
+    Prompt: Show Hello World!
+    Response: 
+    
+    Hello World!
+    
+    This is a simple "Hello World!" program that demonstrates the basic syntax of a Python program.
+    
+    Here's the code:
+    ```
+    print("Hello World!")
+    ```
+    Explanation:
+    
+    * `print()` is a function that prints a message to the screen.
+    * `"Hello World!"` is the message we want to print.
+    
+    When we run this program, we should see the message "Hello World!" in the output window.
+    
+    That's it! This is the most basic Python program you can write.
+    </pre>
+
 
 ## Cost Amazon Bedrock for Serverless
 Deploying models on AWS Bedrock incurs costs based on the specific models you use and the number of tokens processed. 
