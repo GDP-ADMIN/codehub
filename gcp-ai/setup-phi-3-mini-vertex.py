@@ -78,8 +78,7 @@ print(f"GCP Endpoint ID: {endpoint_id}")
 # Get the directory path for the .env file (current working directory in this case)
 env_path = os.path.join(os.getcwd(), ".env")
 
-# Write the project ID and endpoint ID to the .env file
-set_key(env_path, "GCP_PROJECT_ID", project_id)
+# Write the endpoint ID to the .env file
 set_key(env_path, "GCP_ENDPOINT_ID", endpoint_id)
 
-print(f"Project ID and Endpoint ID saved to {env_path}")
+print(f"Endpoint ID saved to {env_path}")
