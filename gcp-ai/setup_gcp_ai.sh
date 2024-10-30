@@ -178,8 +178,8 @@ update_env_file() {
       gcp_accelerator_count='1'
       gcp_vllm_docker_url='us-docker.pkg.dev/vertex-ai/vertex-vision-model-garden-dockers/pytorch-vllm-serve:20241016_0916_RC00_maas'
       gcp_model_id='meta-llama/Llama-3.1-8B-Instruct'
-      gcp_model_suffix='llama-3-1-8B-instruct'
-      script_to_run="setup-llama-3-1-8B-instruct.py"
+      gcp_model_suffix='llama-3-1-8b-instruct'
+      script_to_run="setup-llama-3-1-8b-instruct.py"
       ;;
     *)
       echo "Invalid choice."
@@ -283,9 +283,13 @@ pip list | grep "google-cloud-aiplatform\|python-dotenv"
 echo "Running Python script..."
 $PYTHON_CMD "$script_to_run"
 
+# Test the deployed model
+echo "Running Model Testing script..."
+$PYTHON_CMD model_testing.py
+
 echo "Python script executed successfully."
 
-# Reverting GCP_ENDPOINT_NAME and AZURE_WORKSPACE_NAME back to their original values
+# Reverting GCP_ENDPOINT_NAME and GCP_MODEL_NAME back to their original values
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS specific sed command
   sed -i '' -e "/^GCP_ENDPOINT_NAME=/c\\
