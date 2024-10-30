@@ -162,18 +162,18 @@ case "$OS" in
 esac
 
 # # Clone the repository if not already present and navigate to the directory
-# if [ ! -d "codehub" ]; then
-#   git clone --filter=blob:none --sparse https://github.com/GDP-ADMIN/codehub.git
-# fi
+if [ ! -d "codehub" ]; then
+  git clone --filter=blob:none --sparse https://github.com/GDP-ADMIN/codehub.git
+fi
 
-# cd codehub || { echo "Failed to navigate to the codehub directory."; exit 1; }
+cd codehub || { echo "Failed to navigate to the codehub directory."; exit 1; }
 
 # # Sparse-checkout only if azure-ai folder is not present
-# if [ ! -d "gcp-ai" ]; then
-#   git sparse-checkout set gcp-ai
-# fi
+if [ ! -d "gcp-ai" ]; then
+  git sparse-checkout set gcp-ai
+fi
 
-# cd gcp-ai || { echo "Failed to navigate to the gcp-ai directory."; exit 1; }
+cd gcp-ai || { echo "Failed to navigate to the gcp-ai directory."; exit 1; }
 
 # Verify virtual environment activation
 echo "Python version after activation: $($PYTHON_CMD --version)"
