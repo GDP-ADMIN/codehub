@@ -149,7 +149,7 @@ Deploying models on AWS Bedrock incurs costs based on the specific models you us
 
 - [bedrock.py](bedrock.py) : Script to deploy and manage Bedrock models on AWS AI services. 
 
-- [setup_aws_ai](setup_aws_ai.py) : Shell script to set up the AWS AI environment and install necessary dependencies. 
+- [setup_aws_ai](setup_aws_ai.sh) : Shell script to set up the AWS AI environment and install necessary dependencies. 
 
 ## References
 
