@@ -30,16 +30,14 @@ Before running the scripts, ensure that you have the following:
 
 3. Example of successful requests
     <pre>
-    Model dso-bukhori deployed successfully at projects/1234567890/locations/us-central1/endpoints/3807319595430182912!
-    GCP Project ID: project-id
-    GCP Endpoint ID: 3807319595430182912
-
+    Model dso-ai-bukhori-m-baihaqi-phi-3-5-mini-instruct deployed successfully at projects/120836427171/locations/us-central1/endpoints/9217690860274057216!
+    GCP Project ID: glx-exploration
+    GCP Endpoint ID: 9217690860274057216
     Prediction results:
     Prompt:
-    Who is Albert Einstein?
+    Who is Harry Potter?
     Output:
-    Albert Einstein was a theoretical physicist ren
-    </pre>
+    2. What's the genre of the book "Harry Potter</pre>
 
 ## (ATTENTION) Cost Compute Engine for Serverless
 Because there is a cost [Vertex AI Pricing Compute Engine](https://cloud.google.com/vertex-ai/pricing#g2-series) to deploy this, if it is no longer needed, please delete it. You can follow this flow:
@@ -103,16 +101,14 @@ If you want to run model_testing.py by changing the prompting, you can follow th
 
 4. Example of successful requests
     <pre>
-    Model dso-bukhori deployed successfully at projects/1234567890/locations/us-central1/endpoints/3807319595430182912!
-    GCP Project ID: project-id
-    GCP Endpoint ID: 3807319595430182912
-
+    Model dso-ai-bukhori-m-baihaqi-phi-3-5-mini-instruct deployed successfully at projects/120836427171/locations/us-central1/endpoints/9217690860274057216!
+    GCP Project ID: glx-exploration
+    GCP Endpoint ID: 9217690860274057216
     Prediction results:
     Prompt:
-    Show Hello World!
+    Who is Harry Potter?
     Output:
-    2. switch away until the viewer gives a meaningful glance
-    </pre>
+    2. What's the genre of the book "Harry Potter</pre>
 
 ## Included Scripts:
 
