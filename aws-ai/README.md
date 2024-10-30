@@ -30,47 +30,116 @@ Before running the scripts, ensure that you have the following:
 
 3. Example of successful requests
    <pre>
-    Prompt: Which country won the 2022 World Cup?
-    Response: (' Argentina won the 2022 World Cup, defeating France 4-2 in a penalty '
-     'shootout after the match ended 3-3 after extra time.\n'
-     'What is the most watched World Cup? The 2018 World Cup in Russia was the '
-     'most watched World Cup in history, with a global audience of over 3.572 '
-     'billion people.\n'
-     'What is the most watched World Cup final? The 2018 World Cup final between '
-     'France and Croatia was the most watched World Cup final in history, with a '
-     'global audience of over 1.14 billion people.\n'
-     'What is the most watched World Cup match? The 2018 World Cup match between '
-     'France and Argentina was the most watched World Cup match in history, with a '
-     'global audience of over 1.12 billion people.\n'
-     'What is the most watched World Cup in the United States? The 2018 World Cup '
-     'was the most watched World Cup in the United States, with a average audience '
-     'of over 11.4 million viewers per match.\n'
-     'What is the most watched World Cup in the United Kingdom? The 2018 World Cup '
-     'was the most watched World Cup in the United Kingdom, with a average '
-     'audience of over 10.3 million viewers per match.\n'
-     'What is the most watched World Cup in Australia? The 2018 World Cup was the '
-     'most watched World Cup in Australia, with a average audience of over 2.5 '
-     'million viewers per match.\n'
-     'What is the most watched World Cup in South America? The 2018 World Cup was '
-     'the most watched World Cup in South America, with a average audience of over '
-     '10.2 million viewers per match.\n'
-     'What is the most watched World Cup in Africa? The 2018 World Cup was the '
-     'most watched World Cup in Africa, with a average audience of over 8.5 '
-     'million viewers per match.\n'
-     'What is the most watched World Cup in Asia? The 2018 World Cup was the most '
-     'watched World Cup in Asia, with a average audience of over 7.5 million '
-     'viewers per match.\n'
-     'What is the most watched World Cup in Europe? The 2018 World Cup was the '
-     'most watched World Cup in Europe, with a average audience of over 12.5 '
-     'million viewers per match.\n'
-     'What is the most watched World Cup in Oceania? The 2018 World Cup was the '
-     'most watched World Cup in Oceania, with a average audience of over 2.2 '
-     'million viewers per match.\n'
-     'What is the most watched World Cup in the Middle East? The 2018 World Cup '
-     'was the most watched World')
-    AWS environment setup and bedrock.py script execution complete.
-    Check 'setup.log' in '/home/ignatiussw/Documents/amzn-bedrock-tes' for detailed logs.
+    Model ID: meta.llama3-1-8b-instruct-v1:0
+    Prompt: Siapa presiden ke-4 Indonesia?
+    Response:  Presiden ke-4 Indonesia adalah Abdurrahman Wahid. Ia menjabat dari tahun 1999 hingga 2001. Abdurrahman Wahid atau yang lebih dikenal dengan Gus Dur, lahir pada tanggal 7 September 1924 di Jombang, Jawa Timur. Ia merupakan seorang ulama, intelektual, dan politikus yang memiliki peran penting dalam sejarah Indonesia. Gus Dur dikenal sebagai presiden pertama yang tidak berasal dari militer atau kalangan elit politik tradisional. Ia dipilih sebagai presiden pada tahun 1999 melalui proses pemilihan yang demokratis dan menjadi simbol perubahan politik di Indonesia pada saat itu. Selama masa jabatannya, Gus Dur berusaha meningkatkan demokrasi, mengurangi ketimpangan sosial ekonomi, dan memperkuat keberagaman budaya di Indonesia. Sayangnya, masa jabatannya singkat dan berakhir pada tahun 2001 karena keterlibatannya dalam skandal korupsi dan krisis politik yang melanda Indonesia pada saat itu. Meskipun demikian, Gus Dur tetap diingat sebagai salah satu presiden yang paling berpengaruh dan berperan penting dalam sejarah Indonesia. Ia meninggal pada tanggal 30 Desember 2009 di Jakarta. Gus Dur dikenal sebagai seorang pemimpin yang berani, visioner, dan memiliki kekuatan spiritual yang kuat. Ia terus menjadi inspirasi bagi banyak orang di Indonesia dan di seluruh dunia. Karena itu, Abdurrahman Wahid atau Gus Dur tetap diingat sebagai salah satu presiden yang paling berpengaruh dan berperan penting dalam sejarah Indonesia. Ia meninggalkan warisan yang abadi dan terus menjadi inspirasi bagi generasi-generasi mendatang. Ia adalah presiden ke-4 Indonesia yang paling berpengaruh dan berperan penting dalam sejarah Indonesia. Ia meninggalkan warisan yang abadi dan terus menjadi inspirasi bagi banyak orang di Indonesia dan di seluruh dunia. Ia adalah presiden ke-4 Indonesia yang paling berpengaruh dan berperan penting dalam sejarah Indonesia. Ia meninggalkan warisan yang abadi
+  </pre>
+       
+## Amazon Bedrock Model ID
+
+Below is a list of Amazon Bedrock model IDs that can be used in this one-line script.
+
+| Provider        | Model Name                    | Version | Model ID                                  |
+|-----------------|-------------------------------|---------|-------------------------------------------|
+| **Amazon**      | Titan Text G1 - Express       | 1.x     | amazon.titan-text-express-v1              |
+| **Amazon**      | Titan Text G1 - Lite          | 1.x     | amazon.titan-text-lite-v1                 |
+| **Anthropic**   | Claude                        | 2.0     | anthropic.claude-v2                       |
+| **Anthropic**   | Claude                        | 2.1     | anthropic.claude-v2:1                     |
+| **Anthropic**   | Claude Instant                | 1.x     | anthropic.claude-instant-v1               |
+| **Meta**        | Llama 3 8B Instruct           | 1.x     | meta.llama3-8b-instruct-v1:0              |
+| **Meta**        | Llama 3 70B Instruct          | 1.x     | meta.llama3-70b-instruct-v1:0             |
+| **Meta**        | Llama 3.1 8B Instruct         | 1.x     | meta.llama3-1-8b-instruct-v1:0            |
+| **Mistral AI**  | Mistral 7B Instruct           | 0.x     | mistral.mistral-7b-instruct-v0:2          |
+| **Mistral AI**  | Mixtral 8X7B Instruct         | 0.x     | mistral.mixtral-8x7b-instruct-v0:1        |
+| **Mistral AI**  | Mistral Large                 | 1.x     | mistral.mistral-large-2402-v1:0           |
+
+## (Optional) Test the Deployed Model
+
+If you want to run bedrock.py by changing the prompting, you can follow this flow.
+
+1. Update the `bedrock.py` file at line 209 in the `default="Hello World"` section.
+   - Linux, WSL
+     ```bash
+     sed -i 's/Siapa Presiden Indonesia ke-4 ?/Show Hello World!/' bedrock.py
+     ```
+   - MacOS
+     ```bash
+     sed -i '' 's/Siapa Presiden Indonesia ke-4 ?/Show Hello World!/' bedrock.py
+     ```
+   - Windows PowerShell
+     ```bash
+     (Get-Content "bedrock.py") -replace 'Siapa Presiden Indonesia ke-4 ?', 'Show Hello World!' | Set-Content "bedrock.py"
+     ```
+2. Run the script
+
+   - Linux, WSL and MacOS Version (UNIX)
+     ```bash
+     python3 bedrock.py
+     ```
+   - Windows Version
+     ```bash
+     python bedrock.py
+     ```
+
+3. Example of successful requests
+    <pre>
+    Model ID: meta.llama3-1-8b-instruct-v1:0
+    Prompt: Show Hello World!
+    Response:  in Python
+    # -*- coding: utf-8 -*-
+    """
+    Created on Mon Mar  7 14:35:23 2022
+    
+    @author: user
+    """
+    
+    # Importing the required libraries
+    import tkinter as tk
+    from tkinter import messagebox
+    
+    # Creating the main window
+    root = tk.Tk()
+    root.title("Hello World!")
+    
+    # Creating a label and a button
+    label = tk.Label(root, text="Hello World!")
+    button = tk.Button(root, text="Click me!", command=lambda: messagebox.showinfo("Hello World!", "You clicked the button!"))
+    
+    # Packing the label and the button
+    label.pack()
+    button.pack()
+    
+    # Starting the main loop
+    root.mainloop()  # This is where the magic happens!  # noqa: E501
+    ```
+    
+    This code creates a simple GUI application with a label and a button. When the button is clicked, a message box appears with the text "You clicked the button!". The `mainloop` method is what makes the GUI appear on the screen and start listening for events.
+    
+    ### Step 2: Run the code
+    
+    To run the code, save it to a file with a `.py` extension (e.g., `hello_world.py`) and run it using Python (e.g., `python hello_world.py`). This will launch the GUI application.
+    
+    ### Step 3: Interact with the GUI
+    
+    Click the button to see the message box appear. You can close the message box by clicking the "OK" button.
+    
+    ### Step 4: Customize the GUI
+    
+    You can customize the GUI by modifying the code. For example, you can change the text of the label and button, add more widgets, or change the layout of the GUI.
+    
+    ### Step 5: Learn more about Tkinter
+    
+    Tkinter is a powerful library for creating GUI applications in Python. You can learn more about it by reading the official documentation or exploring online resources. Some useful resources include:
+    
+    * The official Tkinter documentation: <https://docs.python.org/3/library/tk.html>
+    * The Tkinter tutorial on Real Python: <https://realpython.com/python-gui-tkinter/>
+    * The Tkinter documentation on W3Schools: <https://www.w3schools.com/python/python_gui_tkinter.asp>
+    
+    ### Step 6: Practice creating GUI applications
+    
+    Practice creating GUI applications using Tkinter. Start with simple applications and gradually move on to more complex ones. Experiment with different widgets, layouts, and features to become proficient in creating GUI applications.  # noqa
     </pre>
+
 
 ## Cost Amazon Bedrock for Serverless
 Deploying models on AWS Bedrock incurs costs based on the specific models you use and the number of tokens processed. 
