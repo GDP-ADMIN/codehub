@@ -60,15 +60,15 @@ If you want to run bedrock.py by changing the prompting, you can follow this flo
 1. Update the `bedrock.py` file at line 209 in the `default="Hello World"` section.
    - Linux, WSL
      ```bash
-     sed -i 's/Siapa Presiden Indonesia ke-4 ?/Show Hello World!/' bedrock.py
+     sed -i 's/Siapa presiden ke-4 Indonesia?/Show Hello World!/' bedrock.py
      ```
    - MacOS
      ```bash
-     sed -i '' 's/Siapa Presiden Indonesia ke-4 ?/Show Hello World!/' bedrock.py
+     sed -i '' 's/Siapa presiden ke-4 Indonesia?/Show Hello World!/' bedrock.py
      ```
    - Windows PowerShell
      ```bash
-     (Get-Content "bedrock.py") -replace 'Siapa Presiden Indonesia ke-4 ?', 'Show Hello World!' | Set-Content "bedrock.py"
+     (Get-Content "bedrock.py") -replace 'Siapa presiden ke-4 Indonesia?', 'Show Hello World!' | Set-Content "bedrock.py"
      ```
 2. Run the script
 

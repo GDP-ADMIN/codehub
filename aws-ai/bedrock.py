@@ -206,7 +206,7 @@ def parse_arguments():
     Parses command-line arguments for prompt, log file path, and execution directory.
     """
     parser = argparse.ArgumentParser(description="Invoke Bedrock model with a prompt.")
-    parser.add_argument('--prompt', type=str, default="Show Hello World!",
+    parser.add_argument('--prompt', type=str, default="Siapa presiden ke-4 Indonesia?",
                         help='Prompt text to send to the model.')
     parser.add_argument('--log', type=str, default="setup.log",
                         help='Path to the log file.')
