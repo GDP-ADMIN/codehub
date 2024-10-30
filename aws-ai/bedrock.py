@@ -45,7 +45,7 @@ MODEL_PREFIX_CONFIGURATIONS = [
         "config_builder": lambda prompt, stop_sequences=None: {
             "prompt": prompt,
             "max_gen_len": 512,
-            "temperature": 0,
+            "temperature": 0.4,
             "top_p": 0.9,
         },
         "response_parser": lambda response_body: response_body.get("generation", ""),
