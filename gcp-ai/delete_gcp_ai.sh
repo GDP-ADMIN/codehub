@@ -128,6 +128,94 @@ case "$OS" in
     ;;
 esac
 
+# Function to ensure a variable doesn't exceed the specified character length
+validate_and_set_env_var() {
+  local var_name=$1
+  local var_value=$2
+  local max_length=$3
+
+  # Truncate the variable value if it exceeds the maximum length
+  if [ ${#var_value} -gt $max_length ]; then
+    echo "INFO: $var_name is too long (${#var_value} characters). Truncating to ${max_length} characters."
+    var_value="${var_value:0:max_length}"
+  fi
+
+  echo "$var_name=\"$var_value\"" >> .env
+  echo "INFO: $var_name set to: $var_value"
+}
+
+# Function to update the .env file with the selected model
+update_env_file() {
+  model_choice=$1
+
+  # Get the existing GCP_MODEL_NAME from the .env file
+  existing_model_name=$(grep '^GCP_MODEL_NAME=' .env | cut -d '=' -f2 | tr -d '"')
+
+  # Remove existing variables from the .env file
+  grep -v '^GCP_MODEL_NAME=' .env > temp.env && mv temp.env .env
+  grep -v '^GCP_MODEL_ID=' .env > temp.env && mv temp.env .env
+
+  # Determine model-specific suffix and settings
+  case "$model_choice" in
+    1)
+      gcp_machine_type='g2-standard-48'
+      gcp_accelerator_type='NVIDIA_L4'
+      gcp_accelerator_count='4'
+      gcp_vllm_docker_url='us-docker.pkg.dev/vertex-ai/vertex-vision-model-garden-dockers/pytorch-vllm-serve:20240919_0916_RC00'
+      gcp_model_id='microsoft/Phi-3.5-mini-instruct'
+      gcp_model_suffix='phi-3-5-mini-instruct'
+      script_to_run="delete-gcp-ai.py"
+      ;;
+    2)
+      gcp_machine_type='g2-standard-4'
+      gcp_accelerator_type='NVIDIA_L4'
+      gcp_accelerator_count='1'
+      gcp_vllm_docker_url='us-docker.pkg.dev/vertex-ai/vertex-vision-model-garden-dockers/pytorch-vllm-serve:20241016_0916_RC00_maas'
+      gcp_model_id='meta-llama/Llama-3.1-8B-Instruct'
+      gcp_model_suffix='llama-3-1-8B-instruct'
+      script_to_run="delete-gcp-ai.py"
+      ;;
+    *)
+      echo "Invalid choice."
+      exit 1
+      ;;
+  esac
+
+  # Add the chosen model configuration to .env
+  echo "GCP_MODEL_ID=\"$gcp_model_id\"" >> .env
+
+  # Add the specification model configuration to .env
+  echo "GCP_MACHINE_TYPE=\"$gcp_machine_type\"" >> .env
+  echo "GCP_ACCELERATOR_TYPE=\"$gcp_accelerator_type\"" >> .env
+  echo "GCP_ACCELERATOR_COUNT=\"$gcp_accelerator_count\"" >> .env
+  echo "GCP_VLLM_DOCKER_URI=\"$gcp_vllm_docker_url\"" >> .env
+ 
+  # Validate and set  GCP_MODEL_NAME
+  new_endpoint_name="${existing_endpoint_name}-${gcp_model_suffix}"
+  validate_and_set_env_var "GCP_MODEL_NAME" "$existing_model_name" 33
+}
+
+# Store the original values of  GCP_MODEL_NAME
+original_model_name=$(grep '^GCP_MODEL_NAME=' .env | cut -d '=' -f2 | tr -d '"')
+
+# Set default values if not found in .env
+if [ -z "$original_model_name" ]; then
+  default_model_name="default-model"
+  validate_and_set_env_var "GCP_MODEL_NAME" "$default_model_name" 33
+  echo "INFO: GCP_MODEL_NAME not found in .env. Added with default value."
+else
+  echo "INFO: Found existing GCP_MODEL_NAME value: $original_model_name"
+fi
+
+# Prompt user to choose between two models
+echo "Choose the model to deploy:"
+echo "1. phi-3-5-mini-instruct"
+echo "2. llama-3-1-8B-instruct"
+read -p "Enter the number corresponding to the model: " model_choice
+
+# Update the .env file based on user input
+update_env_file "$model_choice"
+
 # Load environment variables from the .env file
 if [ -f .env ]; then
   # Export all variables in the .env file, ignoring commented lines and empty lines
@@ -161,20 +249,6 @@ case "$OS" in
     ;;
 esac
 
-# Clone the repository if not already present and navigate to the directory
-if [ ! -d "codehub" ]; then
-  git clone --filter=blob:none --sparse https://github.com/GDP-ADMIN/codehub.git
-fi
-
-cd codehub || { echo "Failed to navigate to the codehub directory."; exit 1; }
-
-# Sparse-checkout only if azure-ai folder is not present
-if [ ! -d "gcp-ai" ]; then
-  git sparse-checkout set gcp-ai
-fi
-
-cd gcp-ai || { echo "Failed to navigate to the gcp-ai directory."; exit 1; }
-
 # Verify virtual environment activation
 echo "Python version after activation: $($PYTHON_CMD --version)"
 echo "GOOGLE_APPLICATION_CREDENTIALS is set to: $GOOGLE_APPLICATION_CREDENTIALS"
@@ -189,8 +263,8 @@ pip install --disable-pip-version-check python-dotenv google-cloud-aiplatform
 # Verify installation
 pip list | grep "google-cloud-aiplatform\|python-dotenv"
 
-# Run Python script
+# Run Python script based on the selected model
 echo "Running Python script..."
-$PYTHON_CMD delete-phi-3-mini-vertex.py
+$PYTHON_CMD "$script_to_run"
 
 echo "Python script executed successfully."

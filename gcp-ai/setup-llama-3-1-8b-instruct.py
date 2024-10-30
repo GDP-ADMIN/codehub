@@ -16,14 +16,14 @@ else:
 # Set environment-specific variables
 project_id = os.getenv("GCP_PROJECT_ID")
 region = os.getenv("GCP_REGION")
-VLLM_DOCKER_URI = os.getenv("VLLM_DOCKER_URI")
+VLLM_DOCKER_URI = os.getenv("GCP_VLLM_DOCKER_URI")
 model_name = os.getenv("GCP_MODEL_NAME")
 endpoint_name = os.getenv("GCP_ENDPOINT_NAME")
 # model_id = "meta-llama/Llama-3.1-8B-Instruct"
 model_id = os.getenv("GCP_MODEL_ID")
-machine_type = os.getenv("GCP_MACHINE_TYPE", "g2-standard-4")
-accelerator_type = os.getenv("GCP_ACCELERATOR_TYPE", "NVIDIA_L4")
-accelerator_count = int(os.getenv("GCP_ACCELERATOR_COUNT", 1))
+machine_type = os.getenv("GCP_MACHINE_TYPE")
+accelerator_type = os.getenv("GCP_ACCELERATOR_TYPE")
+accelerator_count = int(os.getenv("GCP_ACCELERATOR_COUNT"))
 
 # Initialize the AI Platform with project and region
 aiplatform.init(project=project_id, location=region)
