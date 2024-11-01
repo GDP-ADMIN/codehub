@@ -109,6 +109,38 @@ install_aws_cli() {
   fi
 }
 
+# >>> Added: Function to check and install 'unzip'
+install_unzip() {
+  log "Checking if 'unzip' is installed..."
+  if ! command -v unzip &>/dev/null; then
+    log "'unzip' not found. Installing 'unzip'..."
+    case "$OS_TYPE" in
+      Linux*)
+        sudo apt update >> "$LOG_FILE" 2>&1
+        sudo apt install -y unzip >> "$LOG_FILE" 2>&1
+        if [ $? -eq 0 ]; then
+          log "'unzip' installed successfully."
+        else
+          handle_error "Failed to install 'unzip' on Linux."
+        fi
+        ;;
+      Darwin*)
+        log "'unzip' should already be installed on macOS."
+        ;;
+      CYGWIN*|MINGW*|MSYS*|Windows*)
+        log "'unzip' installation on Windows is not handled in this script."
+        log "Please install 'unzip' manually or ensure it's available in your PATH."
+        ;;
+      *)
+        handle_error "Unsupported OS for 'unzip' installation: $OS_TYPE."
+        ;;
+    esac
+  else
+    log "'unzip' is already installed."
+  fi
+}
+# <<< Added
+
 # Load environment variables from the .env file in the Execution Directory
 if [ -f "$EXECUTION_DIR/.env" ]; then
   # Use 'export' and 'source' to load the .env file
@@ -178,11 +210,6 @@ configure_aws_profile() {
   log "AWS profile '$profile_name' has been configured and exported as AWS_PROFILE."
 }
 
-# Store AWS profile info (profile name)
-profile_name="bedrock-serverless"
-
-configure_aws_profile "$profile_name"
-
 # OS-specific logic
 OS_TYPE="$(uname -s 2>/dev/null || echo "Windows")"
 case "$OS_TYPE" in
@@ -193,6 +220,9 @@ case "$OS_TYPE" in
       # Re-check if Python is installed after installation attempt
       check_python_installed
     fi
+    # >>> Added: Install 'unzip' before installing AWS CLI
+    install_unzip
+    # <<< Added
     # Check and install AWS CLI
     install_aws_cli
     ;;
@@ -203,6 +233,8 @@ case "$OS_TYPE" in
       # Re-check if Python is installed after installation attempt
       check_python_installed
     fi
+    # Optionally, handle 'unzip' installation on Windows if needed
+    # install_unzip
     ;;
   *)
     handle_error "Unsupported OS: $OS_TYPE."
@@ -267,6 +299,11 @@ if [ $? -eq 0 ]; then
 else
   handle_error "Some required Python packages are not installed."
 fi
+
+# Store AWS profile info (profile name)
+profile_name="bedrock-serverless"
+
+configure_aws_profile "$profile_name"
 
 # Ensure bedrock.py is present; if not, download it
 if [ ! -f "bedrock.py" ]; then
