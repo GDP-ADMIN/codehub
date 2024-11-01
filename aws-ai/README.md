@@ -6,7 +6,7 @@ This project contains scripts to  deploy models via Amazon Bedrock.
 
 Before running the scripts, ensure that you have the following:
 
-1. **AWS Credentials (Access Key and Secret Key)**: Contact our [ticketing system](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.3bryigm0r34y) to get AWS Credentials with AmazonBedrockFullAccess permission \
+1. **AWS Credentials (Access Key and Secret Key)**: Contact our [ticketing system](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.3bryigm0r34y) to get AWS Credentials with `Amazon Bedrock Full Access` permission \
    Notes : We hide the ticket system email address to prevent phishing and spamming.
 2. **Setup environment variables**: Copy this [.env.example](/aws-ai/.env.example) file as `.env` file on your working folder and follow the instructions in the `.env` file to fill in the required values.
 
