@@ -6,7 +6,7 @@ This project contains scripts to  deploy models via Amazon Bedrock.
 
 Before running the scripts, ensure that you have the following:
 
-1. **AWS Credentials (Access Key and Secret Key)**: Contact our `Ticket System` to get AWS Credentials with Amazon Bedrock Administrator permission \
+1. **AWS Credentials (Access Key and Secret Key)**: Contact our [ticketing system](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.3bryigm0r34y) to get AWS Credentials with Amazon Bedrock Administrator permission \
    Notes : We hide the ticket system email address to prevent phishing and spamming.
 2. **Setup environment variables**: Copy this [.env.example](/aws-ai/.env.example) file as `.env` file on your working folder and follow the instructions in the `.env` file to fill in the required values.
 
@@ -26,7 +26,7 @@ Before running the scripts, ensure that you have the following:
    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/aws-ai/setup_aws_ai.sh" -OutFile "setup_aws_ai.sh" 
    wsl ./setup_aws_ai.sh
    ```
-   **Notes** : Execution time will take about up to 15 minutes depending your internet connection
+   **Notes** : Execution time will take about up to 1 minutes depending your internet connection
 
 3. Example of successful requests
    <pre>
@@ -57,7 +57,19 @@ Below is a list of Amazon Bedrock model IDs that can be used in this one-line sc
 
 If you want to run bedrock.py by changing the prompting, you can follow this flow.
 
-1. Update the `bedrock.py` file at line 209 in the `default="Hello World"` section.
+1. Ensure you have .env files, my_venv folder in your working directory and already activated my_venv.
+
+   - Linux, WSL and MacOS Version (UNIX)
+
+     ```bash
+     source my_venv/bin/activate
+     ```
+
+   - Windows Version
+     ```bash
+     source my_venv/Scripts/activate
+     ```
+2. Update the `bedrock.py` file at line 209 in the `default="Hello World"` section.
    - Linux, WSL
      ```bash
      sed -i 's/Siapa presiden ke-4 Indonesia?/Show Hello World!/' bedrock.py
@@ -157,4 +169,4 @@ Deploying models on AWS Bedrock incurs costs based on the specific models you us
 
 ## Notes
 
-If you experience any problems, please do not hesitate to contact us at `Ticket GDPLabs`.
+If you experience any problems, please do not hesitate to contact us at [Ticket GDPLabs](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.3bryigm0r34y).
