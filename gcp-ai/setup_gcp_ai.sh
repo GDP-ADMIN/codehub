@@ -50,90 +50,64 @@ check_python_installed() {
   esac
 }
 
-# Function to install Python3 and venv on Debian/Ubuntu-based systems
-install_python3_venv() {
-  echo "Python3 or python3-venv not found. Installing necessary packages..."
-  if [[ "$OS" == "Linux" ]]; then
-    sudo apt update
-    sudo apt install -y python3 python3-venv
-    if [ $? -eq 0 ]; then
-      echo "Successfully installed python3 and python3-venv."
-    else
-      echo "Failed to install python3 or python3-venv. Exiting..."
-      exit 1
-    fi
-  fi
-}
+# OS-specific logic to install Python if needed
+if ! check_python_installed; then
+  echo "Error: Python not found. Exiting..."
+  exit 1
+fi
 
-# Function to install Python on Unix-based systems (if not already installed)
-install_python_unix() {
-  echo "Python not found. Installing Python on Unix-like system..."
-  curl -O https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.sh
-  chmod +x install_python.sh
-  ./install_python.sh
-}
+# Prompt user to choose between two models
+echo "Choose the model to deploy:"
+echo "1. Serverless Llama 3-1"
+echo "2. Serverless Gemini 1-0"
+read -p "Enter the number corresponding to the model: " model_choice
 
-# Function to install Python on Windows
-install_python_windows() {
-  echo "Python not found. Installing Python on Windows system..."
-  powershell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
-  powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.ps1' -OutFile 'install_python.ps1'"
-  powershell -File install_python.ps1
-}
+# Function to update the .env file with the selected model
+update_env_file() {
+  model_choice=$1
 
-# Function to set GOOGLE_APPLICATION_CREDENTIALS based on the OS
-set_google_application_credentials() {
-  case "$OS" in
-    WINDOWS*|CYGWIN*|MINGW*|MSYS*)
-      CREDENTIALS_PATH="C:\\path\\to\\key.json"  # Use Windows path
+  # Remove existing variables from the .env file
+  grep -v '^GCP_MODEL_NAME=' .env > temp.env && mv temp.env .env
+  grep -v '^GCP_ENDPOINT_NAME=' .env > temp.env && mv temp.env .env
+  grep -v '^GCP_SERVICE_ACCOUNT_FILE=' .env > temp.env && mv temp.env .env
+
+  # Determine model-specific suffix and settings
+  case "$model_choice" in
+    1)
+      gcp_model_name="meta/llama-3.1-405b-instruct-maas"
+      gcp_endpoint_name="us-central1-aiplatform.googleapis.com"
+      script_to_run="serverless-llama-3-1.py"
       ;;
-    Linux*|Darwin*)
-      CREDENTIALS_PATH="$ORIGINAL_DIR/key.json"  # Use Unix-like path
+    2)
+      gcp_model_name="gemini-1.0-pro"
+      gcp_endpoint_name="https://us-central1-aiplatform.googleapis.com/v1/projects/glx-exploration/locations/us-central1/publishers/google/models/gemini-1.0-pro:streamGenerateContent"
+      script_to_run="serverless-gemini1-0.py"
       ;;
     *)
-      echo "Unsupported OS: $OS. Exiting..."
+      echo "Invalid choice."
       exit 1
       ;;
   esac
 
-  # Check if the key file exists
-  echo "Checking if credentials file exists at: $CREDENTIALS_PATH"
-  if [ ! -f "$CREDENTIALS_PATH" ]; then
-    echo "Error: GOOGLE_APPLICATION_CREDENTIALS file not found at $CREDENTIALS_PATH"
-    exit 1
-  else
-    echo "GOOGLE_APPLICATION_CREDENTIALS file found."
-  fi
+  # Add the chosen model configuration to .env
+  echo "GCP_MODEL_NAME=\"$gcp_model_name\"" >> .env
+  echo "GCP_ENDPOINT_NAME=\"$gcp_endpoint_name\"" >> .env
 }
 
-# OS-specific logic to install Python if needed
-case "$OS" in
-  Linux*|Darwin*)
-    echo "Detected Unix-like system ($OS)."
-    if ! check_python_installed; then
-      echo "Error: Python not found. Exiting..."
-      exit 1
-    fi
-    ;;
-  CYGWIN*|MINGW*|MSYS*|Windows*)
-    echo "Detected Windows system ($OS)."
-    if ! check_python_installed; then
-      echo "Error: Python not found on Windows. Exiting..."
-      exit 1
-    fi
-    ;;
-  *)
-    echo "Unsupported OS: $OS. Exiting..."
-    exit 1
-    ;;
-esac
+# Update the .env file based on user input
+update_env_file "$model_choice"
 
 # Load environment variables from the .env file
 if [ -f .env ]; then
   # Export all variables in the .env file, ignoring commented lines and empty lines
   set -a
   while IFS='=' read -r key value; do
+    # Trim any leading and trailing whitespace from key and value
+    key=$(echo "$key" | xargs)
+    value=$(echo "$value" | sed 's/#.*//' | xargs)  # Remove comments and trim whitespace
+    
     if [[ ! $key =~ ^# && $key && $value ]]; then
+      # Remove surrounding quotes from the value if they exist
       value=$(echo "$value" | sed 's/^"\(.*\)"$/\1/')
       export "$key=$value"
     fi
@@ -144,31 +118,27 @@ else
   exit 1
 fi
 
-# Set GOOGLE_APPLICATION_CREDENTIALS
-set_google_application_credentials
+# Set the GCP_SERVICE_ACCOUNT_FILE in .env dynamically
+echo "GCP_SERVICE_ACCOUNT_FILE=\"$ORIGINAL_DIR/key.json\"" >> .env
+echo "GCP_SERVICE_ACCOUNT_FILE has been set in .env to: $ORIGINAL_DIR/key.json"
 
 # Activate virtual environment
-case "$OS" in
-  Linux*|Darwin*)
-    echo "Creating and activating virtual environment for Unix..."
-    $PYTHON_CMD -m venv my_venv
-    source my_venv/bin/activate
-    ;;
-  CYGWIN*|MINGW*|MSYS*|Windows*)
-    echo "Creating and activating virtual environment for Windows..."
-    $PYTHON_CMD -m venv my_venv
-    source my_venv/Scripts/activate
-    ;;
-esac
+echo "Setting up virtual environment..."
+$PYTHON_CMD -m venv my_venv
+if [[ "$OS" == "Windows" ]]; then
+  source my_venv/Scripts/activate
+else
+  source my_venv/bin/activate
+fi
 
-# # Clone the repository if not already present and navigate to the directory
+# Clone the repository if not already present and navigate to the directory
 if [ ! -d "codehub" ]; then
-  git clone --filter=blob:none --sparse https://github.com/GDP-ADMIN/codehub.git
+  git clone --filter=blob:none --sparse git@github.com:mbukhori-gdp/GCP-AI.git codehub
 fi
 
 cd codehub || { echo "Failed to navigate to the codehub directory."; exit 1; }
 
-# # Sparse-checkout only if azure-ai folder is not present
+# Sparse-checkout only if gcp-ai folder is not present
 if [ ! -d "gcp-ai" ]; then
   git sparse-checkout set gcp-ai
 fi
@@ -177,24 +147,15 @@ cd gcp-ai || { echo "Failed to navigate to the gcp-ai directory."; exit 1; }
 
 # Verify virtual environment activation
 echo "Python version after activation: $($PYTHON_CMD --version)"
-echo "GOOGLE_APPLICATION_CREDENTIALS is set to: $GOOGLE_APPLICATION_CREDENTIALS"
-
-# Export credentials
-export GOOGLE_APPLICATION_CREDENTIALS="$CREDENTIALS_PATH"
-echo "GOOGLE_APPLICATION_CREDENTIALS set to $GOOGLE_APPLICATION_CREDENTIALS"
 
 # Install required libraries in the virtual environment
-pip install --disable-pip-version-check python-dotenv google-cloud-aiplatform
+pip install --disable-pip-version-check python-dotenv requests google-auth
 
 # Verify installation
-pip list | grep "google-cloud-aiplatform\|python-dotenv"
+pip list | grep "google-auth\|python-dotenv\|requests"
 
-# Run Python script
+# Run Python script based on the selected model
 echo "Running Python script..."
-$PYTHON_CMD setup-phi-3-mini-vertex.py
-
-# Run Model Testing script
-echo "Running Model Testing script..."
-$PYTHON_CMD model_testing.py
+$PYTHON_CMD "$script_to_run"
 
 echo "Python script executed successfully."
