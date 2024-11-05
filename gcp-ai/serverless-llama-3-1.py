@@ -31,7 +31,7 @@ data = {
     "stream": True,
     # Test Prompt
     "messages": [
-        {"role": "user", "content": "Show Hello World!?"}
+        {"role": "user", "content": "What is Buitenzorg?"}
     ]
 }
 
