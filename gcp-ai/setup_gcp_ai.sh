@@ -133,7 +133,7 @@ fi
 
 # Clone the repository if not already present and navigate to the directory
 if [ ! -d "codehub" ]; then
-  git clone --filter=blob:none --sparse git@github.com:mbukhori-gdp/GCP-AI.git codehub
+  git clone --filter=blob:none --sparse git@github.com:GDP-ADMIN/codehub.git codehub
 fi
 
 cd codehub || { echo "Failed to navigate to the codehub directory."; exit 1; }
