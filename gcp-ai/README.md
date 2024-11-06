@@ -6,10 +6,11 @@ This project contains scripts to  run models via GCP Vertex AI Serverless API en
 
 Before running the scripts, ensure that you have the following:
 
-1. **Service Account (*.json)**, **Enable Vertex AI API**: Contact our [ticket system](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit#heading=h.3bryigm0r34y) to get access to GCP Account (Service Account) with GCP Vertex AI Administrator roles access and The administrator should be enable this API in the destination GCP Project(one time) \
-   Notes : We hide the ticket system email address to prevent phishing and spamming, for Llama 3.1 API Service model, you should enable also this API.
-2. **Setup environment variables**: Copy this [.env.example](/gcp-ai/.env.example) file as `.env` file on your working folder and follow the instructions in the `.env` file to fill in the required values.
-3. **Active Directory**: Ensure you put .env and key.json in your active directory, here for the structure example
+1. **Service Account (*.json)**, **Enable Vertex AI API**: To access the GCP Account (Service Account) with Vertex AI Administrator roles, contact our [ticket system](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit#heading=h.3bryigm0r34y) The administrator must enable the Vertex AI API in the target GCP Project (this is a one-time setup).
+Note: The ticket system email address is hidden to prevent phishing and spam. For the Llama 3.1 API Service model, ensure this API is also enabled.
+2. **Setup environment variables**: Copy the [.env.example](/gcp-ai/.env.example) file to your working folder and rename it to `.env` Follow the instructions in the `.env` file to fill in the required values.
+3. **Active Directory**: Ensure that the `.env` file and Service Account file `(*.json)` provided by the Infra Team are placed in your active directory. Below is an example of the directory structure: \
+  Notes : You do not need to change the name of the Service Account file `(*.json)` provided by the Infra Team
   <pre>
     [MyExampleDirectory]
     ├── codehub // This directory will appear after you run the 1-click CLI Script.
@@ -20,8 +21,9 @@ Before running the scripts, ensure that you have the following:
     │       ├── serverless-llama-3-1.py
     │       └── setup_gcp_ai.sh
     ├── .env
-    ├── key.json
+    ├── dso-bukhori.json
     └── setup_gcp_ai.sh </pre>
+    
 
 ## Setup and Installation
 

@@ -239,11 +239,14 @@ pip list | grep "google-auth\|python-dotenv\|requests"
 
 # Run Python script based on the selected model
 echo "Running Python script..."
-$PYTHON_CMD "$script_to_run"
+output=$($PYTHON_CMD "$script_to_run" 2>&1)  # Capture both stdout and stderr
 
-# Check if the last command was successful
-if [ $? -eq 0 ]; then
+# Check for "Status Code: 200" in the output
+if echo "$output" | grep -q "Status Code: 200"; then
     echo "Python script executed successfully."
 else
     echo "Python script executed unsuccessfully."
 fi
+
+# Optionally, print the output for debugging
+echo "$output"
