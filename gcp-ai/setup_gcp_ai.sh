@@ -12,6 +12,37 @@ echo "Original directory: $ORIGINAL_DIR"
 OS="$(uname -s 2>/dev/null || echo "Windows")"
 echo "Detected OS: $OS"
 
+# Function to check GCP_SERVICE_ACCOUNT_FILE based on the OS
+check_gcp_service_account_file() {
+  # Determine the path to key.json based on the OS
+  case "$OS" in
+    WINDOWS*|CYGWIN*|MINGW*|MSYS*)
+      GCP_SERVICE_ACCOUNT_FILE="$ORIGINAL_DIR\\key.json"  # Windows path
+      ;;
+    Linux*|Darwin*)
+      GCP_SERVICE_ACCOUNT_FILE="$ORIGINAL_DIR/key.json"  # Unix-like path
+      ;;
+    *)
+      echo "Unsupported OS: $OS. Exiting..."
+      exit 1
+      ;;
+  esac
+
+  # Check if the key file exists
+  echo "Checking if credentials file exists at: $GCP_SERVICE_ACCOUNT_FILE"
+  if [ ! -f "$GCP_SERVICE_ACCOUNT_FILE" ]; then
+    echo "Error: GCP_SERVICE_ACCOUNT_FILE file not found at $GCP_SERVICE_ACCOUNT_FILE"
+    exit 1
+  else
+    echo "GCP_SERVICE_ACCOUNT_FILE file found at $GCP_SERVICE_ACCOUNT_FILE"
+    export GOOGLE_APPLICATION_CREDENTIALS="$GCP_SERVICE_ACCOUNT_FILE"
+    echo "GOOGLE_APPLICATION_CREDENTIALS set to: $GOOGLE_APPLICATION_CREDENTIALS"
+  fi
+}
+
+# Call the function
+check_gcp_service_account_file
+
 # Function to check if Python is installed
 check_python_installed() {
   case "$OS" in
