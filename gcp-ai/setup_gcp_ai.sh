@@ -12,15 +12,24 @@ echo "Original directory: $ORIGINAL_DIR"
 OS="$(uname -s 2>/dev/null || echo "Windows")"
 echo "Detected OS: $OS"
 
-# Function to check GCP_SERVICE_ACCOUNT_FILE based on the OS
+# Function to check for a .json file in ORIGINAL_DIR and set GCP_SERVICE_ACCOUNT_FILE dynamically
 check_gcp_service_account_file() {
-  # Determine the path to key.json based on the OS
+  # Find any .json file in ORIGINAL_DIR
+  json_file=$(find "$ORIGINAL_DIR" -maxdepth 1 -name "*.json" | head -n 1)
+
+  # Check if a .json file was found
+  if [ -z "$json_file" ]; then
+    echo "Error: No .json file found in $ORIGINAL_DIR"
+    exit 1
+  fi
+
+  # Set the path to the .json file based on the OS
   case "$OS" in
     WINDOWS*|CYGWIN*|MINGW*|MSYS*)
-      GCP_SERVICE_ACCOUNT_FILE="$ORIGINAL_DIR\\key.json"  # Windows path
+      GCP_SERVICE_ACCOUNT_FILE="${json_file//\//\\}"  # Convert to Windows path
       ;;
     Linux*|Darwin*)
-      GCP_SERVICE_ACCOUNT_FILE="$ORIGINAL_DIR/key.json"  # Unix-like path
+      GCP_SERVICE_ACCOUNT_FILE="$json_file"  # Use Unix-like path as is
       ;;
     *)
       echo "Unsupported OS: $OS. Exiting..."
@@ -28,14 +37,11 @@ check_gcp_service_account_file() {
       ;;
   esac
 
-  # Check if the key file exists
-  echo "Checking if credentials file exists at: $GCP_SERVICE_ACCOUNT_FILE"
-  if [ ! -f "$GCP_SERVICE_ACCOUNT_FILE" ]; then
-    echo "Error: GCP_SERVICE_ACCOUNT_FILE file not found at $GCP_SERVICE_ACCOUNT_FILE"
-    exit 1
-  else
-    echo "GCP_SERVICE_ACCOUNT_FILE file found at $GCP_SERVICE_ACCOUNT_FILE"
-  fi
+  echo "GCP_SERVICE_ACCOUNT_FILE file found at: $GCP_SERVICE_ACCOUNT_FILE"
+
+  # Remove existing entry and add the GCP_SERVICE_ACCOUNT_FILE in .env
+  sed -i '/^GCP_SERVICE_ACCOUNT_FILE=/d' .env 2>/dev/null || true
+  echo "GCP_SERVICE_ACCOUNT_FILE=\"$GCP_SERVICE_ACCOUNT_FILE\"" >> .env
 }
 
 # Call the function
@@ -79,11 +85,62 @@ check_python_installed() {
   esac
 }
 
-# OS-specific logic to install Python if needed
-if ! check_python_installed; then
-  echo "Error: Python not found. Exiting..."
-  exit 1
-fi
+# Function to install Python3 and venv on Debian/Ubuntu-based systems
+install_python3_venv() {
+  echo "Python3 or python3-venv not found. Installing necessary packages..."
+  if [[ "$OS" == "Linux" ]]; then
+    sudo apt update
+    sudo apt install -y python3 python3-venv
+    if [ $? -eq 0 ]; then
+      echo "Successfully installed python3 and python3-venv."
+    else
+      echo "Failed to install python3 or python3-venv. Exiting..."
+      exit 1
+    fi
+  fi
+}
+
+# Function to install Python on Unix-based systems (if not already installed)
+install_python_unix() {
+  echo "Python not found. Installing Python on Unix-like system..."
+  curl -O https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.sh
+  chmod +x install_python.sh
+  ./install_python.sh
+}
+
+# Function to install Python on Windows
+install_python_windows() {
+  echo "Python not found. Installing Python on Windows system..."
+  powershell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
+  powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.ps1' -OutFile 'install_python.ps1'"
+  powershell -File install_python.ps1
+}
+
+# OS-specific logic
+case "$OS" in
+  Linux*|Darwin*)
+    echo "Detected Unix-like system ($OS)."
+    if ! check_python_installed; then
+      install_python_unix
+    else
+      # Check if python3-venv is installed, and install if not
+      if ! dpkg -s python3-venv >/dev/null 2>&1; then
+        echo "python3-venv is not installed. Installing it now..."
+        install_python3_venv
+      fi
+    fi
+    ;;
+  CYGWIN*|MINGW*|MSYS*|Windows*)
+    echo "Detected Windows system ($OS)."
+    if ! check_python_installed; then
+      install_python_windows
+    fi
+    ;;
+  *)
+    echo "Unsupported OS. Exiting..."
+    exit 1
+    ;;
+esac
 
 # Prompt user to choose between two models
 echo "Choose the model to deploy:"
@@ -96,9 +153,8 @@ update_env_file() {
   model_choice=$1
 
   # Remove existing variables from the .env file
-  grep -v '^GCP_MODEL_NAME=' .env > temp.env && mv temp.env .env
-  grep -v '^GCP_ENDPOINT_NAME=' .env > temp.env && mv temp.env .env
-  grep -v '^GCP_SERVICE_ACCOUNT_FILE=' .env > temp.env && mv temp.env .env
+  sed -i '/^GCP_MODEL_NAME=/d' .env 2>/dev/null || true
+  sed -i '/^GCP_ENDPOINT_NAME=/d' .env 2>/dev/null || true
 
   # Determine model-specific suffix and settings
   case "$model_choice" in
@@ -128,15 +184,12 @@ update_env_file "$model_choice"
 
 # Load environment variables from the .env file
 if [ -f .env ]; then
-  # Export all variables in the .env file, ignoring commented lines and empty lines
   set -a
   while IFS='=' read -r key value; do
-    # Trim any leading and trailing whitespace from key and value
     key=$(echo "$key" | xargs)
     value=$(echo "$value" | sed 's/#.*//' | xargs)  # Remove comments and trim whitespace
     
     if [[ ! $key =~ ^# && $key && $value ]]; then
-      # Remove surrounding quotes from the value if they exist
       value=$(echo "$value" | sed 's/^"\(.*\)"$/\1/')
       export "$key=$value"
     fi
@@ -147,18 +200,19 @@ else
   exit 1
 fi
 
-# Set the GCP_SERVICE_ACCOUNT_FILE in .env dynamically
-echo "GCP_SERVICE_ACCOUNT_FILE=\"$ORIGINAL_DIR/key.json\"" >> .env
-echo "GCP_SERVICE_ACCOUNT_FILE has been set in .env to: $ORIGINAL_DIR/key.json"
-
-# Activate virtual environment
-echo "Setting up virtual environment..."
-$PYTHON_CMD -m venv my_venv
-if [[ "$OS" == "Windows" ]]; then
-  source my_venv/Scripts/activate
-else
-  source my_venv/bin/activate
-fi
+# Create and activate a Python virtual environment based on OS
+case "$OS" in
+  Linux*|Darwin*)
+    echo "Creating and activating virtual environment for Unix..."
+    $PYTHON_CMD -m venv my_venv
+    source my_venv/bin/activate
+    ;;
+  CYGWIN*|MINGW*|MSYS*|Windows*)
+    echo "Creating and activating virtual environment for Windows..."
+    $PYTHON_CMD -m venv my_venv
+    source my_venv/Scripts/activate
+    ;;
+esac
 
 # Clone the repository if not already present and navigate to the directory
 if [ ! -d "codehub" ]; then
@@ -187,4 +241,9 @@ pip list | grep "google-auth\|python-dotenv\|requests"
 echo "Running Python script..."
 $PYTHON_CMD "$script_to_run"
 
-echo "Python script executed successfully."
+# Check if the last command was successful
+if [ $? -eq 0 ]; then
+    echo "Python script executed successfully."
+else
+    echo "Python script executed unsuccessfully."
+fi
