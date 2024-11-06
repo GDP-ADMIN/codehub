@@ -35,8 +35,6 @@ check_gcp_service_account_file() {
     exit 1
   else
     echo "GCP_SERVICE_ACCOUNT_FILE file found at $GCP_SERVICE_ACCOUNT_FILE"
-    export GOOGLE_APPLICATION_CREDENTIALS="$GCP_SERVICE_ACCOUNT_FILE"
-    echo "GOOGLE_APPLICATION_CREDENTIALS set to: $GOOGLE_APPLICATION_CREDENTIALS"
   fi
 }
 
