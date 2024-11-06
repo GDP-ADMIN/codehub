@@ -41,7 +41,7 @@ check_gcp_service_account_file() {
 
   # Remove existing entry and add the GCP_SERVICE_ACCOUNT_FILE in .env
   sed -i '/^GCP_SERVICE_ACCOUNT_FILE=/d' .env 2>/dev/null || true
-  echo "GCP_SERVICE_ACCOUNT_FILE=\"$GCP_SERVICE_ACCOUNT_FILE\"" >> .env
+  echo -e "\nGCP_SERVICE_ACCOUNT_FILE=\"$GCP_SERVICE_ACCOUNT_FILE\"" >> .env
 }
 
 # Call the function
