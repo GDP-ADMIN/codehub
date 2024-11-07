@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Version Script Information
-VERSION="1.0.1"
+VERSION="1.0.0"
 
 # Capture the directory where the script was invoked
 EXECUTION_DIR="$(pwd)"
@@ -75,111 +75,35 @@ install_python3_venv() {
   fi
 }
 
-# Function to install Python3 on Windows using PowerShell
+# Function to install Python3 on Windows (Placeholder)
 install_python_windows() {
-  log "Attempting to install Python on Windows via PowerShell..."
-
-  # Define the Python installer URL
-  PYTHON_INSTALLER_URL="https://www.python.org/ftp/python/3.11.5/python-3.11.5-amd64.exe"
-  PYTHON_INSTALLER="python_installer.exe"
-
-  # Download Python installer using PowerShell
-  powershell.exe -Command "Invoke-WebRequest -Uri '$PYTHON_INSTALLER_URL' -OutFile '$PYTHON_INSTALLER'" >> "$LOG_FILE" 2>&1
-  if [ $? -ne 0 ]; then
-    handle_error "Failed to download Python installer."
-    return 1
-  fi
-  log "Python installer downloaded successfully."
-
-  # Install Python silently
-  powershell.exe -Command "& ./$PYTHON_INSTALLER /quiet InstallAllUsers=1 PrependPath=1" >> "$LOG_FILE" 2>&1
-  if [ $? -eq 0 ]; then
-    log "Python installed successfully via PowerShell."
-  else
-    handle_error "Failed to install Python via PowerShell."
-    rm -f "$PYTHON_INSTALLER"
-    return 1
-  fi
-
-  # Clean up installer
-  rm -f "$PYTHON_INSTALLER"
-
-  # Re-check Python installation
-  if command -v python &>/dev/null || command -v python3 &>/dev/null; then
-    log "Python is now installed on Windows."
-    return 0
-  else
-    handle_error "Python installation verification failed."
-    return 1
-  fi
+  log "Python installation on Windows is not automated in this script."
+  log "Please install Python manually from https://www.python.org/downloads/"
+  # You can add automation steps here if needed
 }
 
 # Function to install AWS CLI if not already installed
 install_aws_cli() {
-  OS_TYPE="$(uname -s 2>/dev/null || echo "Windows")"
   if ! command -v aws &>/dev/null; then
     log "AWS CLI not found. Installing AWS CLI..."
-    case "$OS_TYPE" in
-      WINDOWS*|CYGWIN*|MINGW*|MSYS*)
-        # Define AWS CLI installer URL
-        AWS_CLI_INSTALLER_URL="https://awscli.amazonaws.com/AWSCLIV2.msi"
-        AWS_CLI_INSTALLER="AWSCLIV2.msi"
-
-        # Download AWS CLI installer using PowerShell
-        powershell.exe -Command "Invoke-WebRequest -Uri '$AWS_CLI_INSTALLER_URL' -OutFile '$AWS_CLI_INSTALLER'" >> "$LOG_FILE" 2>&1
-        if [ $? -ne 0 ]; then
-          handle_error "Failed to download AWS CLI installer."
-          return 1
-        fi
-        log "AWS CLI installer downloaded successfully."
-
-        # Install AWS CLI silently
-        powershell.exe -Command "Start-Process msiexec.exe -ArgumentList '/i $AWS_CLI_INSTALLER /quiet' -Wait" >> "$LOG_FILE" 2>&1
-        if [ $? -eq 0 ]; then
-          log "AWS CLI installed successfully via PowerShell."
-        else
-          handle_error "Failed to install AWS CLI via PowerShell."
-          rm -f "$AWS_CLI_INSTALLER"
-          return 1
-        fi
-
-        # Clean up installer
-        rm -f "$AWS_CLI_INSTALLER"
-
-        # Re-check AWS CLI installation
-        if command -v aws &>/dev/null; then
-          log "AWS CLI is now installed on Windows."
-          return 0
-        else
-          handle_error "AWS CLI installation verification failed."
-          return 1
-        fi
-        ;;
-      Linux*|Darwin*)
-        # Existing Linux installation steps
-        curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" >> "$LOG_FILE" 2>&1
-        if [ $? -ne 0 ]; then
-          handle_error "Failed to download AWS CLI."
-          return 1
-        fi
-        unzip awscliv2.zip >> "$LOG_FILE" 2>&1
-        if [ $? -ne 0 ]; then
-          handle_error "Failed to unzip AWS CLI installer."
-          return 1
-        fi
-        sudo ./aws/install >> "$LOG_FILE" 2>&1
-        if [ $? -eq 0 ]; then
-          log "AWS CLI installed successfully."
-        else
-          handle_error "Failed to install AWS CLI."
-        fi
-        # Clean up
-        rm -rf awscliv2.zip aws
-        ;;
-      *)
-        handle_error "Unsupported OS: $OS_TYPE."
-        ;;
-    esac
+    curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" >> "$LOG_FILE" 2>&1
+    if [ $? -ne 0 ]; then
+      handle_error "Failed to download AWS CLI."
+      return 1
+    fi
+    unzip awscliv2.zip >> "$LOG_FILE" 2>&1
+    if [ $? -ne 0 ]; then
+      handle_error "Failed to unzip AWS CLI installer."
+      return 1
+    fi
+    sudo ./aws/install >> "$LOG_FILE" 2>&1
+    if [ $? -eq 0 ]; then
+      log "AWS CLI installed successfully."
+    else
+      handle_error "Failed to install AWS CLI."
+    fi
+    # Clean up
+    rm -rf awscliv2.zip aws
   else
     log "AWS CLI is already installed."
   fi
@@ -190,7 +114,6 @@ install_unzip() {
   log "Checking if 'unzip' is installed..."
   if ! command -v unzip &>/dev/null; then
     log "'unzip' not found. Installing 'unzip'..."
-    OS_TYPE="$(uname -s 2>/dev/null || echo "Windows")"
     case "$OS_TYPE" in
       Linux*)
         sudo apt update >> "$LOG_FILE" 2>&1
@@ -204,9 +127,9 @@ install_unzip() {
       Darwin*)
         log "'unzip' should already be installed on macOS."
         ;;
-      WINDOWS*|CYGWIN*|MINGW*|MSYS*)
-        # For Windows, use PowerShell's Expand-Archive if needed
-        log "'unzip' functionality is handled via PowerShell's Expand-Archive."
+      CYGWIN*|MINGW*|MSYS*|Windows*)
+        log "'unzip' installation on Windows is not handled in this script."
+        log "Please install 'unzip' manually or ensure it's available in your PATH."
         ;;
       *)
         handle_error "Unsupported OS for 'unzip' installation: $OS_TYPE."
@@ -303,18 +226,15 @@ case "$OS_TYPE" in
     # Check and install AWS CLI
     install_aws_cli
     ;;
-  WINDOWS*|CYGWIN*|MINGW*|MSYS*)
+  CYGWIN*|MINGW*|MSYS*|Windows*)
     log "Detected Windows system ($OS_TYPE)."
     if ! check_python_installed; then
       install_python_windows
       # Re-check if Python is installed after installation attempt
       check_python_installed
     fi
-    # >>> Added: Install 'unzip' on Windows if needed
-    install_unzip
-    # <<< Added
-    # Check and install AWS CLI
-    install_aws_cli
+    # Optionally, handle 'unzip' installation on Windows if needed
+    # install_unzip
     ;;
   *)
     handle_error "Unsupported OS: $OS_TYPE."
@@ -330,7 +250,7 @@ if [ -n "$PYTHON_CMD" ]; then
       Linux*|Darwin*)
         source my_venv/bin/activate
         ;;
-      WINDOWS*|CYGWIN*|MINGW*|MSYS*)
+      CYGWIN*|MINGW*|MSYS*|Windows*)
         source my_venv/Scripts/activate
         ;;
     esac
@@ -347,7 +267,7 @@ if [ -n "$PYTHON_CMD" ]; then
           handle_error "Failed to create virtual environment."
         fi
         ;;
-      WINDOWS*|CYGWIN*|MINGW*|MSYS*)
+      CYGWIN*|MINGW*|MSYS*|Windows*)
         log "Creating Python virtual environment for Windows..."
         "$PYTHON_CMD" -m venv my_venv >> "$LOG_FILE" 2>&1
         if [ $? -eq 0 ]; then
