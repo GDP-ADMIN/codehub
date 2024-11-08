@@ -20,13 +20,6 @@ Before running the scripts, ensure that you have the following:
    ```bash
    curl -o setup_aws_ai.sh https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/aws-ai/setup_aws_ai.sh && chmod 755 setup_aws_ai.sh && bash setup_aws_ai.sh
    ```
-
-   - Windows Version
-
-   ```powershell
-   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/aws-ai/setup_aws_ai.sh" -OutFile "setup_aws_ai.sh"
-   wsl ./setup_aws_ai.sh
-   ```
    **Notes** : Execution time will take about up to 1 minutes depending your internet connection
 
 3. Example of successful requests
