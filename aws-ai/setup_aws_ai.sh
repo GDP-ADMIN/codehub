@@ -12,7 +12,7 @@ LOG_FILE="$EXECUTION_DIR/setup.log"
 
 # Function to log messages to the log file with timestamps
 log() {
-  echo "$(date +"%Y-%m-%d %H:%M:%S") : $*" | tee -a "$LOG_FILE"
+  echo "$(date +"%Y-%m-%d %H:%M:%S") : $*" >> "$LOG_FILE"
 }
 
 # Function to handle non-critical errors by logging them
