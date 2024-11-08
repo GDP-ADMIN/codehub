@@ -23,7 +23,7 @@ Before running the scripts, ensure that you have the following:
    - Windows Version
 
    ```powershell
-   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/aws-ai/setup_aws_ai.sh" -OutFile "setup_aws_ai.sh" 
+   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/aws-ai/setup_aws_ai.sh" -OutFile "setup_aws_ai.sh"
    wsl ./setup_aws_ai.sh
    ```
    **Notes** : Execution time will take about up to 1 minutes depending your internet connection
