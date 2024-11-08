@@ -12,7 +12,7 @@ LOG_FILE="$EXECUTION_DIR/setup.log"
 
 # Function to log messages to the log file with timestamps
 log() {
-  echo "$(date +"%Y-%m-%d %H:%M:%S") : $1" >> "$LOG_FILE"
+  echo "$(date +"%Y-%m-%d %H:%M:%S") : $*" | tee -a "$LOG_FILE"
 }
 
 # Function to handle non-critical errors by logging them
@@ -75,34 +75,29 @@ install_python3_venv() {
   fi
 }
 
-# Function to install Python3 on Windows using PowerShell
+# <<< Updated Function Starts Here >>>
+# Function to install Python3 on Windows using an external PowerShell script
 install_python_windows() {
-  log "Attempting to install Python on Windows via PowerShell..."
-
-  # Define the Python installer URL
-  PYTHON_INSTALLER_URL="https://www.python.org/ftp/python/3.11.5/python-3.11.5-amd64.exe"
-  PYTHON_INSTALLER="python_installer.exe"
-
-  # Download Python installer using PowerShell
-  powershell.exe -Command "Invoke-WebRequest -Uri '$PYTHON_INSTALLER_URL' -OutFile '$PYTHON_INSTALLER'" >> "$LOG_FILE" 2>&1
-  if [ $? -ne 0 ]; then
-    handle_error "Failed to download Python installer."
-    return 1
-  fi
-  log "Python installer downloaded successfully."
-
-  # Install Python silently
-  powershell.exe -Command "& ./$PYTHON_INSTALLER /quiet InstallAllUsers=1 PrependPath=1" >> "$LOG_FILE" 2>&1
+  echo "Python not found. Installing Python on Windows system..."
+  
+  # Set Execution Policy to allow script execution
+  powershell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
+  
+  # Download the PowerShell installer script
+  powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/devsecops/install_python.ps1' -OutFile 'install_python.ps1'"
+  
+  # Execute the installer script
+  powershell -File install_python.ps1
+  
+  # Check if the PowerShell script executed successfully
   if [ $? -eq 0 ]; then
     log "Python installed successfully via PowerShell."
+    rm -f install_python.ps1
   else
     handle_error "Failed to install Python via PowerShell."
-    rm -f "$PYTHON_INSTALLER"
+    rm -f install_python.ps1
     return 1
   fi
-
-  # Clean up installer
-  rm -f "$PYTHON_INSTALLER"
 
   # Re-check Python installation
   if command -v python &>/dev/null || command -v python3 &>/dev/null; then
@@ -113,6 +108,7 @@ install_python_windows() {
     return 1
   fi
 }
+# <<< Updated Function Ends Here >>>
 
 # Function to install AWS CLI if not already installed
 install_aws_cli() {
@@ -265,6 +261,13 @@ configure_aws_profile() {
   local aws_access_key_id=$AWS_ACCESS_KEY_ID
   local aws_secret_access_key=$AWS_SECRET_ACCESS_KEY
   local aws_region=$AWS_REGION
+
+  # Check if the profile already exists
+  if aws configure list-profiles | grep -q "^${profile_name}$"; then
+    log "AWS profile '$profile_name' already exists. Skipping configuration."
+    export AWS_PROFILE="$profile_name"
+    return 0
+  fi
 
   # Configure AWS CLI profile using values from .env
   aws configure set aws_access_key_id "$aws_access_key_id" --profile "$profile_name" >> "$LOG_FILE" 2>&1
