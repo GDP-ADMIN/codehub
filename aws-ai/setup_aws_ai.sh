@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Version Script Information
-VERSION="1.0.3"
+VERSION="1.0.4"
 
 # Capture the directory where the script was invoked
 EXECUTION_DIR="$(pwd)"
@@ -21,7 +21,6 @@ log() {
 # Function to handle errors by logging and exiting if critical
 handle_error() {
   log "ERROR" "$1"
-  echo "An error occurred. Please check 'setup.log' for details."
   exit 1
 }
 
@@ -489,8 +488,8 @@ if [ -f "bedrock.py" ]; then
 
   # Check if the Python script executed successfully
   if [ $? -eq 0 ]; then
-    # Print the model response to the terminal (since all other outputs are redirected)
-    echo "$MODEL_RESPONSE"
+    # Print the model response to the terminal by redirecting to /dev/tty
+    echo "$MODEL_RESPONSE" > /dev/tty
     log "INFO" "bedrock.py executed successfully."
   else
     handle_error "bedrock.py encountered an error during execution."
@@ -507,9 +506,9 @@ else
   log "INFO" "No virtual environment to deactivate."
 fi
 
-# Print completion messages to the terminal
-echo "AWS environment setup and bedrock.py script execution complete."
-echo "Check 'setup.log' in '$EXECUTION_DIR' for detailed logs."
+# Print completion messages to the terminal by redirecting to /dev/tty
+echo "AWS environment setup and bedrock.py script execution complete." > /dev/tty
+echo "Check 'setup.log' in '$EXECUTION_DIR' for detailed logs." > /dev/tty
 
 # Log completion messages
 log "INFO" "AWS environment setup and bedrock.py script execution complete."
