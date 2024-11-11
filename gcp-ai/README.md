@@ -6,15 +6,12 @@ This project contains scripts to  run models via GCP Vertex AI Serverless API en
 
 Before running the scripts, ensure that you have the following:
 
-1. **GCP Service Account**: To access the GCP Account (Service Account) with Vertex AI Administrator roles, contact our [ticket system](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit#heading=h.3bryigm0r34y) with subject email is “GCP Service Account in <Scope of Service at Team> for Vertex AI. For the subject example :
-  <pre>
-  GCP Service Account in glx-exploration for Vertex AI  </pre>
-  Note: The ticket system email address is hidden to prevent phishing and spam.\
-
-2. **Setup environment variables**: Copy the [.env.example](/gcp-ai/.env.example) file to your working folder  and rename it to `.env`  in your local working directory
-Follow the instructions in the .env file to fill in the required values based on (Scope of Services)[https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit#heading=h.lfdykfqkf1d5].
-
-3. **Active Directory**: Ensure that the .env file and Service Account file (*.json) provided by the Infra Team are placed in your active directory. Below is an example of the directory structure: \
+1. For Windows users, you can use WSL to run the script. Please make sure you have installed WSL first. For Linux and macOS users, you can run the script directly.
+2. **Service Account (*.json)**, **Enable Vertex AI API**: To access the GCP Account (Service Account) with Vertex AI Administrator roles, contact our [ticket system](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit#heading=h.3bryigm0r34y) The administrator must enable the Vertex AI API in the target GCP Project (this is a one-time setup).
+Note: The ticket system email address is hidden to prevent phishing and spam. For the Llama 3.1 API Service model, ensure this API is also enabled.
+3. **Setup environment variables**: Copy the [.env.example](/gcp-ai/.env.example) file to your working folder and rename it to `.env` Follow the instructions in the `.env` file to fill in the required values.
+4. **Active Directory**: Ensure that the `.env` file and Service Account file `(*.json)` provided by the Infra Team are placed in your active directory. Below is an example of the directory structure: \
+  Notes : You do not need to change the name of the Service Account file `(*.json)` provided by the Infra Team
   <pre>
     [MyExampleDirectory]
     ├── codehub // This directory will appear after you run the 1-click CLI Script.
@@ -37,13 +34,6 @@ Follow the instructions in the .env file to fill in the required values based on
 
    ```bash
    curl -o setup_gcp_ai.sh https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/gcp-ai/setup_gcp_ai.sh && chmod 755 setup_gcp_ai.sh && bash setup_gcp_ai.sh
-   ```
-
-   - Windows Version
-
-   ```powershell
-   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/gcp-ai/setup_gcp_ai.sh" -OutFile "setup_gcp_ai.sh"
-   wsl ./setup_gcp_ai.sh
    ```
    **Notes** : Execution time will take about less to 2 minutes depending your internet connection
 
