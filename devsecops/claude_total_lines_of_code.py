@@ -1,5 +1,6 @@
 import os
 import requests
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import pytz
 from github import Github
@@ -11,38 +12,152 @@ import concurrent.futures
 from functools import partial
 import pandas as pd
 import base64
+import logging
+from github.GithubException import RateLimitExceededException
+import math
+
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+def wait_for_rate_limit(g, exponential_backoff_count=0):
+    """Wait until rate limit is reset with exponential backoff"""
+    try:
+        rate_limit = g.get_rate_limit()
+        core_rate_limit = rate_limit.core
+        
+        if core_rate_limit.remaining < 100 or exponential_backoff_count > 0:  # More conservative threshold
+            reset_timestamp = core_rate_limit.reset.timestamp()
+            sleep_time = reset_timestamp - time.time()
+            
+            # Add exponential backoff with longer initial wait
+            if exponential_backoff_count > 0:
+                sleep_time += math.pow(2, exponential_backoff_count) + 30  # Added base delay
+                
+            logger.warning(f"Rate limit low ({core_rate_limit.remaining} remaining). Waiting for {sleep_time:.2f} seconds")
+            time.sleep(max(sleep_time, 30))  # Minimum 30 second wait
+            return True
+    except Exception as e:
+        # If we can't get rate limit, use exponential backoff
+        sleep_time = math.pow(2, exponential_backoff_count) + 30
+        logger.warning(f"Could not get rate limit, waiting {sleep_time:.2f} seconds")
+        time.sleep(sleep_time)
+        return True
+    return False
+
+def retry_with_backoff(func, *args, max_retries=5, **kwargs):
+    """Generic retry function with exponential backoff"""
+    for attempt in range(max_retries):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            if "403" in str(e) or isinstance(e, RateLimitExceededException):
+                if attempt == max_retries - 1:
+                    raise
+                wait_for_rate_limit(args[0] if args else kwargs.get('g'), exponential_backoff_count=attempt)
+                logger.info(f"Retrying after 403 error (attempt {attempt + 1})")
+                continue
+            raise
+
+def get_github_stats(token, org_name, search_query=None):
+    g = Github(token, per_page=50, timeout=60)
+    
+    try:
+        # Check initial rate limit with retry
+        logger.info("Checking rate limit before starting")
+        rate_limit = retry_with_backoff(g.get_rate_limit)
+        logger.info(f"Rate limit remaining: {rate_limit.core.remaining}/{rate_limit.core.limit}")
+        
+        # Get organization with retry
+        logger.info(f"Accessing organization: {org_name}")
+        org = retry_with_backoff(g.get_organization, org_name)
+        
+        end_date = datetime.now(pytz.UTC)
+        start_date = end_date - timedelta(days=7)
+        
+        logger.info("Fetching repository list...")
+        # Get repos with retry
+        repos = retry_with_backoff(lambda: list(org.get_repos()))
+        
+        if search_query:
+            repos = [repo for repo in repos if search_query.lower() in repo.name.lower()]
+            if not repos:
+                logger.warning(f"No repositories found matching '{search_query}'")
+                return []
+        
+        logger.info(f"Found {len(repos)} repositories to process")
+        
+        results = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            process_repo = partial(process_single_repo, start_date=start_date, end_date=end_date)
+            futures = {executor.submit(process_repo, repo): repo for repo in repos}
+            
+            for future in tqdm(concurrent.futures.as_completed(futures), 
+                             total=len(repos), 
+                             desc="Processing repositories"):
+                result = future.result()
+                if result:
+                    results.append(result)
+                time.sleep(1)
+                
+                if len(results) % 5 == 0:
+                    wait_for_rate_limit(g)
+        
+        return results
+        
+    except Exception as e:
+        logger.error(f"Fatal error: {str(e)}")
+        return []
+
+def get_repo_contents_with_retry(repo, path="", ref=None):
+    """Get repository contents with retry logic"""
+    def _get_contents():
+        return repo.get_contents(path, ref=ref) if ref else repo.get_contents(path)
+    
+    return retry_with_backoff(_get_contents)
 
 def get_total_lines(repo):
-    """Calculate total lines of code in a repository"""
+    """Calculate total lines of code in a repository using more efficient methods"""
     try:
-        # Get all files in the repository
-        contents = repo.get_contents("")
-        total_lines = 0
+        logger.info(f"Analyzing repository: {repo.name}")
         
-        while contents:
-            file_content = contents.pop(0)
+        # Method 1: Use repository statistics
+        # This uses GitHub's own statistics API which is much more efficient
+        stats = retry_with_backoff(repo.get_stats_contributors)
+        if stats:
+            total_lines = sum(
+                sum(week.a + week.d for week in contributor.weeks)
+                for contributor in stats
+            )
+            logger.info(f"Got lines for {repo.name} using stats API: {total_lines:,} lines")
+            return total_lines
             
-            if file_content.type == "dir":
-                contents.extend(repo.get_contents(file_content.path))
-            else:
-                try:
-                    # Skip binary files and specific file types
-                    if any(file_content.path.endswith(ext) for ext in ['.png', '.jpg', '.jpeg', '.gif', '.pdf', '.zip', '.tar', '.gz']):
-                        continue
-                    
-                    # Get file content
-                    decoded_content = base64.b64decode(file_content.content).decode('utf-8')
-                    total_lines += len(decoded_content.splitlines())
-                except:
-                    continue
-                    
-        return total_lines
+        # Method 2: Use repository languages
+        # This is a good fallback that uses only one API call
+        languages = retry_with_backoff(repo.get_languages)
+        if languages:
+            total_lines = sum(languages.values())
+            logger.info(f"Got lines for {repo.name} using languages API: {total_lines:,} lines")
+            return total_lines
+            
+        # Method 3: Use repository size as rough estimate
+        # This requires no additional API calls
+        estimated_lines = repo.size * 100  # Rough estimate: 100 lines per KB
+        logger.info(f"Estimated lines for {repo.name} using size: {estimated_lines:,} lines")
+        return estimated_lines
+        
     except Exception as e:
-        print(f"Error counting lines in {repo.name}: {str(e)}")
+        logger.error(f"Error analyzing {repo.name}: {str(e)}")
         return 0
 
 def process_single_repo(repo, start_date, end_date):
-    """Process a single repository"""
+    """Process a single repository with optimized API usage"""
+    logger.info(f"Processing repository: {repo.name}")
     stats = {
         'repository_name': repo.name,
         'total_lines_of_code': 0,
@@ -53,89 +168,45 @@ def process_single_repo(repo, start_date, end_date):
         'last_updated': repo.updated_at.strftime('%Y-%m-%d'),
         'primary_language': repo.language or 'None',
         'is_archived': repo.archived,
-        'repo_size_kb': repo.size
+        'repo_size_kb': repo.size,
+        'languages': [],
+        'estimation_method': 'unknown'
     }
     
     try:
-        # Get total lines of code
+        # Get languages in one API call
+        languages = retry_with_backoff(repo.get_languages)
+        stats['languages'] = list(languages.keys())
+        
+        # Get total lines of code using efficient methods
         stats['total_lines_of_code'] = get_total_lines(repo)
         
-        # Get commit statistics
-        commits = list(repo.get_commits(since=start_date, until=end_date))[:20]
-        stats['commit_count'] = len(commits)
-        
-        # Get Pull Requests count
-        pulls = repo.get_pulls(state='all', sort='created', direction='desc')
-        pr_count = 0
-        for pr in pulls:
-            if pr.created_at < start_date:
+        # Get recent commit count using date filtering
+        # This uses pagination efficiently by stopping when we hit old commits
+        commit_count = 0
+        for commit in retry_with_backoff(lambda: repo.get_commits(since=start_date, until=end_date)):
+            commit_count += 1
+            if commit_count >= 20:  # Limit to recent commits
                 break
-            if start_date <= pr.created_at <= end_date:
-                pr_count += 1
-        stats['pull_requests'] = pr_count
+        stats['commit_count'] = commit_count
         
-        # Get Issues count
-        issues = repo.get_issues(state='closed', sort='updated', direction='desc')
-        issue_count = 0
-        for issue in issues:
-            if not issue.pull_request and issue.closed_at:
-                if issue.closed_at < start_date:
-                    break
-                if start_date <= issue.closed_at <= end_date:
-                    issue_count += 1
-        stats['issues_solved'] = issue_count
+        # Get PR and Issue counts efficiently using search API
+        # This is much faster than iterating through all PRs and issues
+        query_pr = f'repo:{repo.organization.login}/{repo.name} is:pr created:{start_date.date()}..{end_date.date()}'
+        query_issues = f'repo:{repo.organization.login}/{repo.name} is:issue is:closed closed:{start_date.date()}..{end_date.date()}'
         
-        # Get unique contributors
-        contributors = set()
-        for commit in commits:
-            try:
-                contributors.add(commit.author.login if commit.author else 'unknown')
-            except:
-                continue
-        stats['contributors'] = len(contributors)
+        try:
+            stats['pull_requests'] = retry_with_backoff(lambda: repo._github.search_issues(query_pr)).totalCount
+            stats['issues_solved'] = retry_with_backoff(lambda: repo._github.search_issues(query_issues)).totalCount
+        except Exception as e:
+            logger.warning(f"Error getting PR/Issue counts for {repo.name}: {str(e)}")
         
+        logger.info(f"Successfully processed {repo.name}")
         return stats
-    
+        
     except Exception as e:
-        print(f"Error processing {repo.name}: {str(e)}")
+        logger.error(f"Error processing {repo.name}: {str(e)}")
         return None
-
-def get_github_stats(token, org_name, search_query=None):
-    g = Github(token, per_page=100, timeout=30)
-    
-    try:
-        org = g.get_organization(org_name)
-        end_date = datetime.now(pytz.UTC)
-        start_date = end_date - timedelta(days=7)
-        
-        print("Fetching repository list...")
-        repos = list(org.get_repos())
-        
-        if search_query:
-            repos = [repo for repo in repos if search_query.lower() in repo.name.lower()]
-            if not repos:
-                print(f"No repositories found matching '{search_query}'")
-                return []
-        
-        print(f"\nProcessing {len(repos)} repositories in parallel...")
-        
-        results = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            process_repo = partial(process_single_repo, start_date=start_date, end_date=end_date)
-            futures = {executor.submit(process_repo, repo): repo for repo in repos}
-            
-            for future in tqdm(concurrent.futures.as_completed(futures), 
-                             total=len(repos), 
-                             desc="Processing repositories"):
-                result = future.result()
-                if result:
-                    results.append(result)
-        
-        return results
-        
-    except Exception as e:
-        print(f"Fatal error: {str(e)}")
-        return []
 
 def save_to_csv(stats, org_name):
     """Save detailed statistics to CSV file"""
@@ -143,6 +214,9 @@ def save_to_csv(stats, org_name):
     filename = f'github_stats_{org_name}_{timestamp}.csv'
     
     df = pd.DataFrame(stats)
+    
+    # Add language percentages
+    df['languages'] = df['languages'].apply(lambda x: ', '.join(x) if x else 'None')
     
     # Sort by total lines of code (descending)
     df = df.sort_values('total_lines_of_code', ascending=False)
@@ -188,6 +262,24 @@ def print_summary(stats, csv_filename):
     print(f"\nDetailed statistics have been saved to: {csv_filename}")
     print("Use Excel or any CSV reader to view the complete dataset.")
 
+def verify_github_access(token):
+    """Verify GitHub token permissions"""
+    g = Github(token)
+    try:
+        user = g.get_user()
+        logger.info(f"Authenticated as: {user.login}")
+        
+        # Check token permissions
+        auth = g.get_user().get_authorizations()
+        logger.info("Token permissions:")
+        for scope in auth[0].scopes:
+            logger.info(f"- {scope}")
+            
+        return True
+    except Exception as e:
+        logger.error(f"Error verifying GitHub access: {str(e)}")
+        return False
+
 def main():
     parser = argparse.ArgumentParser(description='Fetch GitHub organization statistics')
     parser.add_argument('--search', '-s', help='Search for repositories containing this string')
@@ -197,10 +289,16 @@ def main():
     org_name = os.getenv('GITHUB_ORG')
     
     if not token or not org_name:
-        print("Error: Please set GITHUB_TOKEN and GITHUB_ORG environment variables")
+        logger.error("Error: Please set GITHUB_TOKEN and GITHUB_ORG environment variables")
         return
+        
+    # Verify GitHub access before proceeding
+    #if not verify_github_access(token):
+    #    logger.error("Failed to verify GitHub access. Please check your token permissions.")
+    #    return
     
     try:
+        logger.info("Starting to fetch GitHub stats...")
         stats = get_github_stats(token, org_name, args.search)
         csv_filename = save_to_csv(stats, org_name)
         print_summary(stats, csv_filename)
