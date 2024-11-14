@@ -20,7 +20,7 @@ load_dotenv()
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.ERROR,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ def get_total_lines(repo):
         stats = retry_with_backoff(repo.get_stats_contributors)
         if stats:
             total_lines = sum(
-                sum(week.a + week.d for week in contributor.weeks)
+                sum(week.a - week.d for week in contributor.weeks)
                 for contributor in stats
             )
             logger.info(f"Got lines for {repo.name} using stats API: {total_lines:,} lines")
