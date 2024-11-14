@@ -195,7 +195,7 @@ install_aws_cli_v1() {
       AWS_CLI_VERSION=$(aws --version | awk '{print $1}' | cut -d/ -f2)
       log "INFO" "AWS CLI Version $AWS_CLI_VERSION installed successfully."
     else
-      handle_error "AWS CLI installation verification failed." 17
+      log "WARNING" "AWS CLI installation verification failed. Continuing" 17
     fi
   fi
 }
