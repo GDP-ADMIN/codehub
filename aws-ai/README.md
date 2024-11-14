@@ -7,8 +7,24 @@ This project contains scripts to  deploy models via Amazon Bedrock.
 Before running the scripts, ensure that you have the following:
 
 1. For Windows users, you can use WSL to run the script. Please make sure you have installed WSL first. For Linux and macOS users, you can run the script directly.
-2. **AWS Credentials (Access Key and Secret Key)**: Please contact our [ticketing system](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.3bryigm0r34y) to get AWS Credentials with `Amazon Bedrock Full Access`.  Use "Amazon Bedrock Serverless Model Deployment" as the email subject line. \
-   Notes : We hide the ticket system email address to prevent phishing and spamming.
+2. **AWS Credentials (Access Key and Secret Key)**: To access the AWS Credentials (Access Key and Secret Key) with Amazon Bedrock Full Access permission, please submit a request through our [ticket system](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.3bryigm0r34y).
+
+**Email Subject**:
+<pre> AWS Credentials in [Scope of Service at Team](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.yhcswoyvfkz4) for Amazon Bedrock </pre>
+
+**Email Body**:
+<pre>
+Dear Infra Team,
+
+I am requesting an AWS credentials setup in the gl-exploration account for use with Amazon Bedrock. This AWS credentials will enable us to proceed with the necessary configurations and integrations required for our Amazon Bedrock.
+
+Could you please create and provide the AWS credentials at your earliest convenience? Once we have the AWS credentials details, we can move forward with the setup and testing steps.
+
+Thank you for your support.
+</pre>
+
+Notes : We hide the ticket system email address to prevent phishing and spamming.
+
 3. **Setup environment variables**: Copy this [.env.example](/aws-ai/.env.example) file as `.env` file on your working folder and follow the instructions in the `.env` file to fill in the required values.
 
 ## Setup and Installation
@@ -24,10 +40,34 @@ Before running the scripts, ensure that you have the following:
 
 3. Example of successful requests
    <pre>
-    Model ID: meta.llama3-1-8b-instruct-v1:0
+    ----------------------------------------
+    Choose the model to deploy:
+    ----------------------------------------
+    1. Amazon - Titan Text G1 - Express (Version: 1.x)
+    2. Amazon - Titan Text G1 - Lite (Version: 1.x)
+    3. Anthropic - Claude (Version: 2.0)
+    4. Anthropic - Claude (Version: 2.1)
+    5. Anthropic - Claude Instant (Version: 1.x)
+    6. Meta - Llama 3 8B Instruct (Version: 1.x)
+    7. Meta - Llama 3 70B Instruct (Version: 1.x)
+    8. Meta - Llama 3.1 8B Instruct (Version: 1.x)
+    9. Mistral AI - Mistral 7B Instruct (Version: 0.x)
+    10. Mistral AI - Mixtral 8X7B Instruct (Version: 0.x)
+    11. Mistral AI - Mistral Large (Version: 1.x)
+    Enter the number corresponding to the model: 4
+    ----------------------------------------------------------------
+    Selected Model: Anthropic - Claude (Version: 2.1)
+    Model ID: anthropic.claude-v2:1
     Prompt: Siapa presiden ke-4 Indonesia?
-    Response:  Presiden ke-4 Indonesia adalah Abdurrahman Wahid. Ia menjabat dari tahun 1999 hingga 2001. Abdurrahman Wahid atau yang lebih dikenal dengan Gus Dur, lahir pada tanggal 7 September 1924 di Jombang, Jawa Timur. Ia merupakan seorang ulama, intelektual, dan politikus yang memiliki peran penting dalam sejarah Indonesia. Gus Dur dikenal sebagai presiden pertama yang tidak berasal dari militer atau kalangan elit politik tradisional. Ia dipilih sebagai presiden pada tahun 1999 melalui proses pemilihan yang demokratis dan menjadi simbol perubahan politik di Indonesia pada saat itu. Selama masa jabatannya, Gus Dur berusaha meningkatkan demokrasi, mengurangi ketimpangan sosial ekonomi, dan memperkuat keberagaman budaya di Indonesia. Sayangnya, masa jabatannya singkat dan berakhir pada tahun 2001 karena keterlibatannya dalam skandal korupsi dan krisis politik yang melanda Indonesia pada saat itu. Meskipun demikian, Gus Dur tetap diingat sebagai salah satu presiden yang paling berpengaruh dan berperan penting dalam sejarah Indonesia. Ia meninggal pada tanggal 30 Desember 2009 di Jakarta. Gus Dur dikenal sebagai seorang pemimpin yang berani, visioner, dan memiliki kekuatan spiritual yang kuat. Ia terus menjadi inspirasi bagi banyak orang di Indonesia dan di seluruh dunia. Karena itu, Abdurrahman Wahid atau Gus Dur tetap diingat sebagai salah satu presiden yang paling berpengaruh dan berperan penting dalam sejarah Indonesia. Ia meninggalkan warisan yang abadi dan terus menjadi inspirasi bagi generasi-generasi mendatang. Ia adalah presiden ke-4 Indonesia yang paling berpengaruh dan berperan penting dalam sejarah Indonesia. Ia meninggalkan warisan yang abadi dan terus menjadi inspirasi bagi banyak orang di Indonesia dan di seluruh dunia. Ia adalah presiden ke-4 Indonesia yang paling berpengaruh dan berperan penting dalam sejarah Indonesia. Ia meninggalkan warisan yang abadi
-  </pre>
+    Response: Presiden ke-4 Indonesia adalah Abdurrahman Wahid. Beliau menjabat sebagai Presiden Indonesia dari tahun 1999 hingga 2001.
+    
+    Abdurrahman Wahid, yang akrab disapa Gus Dur, terpilih menjadi Presiden menggantikan BJ Habibie setelah pemilihan umum tahun 1999. Gus Dur merupakan tokoh penting dari organisasi Islam terbesar di Indonesia, Nahdlatul Ulama.
+    
+    Namun pada tahun 2001, Gus Dur dituntut untuk mundur dari jabatannya karena beberapa kontroversi dan tuduhan korupsi serta ketidakmampuannya mengendalikan krisis politik dan ekonomi yang terjadi saat itu. Jabatan pres
+    
+    AWS environment setup and bedrock.py script execution complete.
+    Check 'setup.log' in '/home/ignatiussw/Documents/amzn-bedrock-tes/igncodehub' for detailed logs.
+   </pre>
        
 ## Amazon Bedrock Model ID
 
@@ -58,11 +98,6 @@ If you want to run bedrock.py by changing the prompting, you can follow this flo
      ```bash
      source my_venv/bin/activate
      ```
-
-   - Windows Version
-     ```bash
-     source my_venv/Scripts/activate
-     ```
 2. Update the `bedrock.py` file at line 209 in the `default="Hello World"` section.
    - Linux, WSL
      ```bash
@@ -72,78 +107,38 @@ If you want to run bedrock.py by changing the prompting, you can follow this flo
      ```bash
      sed -i '' 's/Siapa presiden ke-4 Indonesia?/Show Hello World!/' bedrock.py
      ```
-   - Windows PowerShell
-     ```bash
-     (Get-Content "bedrock.py") -replace 'Siapa presiden ke-4 Indonesia?', 'Show Hello World!' | Set-Content "bedrock.py"
-     ```
 2. Run the script
 
    - Linux, WSL and MacOS Version (UNIX)
      ```bash
      python3 bedrock.py
      ```
-   - Windows Version
-     ```bash
-     python bedrock.py
-     ```
 
 3. Example of successful requests
     <pre>
-    Model ID: meta.llama3-1-8b-instruct-v1:0
+    ----------------------------------------
+    Choose the model to deploy:
+    ----------------------------------------
+    1. Amazon - Titan Text G1 - Express (Version: 1.x)
+    2. Amazon - Titan Text G1 - Lite (Version: 1.x)
+    3. Anthropic - Claude (Version: 2.0)
+    4. Anthropic - Claude (Version: 2.1)
+    5. Anthropic - Claude Instant (Version: 1.x)
+    6. Meta - Llama 3 8B Instruct (Version: 1.x)
+    7. Meta - Llama 3 70B Instruct (Version: 1.x)
+    8. Meta - Llama 3.1 8B Instruct (Version: 1.x)
+    9. Mistral AI - Mistral 7B Instruct (Version: 0.x)
+    10. Mistral AI - Mixtral 8X7B Instruct (Version: 0.x)
+    11. Mistral AI - Mistral Large (Version: 1.x)
+    Enter the number corresponding to the model: 4
+    ----------------------------------------------------------------
+    Selected Model: Anthropic - Claude (Version: 2.1)
+    Model ID: anthropic.claude-v2:1
     Prompt: Show Hello World!
-    Response:  in Python
-    # -*- coding: utf-8 -*-
-    """
-    Created on Mon Mar  7 14:35:23 2022
+    Response: Hello World!
     
-    @author: user
-    """
-    
-    # Importing the required libraries
-    import tkinter as tk
-    from tkinter import messagebox
-    
-    # Creating the main window
-    root = tk.Tk()
-    root.title("Hello World!")
-    
-    # Creating a label and a button
-    label = tk.Label(root, text="Hello World!")
-    button = tk.Button(root, text="Click me!", command=lambda: messagebox.showinfo("Hello World!", "You clicked the button!"))
-    
-    # Packing the label and the button
-    label.pack()
-    button.pack()
-    
-    # Starting the main loop
-    root.mainloop()  # This is where the magic happens!  # noqa: E501
-    ```
-    
-    This code creates a simple GUI application with a label and a button. When the button is clicked, a message box appears with the text "You clicked the button!". The `mainloop` method is what makes the GUI appear on the screen and start listening for events.
-    
-    ### Step 2: Run the code
-    
-    To run the code, save it to a file with a `.py` extension (e.g., `hello_world.py`) and run it using Python (e.g., `python hello_world.py`). This will launch the GUI application.
-    
-    ### Step 3: Interact with the GUI
-    
-    Click the button to see the message box appear. You can close the message box by clicking the "OK" button.
-    
-    ### Step 4: Customize the GUI
-    
-    You can customize the GUI by modifying the code. For example, you can change the text of the label and button, add more widgets, or change the layout of the GUI.
-    
-    ### Step 5: Learn more about Tkinter
-    
-    Tkinter is a powerful library for creating GUI applications in Python. You can learn more about it by reading the official documentation or exploring online resources. Some useful resources include:
-    
-    * The official Tkinter documentation: <https://docs.python.org/3/library/tk.html>
-    * The Tkinter tutorial on Real Python: <https://realpython.com/python-gui-tkinter/>
-    * The Tkinter documentation on W3Schools: <https://www.w3schools.com/python/python_gui_tkinter.asp>
-    
-    ### Step 6: Practice creating GUI applications
-    
-    Practice creating GUI applications using Tkinter. Start with simple applications and gradually move on to more complex ones. Experiment with different widgets, layouts, and features to become proficient in creating GUI applications.  # noqa
+    AWS environment setup and bedrock.py script execution complete.
+    Check 'setup.log' in '/home/ignatiussw/Documents/amzn-bedrock-tes/igncodehub' for detailed logs.
     </pre>
 
 
@@ -159,7 +154,7 @@ Deploying models on AWS Bedrock incurs costs based on the specific models you us
 
 ## References
 
-1. Documentation : [Amazon Bedrock](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?usp=sharing)
+1. Documentation : [Amazon Bedrock AI Serverless](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?usp=sharing)
 
 ## Notes
 
