@@ -8,21 +8,22 @@ Before running the scripts, ensure that you have the following:
 
 1. For Windows users, you can use WSL to run the script. Please make sure you have installed WSL first. For Linux and macOS users, you can run the script directly.
 2. **GCP Service Account**: To access the GCP Account (Service Account) with Vertex AI Administrator roles, contact our [ticket system](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit#heading=h.3bryigm0r34y)  with the subject email as “GCP Service Account in [Scope of Service at Team](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit?tab=t.0#heading=h.lfdykfqkf1d5) for Vertex AI”. For the example :
-  <pre>Subject</pre>
+
+**Subject**
   ```
   GCP Service Account in abc-exploration for Vertex AI
   ```
 
-  <pre>Body Email</pre>
+**Body Email**
   ```
     Dear Infra Team,
     I am requesting a GCP service account setup in the glx-exploration project for use with Vertex AI. This service account will enable us to proceed with the necessary configurations and integrations required for our Vertex AI workflows.
     Could you please create and provide the service account credentials at your earliest convenience? Once we have the service account details, we can move forward with the setup and testing steps.
     Thank you for your support.
   ```
-  Note: The ticket system email address is hidden to prevent phishing and spam. For the Llama 3.1 API Service model, ensure this API is also enabled.
+  Note: The ticket system email address is hidden to prevent phishing and spam. For the Llama 3.1 API Service model, ensure this API is also enabled. \
 3. **Setup environment variables**: Copy the  [.env.example](/gcp-ai/.env.example) file to your working folder  and rename it to `.env`  in your local working directory
-Follow the instructions in the .env file to fill in the required values based on Scope of Services.
+Follow the instructions in the .env file to fill in the required values based on Scope of Services. \
 4. **Active Directory**: Ensure that the `.env` file and Service Account file `(*.json)` provided by the Infra Team are placed in your active directory. Below is an example of the directory structure:
   <pre>
     [MyExampleDirectory]
