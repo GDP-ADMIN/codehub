@@ -132,15 +132,12 @@ If you want to run bedrock.py by changing the prompting, you can follow this flo
     9. Mistral AI - Mistral 7B Instruct (Version: 0.x)
     10. Mistral AI - Mixtral 8X7B Instruct (Version: 0.x)
     11. Mistral AI - Mistral Large (Version: 1.x)
-    Enter the number corresponding to the model: 4
+    Enter the number corresponding to the model:4
     ----------------------------------------------------------------
     Selected Model: Anthropic - Claude (Version: 2.1)
     Model ID: anthropic.claude-v2:1
     Prompt: Show Hello World!
     Response: Hello World!
-    
-    AWS environment setup and bedrock.py script execution complete.
-    Check 'setup.log' in '/home/ignatiussw/Documents/amzn-bedrock-tes/igncodehub' for detailed logs.
     </pre>
 
 
