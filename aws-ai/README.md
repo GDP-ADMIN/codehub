@@ -13,7 +13,9 @@ Before running the scripts, ensure that you have the following:
 AWS Credentials in [Scope of Service at Team](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.yhcswoyvfkz4) for Amazon Bedrock
 
 **Examples:** 
-``AWS Credentials in gl-exploration for Amazon Bedrock``
+```
+AWS Credentials in gl-exploration for Amazon Bedrock
+```
 
 **Email Body**:
 ```
