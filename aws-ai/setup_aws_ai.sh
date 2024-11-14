@@ -292,10 +292,115 @@ verify_aws_cli_version() {
   fi
 }
 
+# Function to create and activate a Python virtual environment based on OS
+setup_virtualenv() {
+  if [ -n "$PYTHON_CMD" ]; then
+    # Check if virtual environment exists
+    if [ -d "my_venv" ]; then
+      log "INFO" "Virtual environment 'my_venv' already exists. Activating it."
+      case "$OS_TYPE" in
+        Linux*|Darwin*)
+          source my_venv/bin/activate
+          ;;
+        WINDOWS*|CYGWIN*|MINGW*|MSYS*)
+          source my_venv/Scripts/activate
+          ;;
+      esac
+    else
+      # Create and activate the virtual environment
+      case "$OS_TYPE" in
+        Linux*|Darwin*)
+          log "INFO" "Creating Python virtual environment for Unix..."
+          "$PYTHON_CMD" -m venv my_venv >> "$LOG_FILE" 2>&1
+          if [ $? -eq 0 ]; then
+            source my_venv/bin/activate
+            log "INFO" "Virtual environment 'my_venv' activated."
+          else
+            handle_error "Failed to create virtual environment." 28
+          fi
+          ;;
+        WINDOWS*|CYGWIN*|MINGW*|MSYS*)
+          log "INFO" "Creating Python virtual environment for Windows..."
+          "$PYTHON_CMD" -m venv my_venv >> "$LOG_FILE" 2>&1
+          if [ $? -eq 0 ]; then
+            source my_venv/Scripts/activate
+            log "INFO" "Virtual environment 'my_venv' activated."
+          else
+            handle_error "Failed to create virtual environment." 29
+          fi
+          ;;
+      esac
+    fi
+  else
+    handle_error "Python command not found. Cannot create virtual environment." 30
+  fi
+}
+
+# Function to install required AWS SDK libraries and other dependencies
+install_python_packages() {
+  log "INFO" "Installing required Python packages..."
+  pip install --disable-pip-version-check boto3 python-dotenv >> "$LOG_FILE" 2>&1
+  if [ $? -eq 0 ]; then
+    log "INFO" "Python packages installed successfully."
+  else
+    handle_error "Failed to install some Python packages." 31
+  fi
+
+  # Confirm installation
+  pip list --disable-pip-version-check | grep "boto3\|python-dotenv" >> "$LOG_FILE" 2>&1
+  if [ $? -eq 0 ]; then
+    log "INFO" "Confirmed installation of boto3 and python-dotenv."
+  else
+    handle_error "Some required Python packages are not installed." 32
+  fi
+}
+
+# Function to ensure bedrock.py is present; if not, download it
+download_bedrock_py() {
+  if [ ! -f "bedrock.py" ]; then
+    log "INFO" "bedrock.py not found. Downloading from repository..."
+    curl -sL "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/aws-ai/bedrock.py" -o "bedrock.py" >> "$LOG_FILE" 2>&1
+    if [ $? -eq 0 ]; then
+      log "INFO" "bedrock.py downloaded successfully."
+    else
+      handle_error "Failed to download bedrock.py." 33
+      exit 1
+    fi
+  else
+    log "INFO" "bedrock.py is already present."
+  fi
+}
+
+# Function to run bedrock.py and capture the model response
+run_bedrock_py() {
+  if [ -f "bedrock.py" ]; then
+    log "INFO" "Running bedrock.py script..."
+
+    # Suppress AWS CLI version messages by setting environment variables
+    export AWS_PAGER=""
+    export AWS_LOG_LEVEL=error
+
+    # Execute bedrock.py:
+    # - Redirect stderr to the log file
+    # - Allow bedrock.py to interact with the terminal for model selection
+    "$PYTHON_CMD" bedrock.py #2>> "$LOG_FILE"
+    SCRIPT_EXIT_CODE=$?
+
+    # Check if the Python script executed successfully
+    if [ $SCRIPT_EXIT_CODE -eq 0 ]; then
+      log "INFO" "bedrock.py executed successfully."
+    else
+      handle_error "bedrock.py encountered an error during execution. Check the log for details." 34
+    fi
+  else
+    handle_error "bedrock.py script not found in the execution directory." 35
+  fi
+}
+
 # Function to securely clean up temporary files
 secure_cleanup() {
   # List of temporary files to remove
-  local temp_files=("install_python.ps1" "$AWS_CLI_INSTALLER" "$AWS_CLI_INSTALLER_ZIP" "awscliv2.zip" "AWSCLIV2_v2.msi")
+  local temp_files=("install_python.ps1" "awscliv2.zip" "AWSCLIV2_v2.msi" "install_python.ps1")
   
   for file in "${temp_files[@]}"; do
     if [ -f "$file" ]; then
@@ -309,70 +414,6 @@ secure_cleanup() {
     rm -rf aws
     log "INFO" "Removed temporary directory: aws."
   fi
-}
-
-# ----------------------------------------
-# Function: Model Selection
-# ----------------------------------------
-select_model() {
-  echo "----------------------------------------"
-  echo "Choose the model to deploy:"
-  echo "----------------------------------------"
-
-  # Define the list of available models with their IDs
-  declare -A models
-  models=(
-    [1]="Amazon|Titan Text G1 - Express|1.x|amazon.titan-text-express-v1"
-    [2]="Amazon|Titan Text G1 - Lite|1.x|amazon.titan-text-lite-v1"
-    [3]="Anthropic|Claude|2.0|anthropic.claude-v2"
-    [4]="Anthropic|Claude|2.1|anthropic.claude-v2:1"
-    [5]="Anthropic|Claude Instant|1.x|anthropic.claude-instant-v1"
-    [6]="Meta|Llama 3 8B Instruct|1.x|meta.llama3-8b-instruct-v1:0"
-    [7]="Meta|Llama 3 70B Instruct|1.x|meta.llama3-70b-instruct-v1:0"
-    [8]="Meta|Llama 3.1 8B Instruct|1.x|meta.llama3-1-8b-instruct-v1:0"
-    [9]="Mistral AI|Mistral 7B Instruct|0.x|mistral.mistral-7b-instruct-v0:2"
-    [10]="Mistral AI|Mixtral 8X7B Instruct|0.x|mistral.mixtral-8x7b-instruct-v0:1"
-    [11]="Mistral AI|Mistral Large|1.x|mistral.mistral-large-2402-v1:0"
-  )
-
-  # Display the models in order 1 through 11
-  for key in {1..11}; do
-    IFS='|' read -r provider model_name version model_id <<< "${models[$key]}"
-    echo "$key. $provider - $model_name (Version: $version)"
-  done
-
-  # Prompt the user for selection
-  while true; do
-    read -p "Enter the number corresponding to the model: " model_choice
-
-    # Check if the input is a valid number
-    if ! [[ "$model_choice" =~ ^[0-9]+$ ]]; then
-      echo "Invalid input. Please enter a number."
-      continue
-    fi
-
-    # Check if the number is within the valid model IDs
-    if [[ -z "${models[$model_choice]}" ]]; then
-      echo "Invalid choice. Please select a valid number from the list."
-      continue
-    fi
-
-    # Extract the MODEL_ID and model details
-    selected_model="${models[$model_choice]}"
-    IFS='|' read -r provider model_name version model_id <<< "$selected_model"
-    log "INFO" "Selected Model: $provider - $model_name (Version: $version)"
-    log "INFO" "Model ID set to: $model_id"
-
-    # Set the MODEL_ID environment variable
-    export MODEL_ID="$model_id"
-
-    # Confirmation message to the user
-    echo "----------------------------------------------------------------"
-    echo "Selected Model: $provider - $model_name (Version: $version)"
-    log "INFO" "MODEL_ID set to: $MODEL_ID"
-
-    break
-  done
 }
 
 # ----------------------------------------
@@ -398,11 +439,6 @@ if [ -f "$EXECUTION_DIR/.env" ]; then
 else
   handle_error ".env file not found in '$EXECUTION_DIR'. Please ensure it exists in the directory where you run the script." 26
 fi
-
-# ----------------------------------------
-# Step: Model Selection
-# ----------------------------------------
-select_model
 
 # OS-specific logic
 OS_TYPE="$(uname -s 2>/dev/null || echo "Windows")"
@@ -441,113 +477,20 @@ case "$OS_TYPE" in
 esac
 
 # Create and activate a Python virtual environment based on OS
-if [ -n "$PYTHON_CMD" ]; then
-  # Check if virtual environment exists
-  if [ -d "my_venv" ]; then
-    log "INFO" "Virtual environment 'my_venv' already exists. Activating it."
-    case "$OS_TYPE" in
-      Linux*|Darwin*)
-        source my_venv/bin/activate
-        ;;
-      WINDOWS*|CYGWIN*|MINGW*|MSYS*)
-        source my_venv/Scripts/activate
-        ;;
-    esac
-  else
-    # Create and activate the virtual environment
-    case "$OS_TYPE" in
-      Linux*|Darwin*)
-        log "INFO" "Creating Python virtual environment for Unix..."
-        "$PYTHON_CMD" -m venv my_venv >> "$LOG_FILE" 2>&1
-        if [ $? -eq 0 ]; then
-          source my_venv/bin/activate
-          log "INFO" "Virtual environment 'my_venv' activated."
-        else
-          handle_error "Failed to create virtual environment." 28
-        fi
-        ;;
-      WINDOWS*|CYGWIN*|MINGW*|MSYS*)
-        log "INFO" "Creating Python virtual environment for Windows..."
-        "$PYTHON_CMD" -m venv my_venv >> "$LOG_FILE" 2>&1
-        if [ $? -eq 0 ]; then
-          source my_venv/Scripts/activate
-          log "INFO" "Virtual environment 'my_venv' activated."
-        else
-          handle_error "Failed to create virtual environment." 29
-        fi
-        ;;
-    esac
-  fi
-else
-  handle_error "Python command not found. Cannot create virtual environment." 30
-fi
+setup_virtualenv
 
-# Install required AWS SDK libraries and other dependencies
-log "INFO" "Installing required Python packages..."
-pip install --disable-pip-version-check boto3 python-dotenv >> "$LOG_FILE" 2>&1
-if [ $? -eq 0 ]; then
-  log "INFO" "Python packages installed successfully."
-else
-  handle_error "Failed to install some Python packages." 31
-fi
+# Install required Python packages
+install_python_packages
 
-# Confirm installation
-pip list --disable-pip-version-check | grep "boto3\|python-dotenv" >> "$LOG_FILE" 2>&1
-if [ $? -eq 0 ]; then
-  log "INFO" "Confirmed installation of boto3 and python-dotenv."
-else
-  handle_error "Some required Python packages are not installed." 32
-fi
-
-# Store AWS profile info (profile name)
+# Configure AWS profile
 profile_name="bedrock-serverless"
-
 configure_aws_profile "$profile_name"
 
 # Ensure bedrock.py is present; if not, download it
-if [ ! -f "bedrock.py" ]; then
-  log "INFO" "bedrock.py not found. Downloading from repository..."
-  curl -sL "https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/aws-ai/bedrock.py" -o "bedrock.py" >> "$LOG_FILE" 2>&1
-  if [ $? -eq 0 ]; then
-    log "INFO" "bedrock.py downloaded successfully."
-  else
-    handle_error "Failed to download bedrock.py." 33
-    exit 1
-  fi
-else
-  log "INFO" "bedrock.py is already present."
-fi
+download_bedrock_py
 
-# ----------------------------------------
-# Run the bedrock.py script and capture the model response
-# ----------------------------------------
-
-if [ -f "bedrock.py" ]; then
-  log "INFO" "Running bedrock.py script..."
-
-  # Suppress AWS CLI version messages by setting environment variables
-  export AWS_PAGER=""
-  export AWS_LOG_LEVEL=error
-
-  # Execute bedrock.py:
-  # - Redirect stderr to the log file
-  # - Capture only the model response for terminal output
-  MODEL_RESPONSE=$(
-    "$PYTHON_CMD" bedrock.py 2>> "$LOG_FILE"
-  )
-  SCRIPT_EXIT_CODE=$?
-
-  # Check if the Python script executed successfully
-  if [ $SCRIPT_EXIT_CODE -eq 0 ]; then
-    # Print the model response to the terminal
-    echo -e "$MODEL_RESPONSE\n"
-    log "INFO" "bedrock.py executed successfully."
-  else
-    handle_error "bedrock.py encountered an error during execution. Check the log for details." 34
-  fi
-else
-  handle_error "bedrock.py script not found in the execution directory." 35
-fi
+# Run bedrock.py script and capture the model response
+run_bedrock_py
 
 # Deactivate the virtual environment if it's activated
 if [[ "$VIRTUAL_ENV" != "" ]]; then
@@ -559,11 +502,11 @@ fi
 
 # Print completion messages to the terminal
 echo "AWS environment setup and bedrock.py script execution complete."
-echo "Check 'setup.log' in '$EXECUTION_DIR' for detailed logs."
+echo "Check 'setup.log' and 'bedrock.log' in '$EXECUTION_DIR' for detailed logs."
 
 # Log completion messages
 log "INFO" "AWS environment setup and bedrock.py script execution complete."
-log "INFO" "Check 'setup.log' in '$EXECUTION_DIR' for detailed logs."
+log "INFO" "Check 'setup.log' and 'bedrock.log' in '$EXECUTION_DIR' for detailed logs."
 
 # Securely clean up temporary files
 secure_cleanup
