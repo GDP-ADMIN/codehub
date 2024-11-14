@@ -15,15 +15,15 @@ AWS Credentials in [Scope of Service at Team](https://docs.google.com/document/d
 Examples: AWS Credentials in gl-exploration for Amazon Bedrock
 
 **Email Body**:
-<pre>
+```
 Dear Infra Team,
 
-I am requesting an AWS credentials setup in the gl-exploration account for use with Amazon Bedrock. This AWS credentials will enable us to proceed with the necessary configurations and integrations required for our Amazon Bedrock.
+I am requesting an AWS credentials setup in the **gl-exploration**(need to be change) account for use with Amazon Bedrock. This AWS credentials will enable us to proceed with the necessary configurations and integrations required for our Amazon Bedrock.
 
 Could you please create and provide the AWS credentials at your earliest convenience? Once we have the AWS credentials details, we can move forward with the setup and testing steps.
 
 Thank you for your support.
-</pre>
+```
 
 Notes : We hide the ticket system email address to prevent phishing and spamming.
 
