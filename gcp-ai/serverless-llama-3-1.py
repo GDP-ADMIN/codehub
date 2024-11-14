@@ -52,6 +52,9 @@ response = requests.post(
 # Check if the request was successful
 print("Status Code:", response.status_code)
 
+# Accumulate content from the response
+accumulated_content = ""
+
 # Process each line in the streamed response
 for line in response.iter_lines():
     if line:  # Skip empty lines
@@ -62,10 +65,13 @@ for line in response.iter_lines():
                 json_data = line[5:].strip()  # Remove 'data:' prefix
                 chunk = requests.models.complexjson.loads(json_data)  # Parse JSON data
                 
-                # Extract and print only the "content" field if it exists
+                # Extract and accumulate only the "content" field if it exists
                 if "choices" in chunk:
                     for choice in chunk["choices"]:
                         if "delta" in choice and "content" in choice["delta"]:
-                            print(choice["delta"]["content"])
+                            accumulated_content += choice["delta"]["content"]
             except ValueError:
                 print("Non-JSON response:", line)
+
+# Print the final accumulated content
+print(accumulated_content)

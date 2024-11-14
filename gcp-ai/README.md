@@ -7,11 +7,23 @@ This project contains scripts to  run models via GCP Vertex AI Serverless API en
 Before running the scripts, ensure that you have the following:
 
 1. For Windows users, you can use WSL to run the script. Please make sure you have installed WSL first. For Linux and macOS users, you can run the script directly.
-2. **Service Account (*.json)**, **Enable Vertex AI API**: To access the GCP Account (Service Account) with Vertex AI Administrator roles, contact our [ticket system](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit#heading=h.3bryigm0r34y) The administrator must enable the Vertex AI API in the target GCP Project (this is a one-time setup).
-Note: The ticket system email address is hidden to prevent phishing and spam. For the Llama 3.1 API Service model, ensure this API is also enabled.
-3. **Setup environment variables**: Copy the [.env.example](/gcp-ai/.env.example) file to your working folder and rename it to `.env` Follow the instructions in the `.env` file to fill in the required values.
-4. **Active Directory**: Ensure that the `.env` file and Service Account file `(*.json)` provided by the Infra Team are placed in your active directory. Below is an example of the directory structure: \
-  Notes : You do not need to change the name of the Service Account file `(*.json)` provided by the Infra Team
+2. **GCP Service Account**: To access the GCP Account (Service Account) with Vertex AI Administrator roles, contact our [ticket system](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit#heading=h.3bryigm0r34y)  with the subject email as “GCP Service Account in [Scope of Service at Team](https://docs.google.com/document/d/1cXRjv34uXjluQzyRu027r5ax8GT-HOw3naMSPi8aeVs/edit?tab=t.0#heading=h.lfdykfqkf1d5) for Vertex AI”. For the example :
+  <pre>Subject</pre>
+  ```
+  GCP Service Account in abc-exploration for Vertex AI
+  ```
+
+  <pre>Body Email</pre>
+  ```
+    Dear Infra Team,
+    I am requesting a GCP service account setup in the glx-exploration project for use with Vertex AI. This service account will enable us to proceed with the necessary configurations and integrations required for our Vertex AI workflows.
+    Could you please create and provide the service account credentials at your earliest convenience? Once we have the service account details, we can move forward with the setup and testing steps.
+    Thank you for your support.
+  ```
+  Note: The ticket system email address is hidden to prevent phishing and spam. For the Llama 3.1 API Service model, ensure this API is also enabled.
+3. **Setup environment variables**: Copy the  [.env.example](/gcp-ai/.env.example) file to your working folder  and rename it to `.env`  in your local working directory
+Follow the instructions in the .env file to fill in the required values based on Scope of Services.
+4. **Active Directory**: Ensure that the `.env` file and Service Account file `(*.json)` provided by the Infra Team are placed in your active directory. Below is an example of the directory structure:
   <pre>
     [MyExampleDirectory]
     ├── codehub // This directory will appear after you run the 1-click CLI Script.
@@ -22,7 +34,7 @@ Note: The ticket system email address is hidden to prevent phishing and spam. Fo
     │       ├── serverless-llama-3-1.py
     │       └── setup_gcp_ai.sh
     ├── .env
-    ├── dso-bukhori.json
+    ├── service-account.json
     └── setup_gcp_ai.sh </pre>
     
 
@@ -39,19 +51,13 @@ Note: The ticket system email address is hidden to prevent phishing and spam. Fo
 
 3. Example of successful requests
     <pre>
-    Buitenzorg is the Dutch name for the city of Bogor, Indonesia.
-    The name 'Buitenzorg' is derived from the Dutch words 'buiten' meaning 'outside' and 'zorg' meaning 'care' or 'worry'. It was named so because it was a place of relaxation and
-    retreat for the Dutch colonial rulers, away from the worries and cares of their administrative duties in the capital city of Batavia (now Jakarta).
-
-    During the Dutch colonial
-    period, Buitenzorg was a popular hill station and resort town, known for its cool climate, beautiful gardens, and scenic views. The city was also home to the famous Buitenzorg Botanical Gardens, which were established in
-    1817 and are still one of the largest and most important botanical gardens in Southeast Asia.
-
-    After Indonesia gained independence in 1945, the city was renamed Bogor, which is the Sundanese word for 'fog' or
-    'mist', reflecting the city's cool and misty climate. Today, Bogor is a thriving city and a popular tourist destination, known for its natural beauty, cultural attractions, and historical landmarks.
-
+    Status Code: 200
     Non-JSON response: data: [DONE]
-    Python script executed successfully.</pre>
+    Buitenzorg is the former name of Bogor, a city in West Java, Indonesia. The name "Buitenzorg" is Dutch and translates to "without a care" or "carefree" in English. It was given to the city by the Dutch East India Company in the 18th century, when the city was a popular retreat for Dutch colonizers due to its cool climate and scenic beauty.
+
+    During the Dutch colonial period, Buitenzorg was the summer residence of the Governor-General of the Dutch East Indies, and it was a major center for botanical research and agriculture. The city was home to the famous Buitenzorg Botanical Gardens, which were established in 1817 and are now known as the Bogor Botanical Gardens.
+
+    After Indonesia gained independence in 1945, the city was renamed Bogor, which is derived from the Sundanese word "bogor," meaning "tree" or "forest." Today, Bogor is a thriving city with a rich cultural heritage and a strong focus on education, research, and tourism.</pre>
 
 ## GCP Vertex AI Model ID
 
@@ -105,77 +111,8 @@ If you want to run serverless-llama-3-1.py by changing the prompting, you can fo
 3. Example of successful requests
     <pre>
     Status Code: 200
-    Here
-    's a "Hello, World!" example in several programming languages:
-
-
-    ### Python
-
-    ```python
-    # This is a Hello World program in Python
-
-    def main():
-
-        print("Hello, World!")
-
-    if __name__ == "__main__":
-        main()
-    ```
-
-    ### Java
-    ```java
-    // This is a Hello World
-    program in Java
-
-    public class HelloWorld {
-        public static void main(String[] args) {
-            System.out.println("Hello, World!");
-        }
-    }
-    ```
-
-
-    ### JavaScript
-    ```javascript
-    // This is a Hello World program in JavaScript
-
-    console.log("Hello, World!");
-    ```
-
-    ### C++
-    ```cpp
-    // This is a Hello World program in C++
-
-    #include <iostream>
-
-    int main()
-    {
-        std::cout << "Hello, World!" << std::endl;
-        return 0;
-    }
-    ```
-
-    ### C#
-    ```csharp
-    // This is a Hello World program in C#
-
-    using System;
-
-    class HelloWorld 
-    {
-
-        static void Main(string[] args) 
-        {
-            Console.WriteLine("Hello, World!");    
-        }
-    }
-    ```
-
-    To run any of these examples, you would need to have the respective language installed on your system. You can then copy the code into a file with the correct file extension (e.g., .
-    py for Python, .java for Java, etc.) and run it using the language's command-line interface or an Integrated Development Environment (IDE).
-
     Non-JSON response: data: [DONE]
-    </pre>
+    Hello World!</pre>
 
 ## Cost GCP Vertex AI for Serverless
 Deploying models on GCP Vertex AI incurs costs based on the specific models you use and the number of tokens processed. 
