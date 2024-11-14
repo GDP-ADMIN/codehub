@@ -10,7 +10,7 @@ Before running the scripts, ensure that you have the following:
 2. **AWS Credentials (Access Key and Secret Key)**: To access the AWS Credentials (Access Key and Secret Key) with Amazon Bedrock Full Access permission, please submit a request through our [ticket system](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.3bryigm0r34y).
 
 **Email Subject**:
-<pre> AWS Credentials in [Scope of Service at Team](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.yhcswoyvfkz4) for Amazon Bedrock </pre>
+AWS Credentials in [Scope of Service at Team](https://docs.google.com/document/d/12TFRlDmOXE0hoB6HZBs_hfdHtXI4ja-oF2bQ71EMUk8/edit?tab=t.0#heading=h.yhcswoyvfkz4) for Amazon Bedrock
 
 **Email Body**:
 <pre>
