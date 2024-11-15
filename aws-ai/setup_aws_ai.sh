@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Version Script Information
-VERSION="1.0.8"  # Incremented version
+VERSION="1.0.9"  # Incremented version
 
 # Capture the directory where the script was invoked
 EXECUTION_DIR="$(pwd)"
@@ -164,39 +164,83 @@ check_curl_installed() {
   fi
 }
 
-# Function to install AWS CLI Version 1 if not already installed
-install_aws_cli_v1() {
+# ---------------------------------------------------
+# New Function: Check and Install Homebrew on macOS
+# ---------------------------------------------------
+check_and_install_homebrew() {
+  if command -v brew &>/dev/null; then
+    log "INFO" "Homebrew is already installed."
+  else
+    log "INFO" "Homebrew not found. Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" >> "$LOG_FILE" 2>&1
+    if [ $? -eq 0 ]; then
+      log "INFO" "Homebrew installed successfully."
+      # Add Homebrew to PATH for the current session
+      # This is necessary because the install script may suggest adding it manually
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+      fi
+    else
+      handle_error "Failed to install Homebrew." 100
+    fi
+  fi
+}
+
+# ---------------------------------------------------
+# Modified Function: Install AWS CLI
+# ---------------------------------------------------
+install_aws_cli() {
   if command -v aws &>/dev/null; then
     AWS_CLI_VERSION=$(aws --version | awk '{print $1}' | cut -d/ -f2)
     log "INFO" "AWS CLI is already installed. Version: $AWS_CLI_VERSION."
   else
-    log "INFO" "AWS CLI not found. Proceeding to install AWS CLI Version 1 via pip."
+    OS_TYPE="$(uname -s 2>/dev/null || echo "Windows")"
+    case "$OS_TYPE" in
+      Darwin*)
+        log "INFO" "AWS CLI not found. Proceeding to install AWS CLI via Homebrew."
 
-    if [ -n "$PYTHON_CMD" ]; then
-      # Upgrade pip to ensure latest version
-      "$PYTHON_CMD" -m pip install --upgrade pip >> "$LOG_FILE" 2>&1
-      if [ $? -ne 0 ]; then
-        handle_error "Failed to upgrade pip." 14
-      fi
+        # Check and install Homebrew if necessary
+        check_and_install_homebrew
 
-      # Install AWS CLI Version 1
-      "$PYTHON_CMD" -m pip install --upgrade awscli >> "$LOG_FILE" 2>&1
-      if [ $? -eq 0 ]; then
-        log "INFO" "AWS CLI Version 1 installed successfully via pip."
-      else
-        handle_error "Failed to install AWS CLI Version 1 via pip." 15
-      fi
-    else
-      handle_error "Python command not found. Cannot install AWS CLI." 16
-    fi
+        # Install AWS CLI using Homebrew
+        brew install awscli >> "$LOG_FILE" 2>&1
+        if [ $? -eq 0 ]; then
+          log "INFO" "AWS CLI installed successfully via Homebrew."
+        else
+          handle_error "Failed to install AWS CLI via Homebrew." 101
+        fi
+        ;;
+      Linux*|*)
+        log "INFO" "AWS CLI not found. Proceeding to install AWS CLI Version 1 via pip."
 
-    # Verify AWS CLI installation
-    if command -v aws &>/dev/null; then
-      AWS_CLI_VERSION=$(aws --version | awk '{print $1}' | cut -d/ -f2)
-      log "INFO" "AWS CLI Version $AWS_CLI_VERSION installed successfully."
-    else
-      log "WARNING" "AWS CLI installation verification failed. Continuing" 17
-    fi
+        if [ -n "$PYTHON_CMD" ]; then
+          # Upgrade pip to ensure latest version
+          "$PYTHON_CMD" -m pip install --upgrade pip >> "$LOG_FILE" 2>&1
+          if [ $? -ne 0 ]; then
+            handle_error "Failed to upgrade pip." 14
+          fi
+
+          # Install AWS CLI Version 1
+          "$PYTHON_CMD" -m pip install --upgrade awscli >> "$LOG_FILE" 2>&1
+          if [ $? -eq 0 ]; then
+            log "INFO" "AWS CLI Version 1 installed successfully via pip."
+          else
+            handle_error "Failed to install AWS CLI Version 1 via pip." 15
+          fi
+        else
+          handle_error "Python command not found. Cannot install AWS CLI." 16
+        fi
+
+        # Verify AWS CLI installation
+        if command -v aws &>/dev/null; then
+          AWS_CLI_VERSION=$(aws --version | awk '{print $1}' | cut -d/ -f2)
+          log "INFO" "AWS CLI Version $AWS_CLI_VERSION installed successfully."
+        else
+          log "WARNING" "AWS CLI installation verification failed. Continuing" 17
+        fi
+        ;;
+    esac
   fi
 }
 
@@ -254,8 +298,8 @@ configure_aws_profile() {
   local aws_secret_access_key=$AWS_SECRET_ACCESS_KEY
   local aws_region=$AWS_REGION
 
-  # Check if the profile already exists in AWS CLI v1
-  if grep -q "^\[${profile_name}\]" ~/.aws/config; then
+  # Check if the profile already exists in AWS CLI v1 or v2
+  if grep -q "^\[${profile_name}\]" ~/.aws/config || grep -q "^\[${profile_name}\]" ~/.aws/credentials; then
     log "INFO" "AWS profile '$profile_name' already exists. Skipping configuration."
     export AWS_PROFILE="$profile_name"
     return 0
@@ -401,14 +445,14 @@ run_bedrock_py() {
 secure_cleanup() {
   # List of temporary files to remove
   local temp_files=("install_python.ps1" "awscliv2.zip" "AWSCLIV2_v2.msi" "install_python.ps1")
-  
+
   for file in "${temp_files[@]}"; do
     if [ -f "$file" ]; then
       rm -f "$file"
       log "INFO" "Removed temporary file: $file."
     fi
   done
-  
+
   # Remove 'aws' directory if it exists
   if [ -d "aws" ]; then
     rm -rf aws
@@ -452,8 +496,8 @@ case "$OS_TYPE" in
     fi
     # Install 'unzip' before installing AWS CLI
     install_unzip
-    # Check and install AWS CLI Version 1
-    install_aws_cli_v1
+    # Check and install AWS CLI
+    install_aws_cli
     # Verify AWS CLI version
     verify_aws_cli_version
     ;;
@@ -466,8 +510,8 @@ case "$OS_TYPE" in
     fi
     # Install 'unzip' on Windows if needed
     install_unzip
-    # Check and install AWS CLI Version 1
-    install_aws_cli_v1
+    # Check and install AWS CLI
+    install_aws_cli
     # Verify AWS CLI version
     verify_aws_cli_version
     ;;
