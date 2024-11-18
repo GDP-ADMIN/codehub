@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e  # Exit immediately on failure
 
+# Load the environment variables from the .env file
+source .env
+
 # Version Script Information
 VERSION="1.0.0"
 echo "Running script version: $VERSION"
@@ -165,7 +168,7 @@ update_env_file() {
       ;;
     2)
       gcp_model_name="gemini-1.0-pro"
-      gcp_endpoint_name="https://us-central1-aiplatform.googleapis.com/v1/projects/glx-exploration/locations/us-central1/publishers/google/models/gemini-1.0-pro:streamGenerateContent"
+      gcp_endpoint_name="https://us-central1-aiplatform.googleapis.com/v1/projects/$GCP_PROJECT_ID/locations/$GCP_REGION_NAME/publishers/google/models/gemini-1.0-pro:streamGenerateContent"
       script_to_run="serverless-gemini1-0.py"
       ;;
     *)
