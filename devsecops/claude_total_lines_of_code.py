@@ -19,7 +19,7 @@ import logging
 from github.GithubException import RateLimitExceededException
 import math
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Configure logging
 logging.basicConfig(
@@ -73,16 +73,32 @@ def retry_with_backoff(func, *args, max_retries=5, **kwargs):
 
 def clone_repo(repo, temp_dir):
     """Clone a repository to a temporary directory"""
-    clone_url = repo.clone_url
+    clone_url = repo.clone_url.replace('https://', f'https://oauth2:{os.getenv("GITHUB_TOKEN")}@')
     repo_path = os.path.join(temp_dir, repo.name)
     logger.info(f"Cloning repository to {repo_path}")
+    
+    # First attempt with default settings
     try:
-        subprocess.run(['git', 'clone', '--depth', '1', clone_url, repo_path], 
-                      capture_output=True, check=True)
+        result = subprocess.run(['git', 'clone', '--depth', '1', 
+                               '--config', 'http.postBuffer=524288000',  # Increase buffer size
+                               '--config', 'http.lowSpeedLimit=1000',    # Lower speed limit
+                               '--config', 'http.lowSpeedTime=60',       # Longer timeout
+                               clone_url, repo_path], 
+                              capture_output=True, text=True, check=True)
         return repo_path
     except subprocess.CalledProcessError as e:
-        logger.error(f"Error cloning {repo.name}: {e}")
-        return None
+        logger.warning(f"First clone attempt failed for {repo.name}, trying with different protocol...")
+        
+        # Second attempt with different protocol version
+        try:
+            result = subprocess.run(['git', 'clone', '--depth', '1',
+                                   '--config', 'http.version=HTTP/1.1',  # Force HTTP/1.1
+                                   clone_url, repo_path],
+                                  capture_output=True, text=True, check=True)
+            return repo_path
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error cloning {repo.name}: {e.stderr}")
+            return None
 
 def get_cloc_stats(repo_path):
     """Get line count statistics using cloc"""
