@@ -16,14 +16,14 @@ if [ "$SERVICE" == "opensearch" ]; then
     echo "Running install.sh in standalone-cluster..."
     (cd ./opensearch/server/standalone-cluster && ./install.sh)
   else
-    echo "install.sh not found in standalone-cluster. Skipping..."
+    echo "install.sh not found in standalone-cluster. Please ensure that all files are fully pulled from the repository..."
   fi
 
   if [ -f ./opensearch/client/filebeat-agent/install.sh ]; then
     echo "Running install.sh in filebeat-agent..."
     (cd ./opensearch/client/filebeat-agent && ./install.sh)
   else
-    echo "install.sh not found in filebeat-agent. Skipping..."
+    echo "install.sh not found in filebeat-agent. Please ensure that all files are fully pulled from the repository..."
   fi
 
 else
@@ -36,7 +36,7 @@ if [ -f ./sample-app/install.sh ]; then
   echo "Running install.sh in sample-app..."
   (cd ./sample-app && ./install.sh)
 else
-  echo "install.sh not found in sample-app. Skipping..."
+  echo "install.sh not found in sample-app. Please ensure that all files are fully pulled from the repository..."
 fi
 
 echo "All installation scripts have been executed successfully."
