@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
 from github import Github
 from collections import defaultdict
@@ -76,19 +76,19 @@ def clone_repo(repo, temp_dir):
     clone_url = repo.clone_url.replace('https://', f'https://oauth2:{os.getenv("GITHUB_TOKEN")}@')
     repo_path = os.path.join(temp_dir, repo.name)
     logger.info(f"Cloning repository to {repo_path}")
-    
+
     # First attempt with default settings
     try:
-        result = subprocess.run(['git', 'clone', '--depth', '1', 
+        result = subprocess.run(['git', 'clone', '--depth', '1',
                                '--config', 'http.postBuffer=524288000',  # Increase buffer size
                                '--config', 'http.lowSpeedLimit=1000',    # Lower speed limit
                                '--config', 'http.lowSpeedTime=60',       # Longer timeout
-                               clone_url, repo_path], 
+                               clone_url, repo_path],
                               capture_output=True, text=True, check=True)
         return repo_path
     except subprocess.CalledProcessError as e:
         logger.warning(f"First clone attempt failed for {repo.name}, trying with different protocol...")
-        
+
         # Second attempt with different protocol version
         try:
             result = subprocess.run(['git', 'clone', '--depth', '1',
@@ -103,19 +103,19 @@ def clone_repo(repo, temp_dir):
 def get_cloc_stats(repo_path):
     """Get line count statistics using cloc"""
     try:
-        result = subprocess.run(['cloc', '--json', repo_path], 
+        result = subprocess.run(['cloc', '--json', repo_path],
                               capture_output=True, text=True, check=True)
         stats = json.loads(result.stdout)
-        
+
         # Calculate total lines from cloc output (code lines only)
         total_lines = sum(lang_stats.get('code', 0)
                          for lang_name, lang_stats in stats.items()
                          if lang_name not in ['header', 'SUM'])
-        
+
         # Get languages from cloc output
-        languages = [lang for lang in stats.keys() 
+        languages = [lang for lang in stats.keys()
                     if lang not in ['header', 'SUM']]
-        
+
         return total_lines, languages
     except subprocess.CalledProcessError as e:
         logger.error(f"Error running cloc: {e}")
@@ -124,7 +124,7 @@ def get_cloc_stats(repo_path):
         logger.error(f"Error parsing cloc output: {e}")
         return 0, []
 
-def process_single_repo(repo, start_date, end_date, g):
+def process_single_repo(repo, g):
     """Process a single repository using cloc"""
     logger.info(f"Processing repository: {repo.name}")
     stats = {
@@ -152,31 +152,26 @@ def process_single_repo(repo, start_date, end_date, g):
                 stats['total_lines_of_code'] = total_lines
                 stats['languages'] = languages
 
-        # Get commit count - Fixed to properly count all commits
-        commits = retry_with_backoff(lambda: list(repo.get_commits(since=start_date, until=end_date)))
+        # Get all commits
+        commits = retry_with_backoff(lambda: list(repo.get_commits()))
         stats['commit_count'] = len(commits)
 
         # Get contributors count
         stats['contributors'] = retry_with_backoff(lambda: repo.get_contributors().totalCount)
 
-        # Modified PR and Issue counting code
         try:
-            # Create the search queries with proper date format
-            date_format = '%Y-%m-%d'
-            start_str = start_date.strftime(date_format)
-            end_str = end_date.strftime(date_format)
-            
-            query_pr = f'repo:{repo.full_name} is:pr created:{start_str}..{end_str}'
-            query_issues = f'repo:{repo.full_name} is:issue is:closed closed:{start_str}..{end_str}'
+            # Get all PRs and issues
+            query_pr = f'repo:{repo.full_name} is:pr'
+            query_issues = f'repo:{repo.full_name} is:issue is:closed'
 
             # Use the Github instance to search
             prs = retry_with_backoff(lambda: g.search_issues(query_pr))
             issues = retry_with_backoff(lambda: g.search_issues(query_issues))
-            
+
             stats['pull_requests'] = prs.totalCount
             stats['issues_solved'] = issues.totalCount
-            
-            logger.info(f"Found {stats['pull_requests']} PRs and {stats['issues_solved']} issues for {repo.name}")
+
+            logger.info(f"Found {stats['pull_requests']} total PRs and {stats['issues_solved']} total issues for {repo.name}")
         except Exception as e:
             logger.warning(f"Error getting PR/Issue counts for {repo.name}: {str(e)}")
             stats['pull_requests'] = 0
@@ -210,9 +205,6 @@ def get_github_stats(token, org_name, search_query=None):
         logger.info(f"Accessing organization: {org_name}")
         org = retry_with_backoff(g.get_organization, org_name)
 
-        end_date = datetime.now(pytz.UTC)
-        start_date = end_date - timedelta(days=30)
-
         logger.info("Fetching repository list...")
         # Get repos with retry
         repos = retry_with_backoff(lambda: list(org.get_repos()))
@@ -227,7 +219,7 @@ def get_github_stats(token, org_name, search_query=None):
 
         results = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-            process_repo = partial(process_single_repo, start_date=start_date, end_date=end_date, g=g)
+            process_repo = partial(process_single_repo, g=g)
             futures = {executor.submit(process_repo, repo): repo for repo in repos}
 
             for future in tqdm(concurrent.futures.as_completed(futures),
@@ -269,7 +261,7 @@ def print_summary(stats, csv_filename):
     if not stats:
         return
 
-    print("\nGitHub Organization Summary (Last 30 Days)")
+    print("\nGitHub Organization Summary")
     print("=" * 50)
 
     # Calculate summary statistics
@@ -307,13 +299,6 @@ def verify_github_access(token):
     try:
         user = g.get_user()
         logger.info(f"Authenticated as: {user.login}")
-
-        # Check token permissions
-        auth = g.get_user().get_authorizations()
-        logger.info("Token permissions:")
-        for scope in auth[0].scopes:
-            logger.info(f"- {scope}")
-
         return True
     except Exception as e:
         logger.error(f"Error verifying GitHub access: {str(e)}")
@@ -330,11 +315,6 @@ def main():
     if not token or not org_name:
         logger.error("Error: Please set GITHUB_TOKEN and GITHUB_ORG environment variables")
         return
-
-    # Verify GitHub access before proceeding
-    #if not verify_github_access(token):
-    #    logger.error("Failed to verify GitHub access. Please check your token permissions.")
-    #    return
 
     try:
         logger.info("Starting to fetch GitHub stats...")
