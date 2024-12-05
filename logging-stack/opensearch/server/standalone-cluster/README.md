@@ -16,7 +16,7 @@ Make sure you have the following installed on your system:
 Run the following simple command:
 
 ```bash
-git clone -b one-line https://github.com/GDP-ADMIN/gdplabs-exploration
+git clone -b one-line https://github.com/GDP-ADMIN/codehub
 cd logging-stack/opensearch/server/standalone-cluster/
 ./install.sh
 ```

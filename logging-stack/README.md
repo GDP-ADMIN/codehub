@@ -24,8 +24,8 @@ To install the entire logging stack on your local machine, run the following:
 
 ```bash
 export GH_TOKEN=YOUR_GITHUB_TOKEN
-git clone -b one-line https://github.com/GDP-ADMIN/gdplabs-exploration
-cd gdplabs-exploration/logging-stack/
+git clone -b one-line https://github.com/GDP-ADMIN/codehub
+cd codehub/logging-stack/
 ./try-localhost.sh opensearch
 ```
 
