@@ -1,0 +1,74 @@
+services:
+  logstash:
+    image: opensearchproject/logstash-oss-with-opensearch-output-plugin:${LOGSTASH_VERSION}
+    container_name: logstash
+    volumes:
+      - ./logstash-pipeline.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5044:5044"  # Filebeat input
+      - "9601:9600"  # Monitoring API
+    environment:
+      - LOG_LEVEL=error
+    depends_on:
+      opensearch-engine:
+        condition: service_healthy
+
+  anonymizer:
+    image: asia.gcr.io/gdp-labs/gl-common-infra/anonymizer:${GDPLABS_ANONYMIZER_VERSION}
+    environment:
+      LOG_LEVEL: "ERROR"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 1
+      start_period: 30s
+
+  opensearch-engine:
+    image: public.ecr.aws/opensearchproject/opensearch:${OPENSEARCH_VERSION}
+    container_name: opensearch-engine
+    environment:
+      - "discovery.type=single-node"
+      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -u 'admin:${OPENSEARCH_INITIAL_ADMIN_PASSWORD}' --silent --fail https://localhost:9200/"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    ulimits:
+      memlock:
+        soft: -1 # Set memlock to unlimited (no soft or hard limit)
+        hard: -1
+      nofile:
+        soft: 65536 # Maximum number of open files for the opensearch user - set to at least 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"  # OpenSearch input
+      - "9602:9600"  # Performance Analyzer
+
+  opensearch-dashboard:
+    image: public.ecr.aws/opensearchproject/opensearch-dashboards:${OPENSEARCH_VERSION}
+    container_name: opensearch-dashboard
+    ports:
+      - "5601:5601"  # OpenSearch dashboard
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:5601/"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    environment:
+      - OPENSEARCH_HOSTS=https://opensearch-engine:9200
+    depends_on:
+      opensearch-engine:
+        condition: service_healthy
+
+
+networks:
+  default:
+    external: true
+    name: infra
+
+volumes:
+  opensearch-data:

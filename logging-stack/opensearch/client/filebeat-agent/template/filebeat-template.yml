@@ -1,0 +1,35 @@
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      templates:
+        - config:
+            - condition:
+                contains:
+                  docker.container.labels.filebeat.scrape: 'true'
+              type: container
+              paths:
+                - /var/lib/docker/containers/${data.docker.container.id}/*.log
+              tag: ${data.docker.container.name}
+              multiline.pattern: '^[[:space:]]'
+              multiline.negate: false
+              multiline.match: after
+              fields:
+                type: ${data.docker.container.name}
+              fields_under_root: true
+
+logging.level: error
+logging.to_files: false
+logging.to_syslog: false
+logging.metric.enabled: false
+logging.json: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permission: 0644
+ssl.verification_mode: none
+setup.template.enabled: false
+
+output.logstash:
+  hosts: ${LOGSTASH_HOSTS}
+  loadbalance: true

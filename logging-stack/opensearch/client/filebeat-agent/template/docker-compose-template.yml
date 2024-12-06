@@ -1,0 +1,20 @@
+services:
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:${FILEBEAT_VERSION}
+    container_name: filebeat
+    restart: always
+    hostname: ${HOSTNAME}
+    environment:
+      - OPENSEARCH_USERNAME=${OPENSEARCH_USERNAME}
+      - OPENSEARCH_PASSWORD=${OPENSEARCH_PASSWORD}
+    user: root
+    command: filebeat -e -strict.perms=false
+    volumes:
+      - '/var/lib/docker/containers:/var/lib/docker/containers:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - './filebeat.yml:/usr/share/filebeat/filebeat.yml:ro'
+
+networks:
+  default:
+    name: infra
+    external: true
