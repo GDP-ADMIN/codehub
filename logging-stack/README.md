@@ -16,15 +16,13 @@ Ensure you have the following are prepared on your system:
 
 - Install [Git](https://git-scm.com/downloads) - for version control and cloning the repository.
 - Install [Rancher Desktop](https://rancherdesktop.io/) or [Docker](https://docs.docker.com/engine/install/) - for containerizing and running the application locally.
-- Create [GitHub Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic) - to authenticate when cloning the [private repositories](https://github.com/GDP-ADMIN/gen-ai-internal/tree/main/libs/gdplabs-gen-ai-privacy), [request access to maintainer](https://docs.google.com/spreadsheets/d/1B8cT6LvXPW30GTv_xPe9jpqgle8LRK_TopJESz8NCeg/edit?gid=0#gid=0&range=31:31), if you couldn't access it.
 
 ## Local Installation
 
 To install the entire logging stack on your local machine, run the following:
 
 ```bash
-export GH_TOKEN=YOUR_GITHUB_TOKEN
-git clone -b one-line https://github.com/GDP-ADMIN/codehub
+git clone https://github.com/GDP-ADMIN/codehub
 cd codehub/logging-stack/
 ./try-localhost.sh opensearch
 ```
