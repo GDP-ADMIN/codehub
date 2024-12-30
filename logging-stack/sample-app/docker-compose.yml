@@ -1,0 +1,14 @@
+services:
+  log-generator:
+    image: debian
+    container_name: log-generator
+    command: >
+      bash -c "
+      while true; do
+        echo '2024-10-14 10:00:01 [INFO] User email john.doe@example.com was registered.'; 
+        echo '{\"timestamp\": \"2024-10-14T10:00:02Z\", \"level\": \"WARN\", \"message\": \"User with KTP number 3525011212941001 logged in.\"}';
+        sleep 2;
+      done
+      "
+    labels:
+      filebeat.scrape: "true"
