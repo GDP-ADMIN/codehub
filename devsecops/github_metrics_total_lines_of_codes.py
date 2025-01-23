@@ -112,7 +112,7 @@ def get_fast_pr_counts(repo, token):
             headers=headers
         )
         return get_total_count_from_response(response)
-        
+
     except Exception as e:
         logger.error(f"Error getting PRs for {repo.name}: {e}")
         return 0
@@ -122,142 +122,152 @@ def get_exclude_patterns():
     exclude_dirs = [
         # Build and Dependencies
         'node_modules', 'vendor', 'dist', 'build', 'packages', 'bower_components',
-        
+
         # Java related
         'target', '.gradle', 'out', 'classes', '.idea', '.settings', 'bin',
-        
+
         # Python related
-        '__pycache__', '.pytest_cache', '.coverage', '.tox', '.mypy_cache', 
+        '__pycache__', '.pytest_cache', '.coverage', '.tox', '.mypy_cache',
         'htmlcov', '.ipynb_checkpoints', 'venv', 'env', '.venv',
-        
+
         # Rust related
         '.cargo', 'debug', 'release',
-        
+
         # Version Control
         '.git', '.svn', '.hg',
-        
+
         # Framework specific
         '.next', '.nuxt', 'migrations',
-        
+
         # IDE and Editor
         '.vscode', '.idea', '.eclipse',
-        
+
         # Documentation
         'docs', 'doc', 'documentation',
-        
+
         # Common test directories
         'tests', 'test', 'testing', '__tests__', '__test__',
-        
+
         # Temp and Cache
         'tmp', 'temp', 'cache', '.cache',
-        
+
         # Log directories
         'logs', 'log'
     ]
-    
+
     exclude_files = [
         # Minified and Generated JavaScript/CSS
         "'*.min.js'", "'*.min.css'", "'*.bundle.js'", "'*.bundle.css'",
         "'*.chunk.js'", "'*.chunk.css'", "'*.vendor.js'", "'*.vendor.css'",
-        
+
         # Source Maps
         "'*.map'",
-        
+
         # Lock Files
         "'package-lock.json'", "'yarn.lock'", "'composer.lock'", "'Cargo.lock'",
-        
+
         # Compiled Files
         "'*.class'", "'*.jar'", "'*.war'", "'*.ear'",
         "'*.pyc'", "'*.pyo'", "'*.pyd'",
         "'*.rlib'", "'*.rmeta'", "'*.o'", "'*.d'",
-        
+
         # Configuration Files
         "'*.config.js'", "'webpack.config.js'", "'babel.config.js'",
-        
+
         # Log Files
         "'*.log'",
-        
+
         # Documentation
         "'*.md'", "'*.txt'", "'*.pdf'",
-        
+
         # IDE Files
         "'.classpath'", "'.project'", "'*.iml'",
-        
+
         # Database Files
         "'*.sqlite'", "'*.db'", "'*.sql'",
-        
+
         # Common Data Files
         "'*.json'", "'*.xml'", "'*.yaml'", "'*.yml'"
     ]
-    
+
     return exclude_dirs, exclude_files
 
 def count_lines_in_repo(repo_dir):
-    """Count lines of code in a repository, focusing on team-written code."""
+    """Count lines of code in a repository using both cloc and wc -l."""
     try:
-        print("Counting lines of code using cloc...")
-        
+        print("Counting lines of code...")
+
+        # Get total lines using find and wc -l
+        total_cmd = [
+            "bash", "-c",
+            "find . -type f -not -path '*/\.*' -exec cat {} + | wc -l"
+        ]
+
+        # Get filtered count with cloc
         exclude_dirs, exclude_files = get_exclude_patterns()
-        
-        # Build the cloc command
-        cmd = [
+        filtered_cmd = [
             "cloc",
             ".",
             "--json",
             "--exclude-dir=" + ','.join(exclude_dirs),
             "--not-match-f=(" + '|'.join(exclude_files) + ")"
         ]
-        
-        print(f"Running cloc with exclusions...")
+
+        print(f"Running filtered count with cloc...")
         print(f"Excluded directories: {', '.join(exclude_dirs)}")
         print(f"Excluded file patterns: {', '.join(exclude_files)}")
-        
-        result = subprocess.run(
-            cmd,
+
+        # Get total line count
+        print("Getting total line count...")
+        total_result = subprocess.run(
+            total_cmd,
             cwd=repo_dir,
             capture_output=True,
             text=True,
             check=True
         )
-        
+        total_lines = int(total_result.stdout.strip())
+
+        # Get filtered count
+        filtered_result = subprocess.run(
+            filtered_cmd,
+            cwd=repo_dir,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+
         import json
-        data = json.loads(result.stdout)
-        
-        if 'SUM' in data:
-            total_code = data['SUM']['code']
-            total_blank = data['SUM']['blank']
-            total_comment = data['SUM']['comment']
-            
-            logger.info("\nTeam Code Breakdown by Language:")
-            logger.info("-" * 50)
-            
-            # Sort languages by number of code lines
-            sorted_langs = sorted(
-                [(lang, stats) for lang, stats in data.items() if lang not in ['header', 'SUM']],
-                key=lambda x: x[1]['code'],
-                reverse=True
-            )
-            
-            for lang, stats in sorted_langs:
-                logger.info(f"{lang:20} {stats['code']:10,} code lines "
-                          f"({stats['comment']:,} comments)")
-            
-            logger.info("-" * 50)
-            logger.info(f"\nTeam Code Summary:")
-            logger.info(f"Code lines:    {total_code:,}")
-            logger.info(f"Comment lines: {total_comment:,}")
-            logger.info(f"Total lines:   {total_code + total_comment:,}")
-            
-            return total_code
-        
-        return 0
-        
+        filtered_data = json.loads(filtered_result.stdout)
+        filtered_stats = {
+            'code': filtered_data['SUM']['code'] if 'SUM' in filtered_data else 0,
+            'blank': filtered_data['SUM']['blank'] if 'SUM' in filtered_data else 0,
+            'comment': filtered_data['SUM']['comment'] if 'SUM' in filtered_data else 0
+        }
+
+        # Log the results
+        logger.info("\nTeam Code Summary (from cloc):")
+        logger.info(f"Filtered code lines:    {str(filtered_stats['code'])}")
+        logger.info(f"Filtered comment lines: {str(filtered_stats['comment'])}")
+        logger.info(f"Total filtered lines:   {str(filtered_stats['code'] + filtered_stats['comment'])}")
+
+        logger.info("\nTotal Repository Summary (from wc -l):")
+        logger.info(f"Total lines: {str(total_lines)}")
+
+        return {
+            'filtered': filtered_stats['code'],
+            'total': total_lines
+        }
+
     except Exception as e:
         print(f"Error counting lines: {e}")
-        if 'result' in locals():
-            print(f"Command output: {result.stdout}")
-            print(f"Error output: {result.stderr}")
-        return 0
+        if 'filtered_result' in locals():
+            print(f"Filtered command output: {filtered_result.stdout}")
+            print(f"Filtered error output: {filtered_result.stderr}")
+        if 'total_result' in locals():
+            print(f"Total command output: {total_result.stdout}")
+            print(f"Total error output: {total_result.stderr}")
+        return {'filtered': 0, 'total': 0}
 
 def clone_repository(repo_url, dest_dir):
     """Clone a Git repository."""
@@ -309,13 +319,13 @@ def main():
             logger.info("=" * 80)
 
             dest_dir = os.path.join(CLONE_DIR, repo.name)
-            
+
             try:
                 # Clone and count lines
                 if clone_repository(repo.clone_url, dest_dir):
                     lines_of_code = count_lines_in_repo(dest_dir)
                 else:
-                    lines_of_code = 0
+                    lines_of_code = {'filtered': 0, 'total': 0}
 
                 # Get issues and PRs
                 wait_for_rate_limit(g)
@@ -324,7 +334,8 @@ def main():
 
                 result = {
                     'repository': repo.name,
-                    'lines_of_code': lines_of_code,
+                    'filtered_lines_of_code': lines_of_code['filtered'],
+                    'total_lines_of_code': lines_of_code['total'],
                     'total_issues': issue_counts['total'],
                     'open_issues': issue_counts['open'],
                     'closed_issues': issue_counts['closed'],
@@ -333,7 +344,8 @@ def main():
                 }
                 results.append(result)
 
-                logger.info(f"Lines of Code: {lines_of_code:,}")
+                logger.info(f"Filtered Lines of Code: {lines_of_code['filtered']}")
+                logger.info(f"Total Lines of Code: {lines_of_code['total']}")
                 logger.info(f"Total Issues: {issue_counts['total']}")
                 logger.info(f"Open Issues: {issue_counts['open']}")
                 logger.info(f"Closed Issues: {issue_counts['closed']}")
@@ -342,28 +354,46 @@ def main():
             finally:
                 cleanup_repository(dest_dir)
 
-        # Print totals
-        total_loc = sum(r['lines_of_code'] for r in results)
+        # Calculate totals
+        total_filtered_loc = sum(r['filtered_lines_of_code'] for r in results)
+        total_unfiltered_loc = sum(r['total_lines_of_code'] for r in results)
         total_issues = sum(r['total_issues'] for r in results)
         open_issues = sum(r['open_issues'] for r in results)
         closed_issues = sum(r['closed_issues'] for r in results)
         total_prs = sum(r['pull_requests'] for r in results)
+        filtered_percentage = (total_filtered_loc / total_unfiltered_loc * 100) if total_unfiltered_loc > 0 else 0
+        other_code_percentage = 100 - filtered_percentage
 
-        logger.info("\nFinal Totals:")
-        logger.info(f"Total Lines of Code: {total_loc:,}")
-        logger.info(f"Total Issues: {total_issues:,}")
-        logger.info(f"Open Issues: {open_issues:,}")
-        logger.info(f"Closed Issues: {closed_issues:,}")
-        logger.info(f"Pull Requests: {total_prs:,}")
+        # Print totals
+        logger.info("\nCode Analysis:")
+        logger.info("Total Lines of Code (sum of all files in repositories)")
+        logger.info(f"└── Total:                     {total_unfiltered_loc:,} lines (100%)")
+        logger.info(f"    ├── Own Written Code:      {total_filtered_loc:,} lines ({filtered_percentage:.1f}%)")
+        logger.info(f"    │   └── Excludes: vendor, node_modules, generated files, etc.")
+        logger.info(f"    └── Open Source Code:      {total_unfiltered_loc - total_filtered_loc:,} lines ({other_code_percentage:.1f}%)")
+        logger.info(f"        └── Includes: dependencies, packages, generated code")
+
+        logger.info("\nIssues and PRs:")
+        logger.info(f"Total Issues:    {total_issues:,}")
+        logger.info(f"Open Issues:     {open_issues:,} ({(open_issues/total_issues*100 if total_issues > 0 else 0):.1f}%)")
+        logger.info(f"Closed Issues:   {closed_issues:,} ({(closed_issues/total_issues*100 if total_issues > 0 else 0):.1f}%)")
+        logger.info(f"Pull Requests:   {total_prs:,}")
 
         # Save results to CSV
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f'github_metrics_{org_name}_{timestamp}.csv'
 
         with open(filename, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=['repository', 'lines_of_code', 'total_issues', 
-                                                 'open_issues', 'closed_issues', 'pull_requests', 
-                                                 'last_updated'])
+            writer = csv.DictWriter(f, fieldnames=[
+                'repository',
+                'filtered_lines_of_code',
+                'total_lines_of_code',
+                'total_issues',
+                'open_issues',
+                'closed_issues',
+                'pull_requests',
+                'last_updated'
+            ])
             writer.writeheader()
             writer.writerows(results)
 
