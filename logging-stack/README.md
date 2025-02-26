@@ -16,12 +16,15 @@ Ensure you have the following are prepared on your system:
 
 - Install [Git](https://git-scm.com/downloads) - for version control and cloning the repository.
 - Install [Rancher Desktop](https://rancherdesktop.io/) or [Docker](https://docs.docker.com/engine/install/) - for containerizing and running the application locally.
+- Install [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) - to authenticate when pulling [GDP Labs NER API Container](https://console.cloud.google.com/artifacts/docker/gdp-labs/asia-southeast2/projects/gdplabs-ner-api%2Fgdplabs-ner-api?project=gdp-labs) (Request Access to our Ticket System if you don't have access).
+  - [Authenticated Google Cloud CLI](https://cloud.google.com/sdk/docs/authorizing#auth-login)
 
 ## Local Installation
 
 To install the entire logging stack on your local machine, run the following:
 
 ```bash
+gcloud auth configure-docker asia-southeast2-docker.pkg.dev
 git clone https://github.com/GDP-ADMIN/codehub
 cd codehub/logging-stack/
 ./try-localhost.sh opensearch
