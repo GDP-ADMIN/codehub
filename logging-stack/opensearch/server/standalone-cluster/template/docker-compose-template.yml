@@ -14,7 +14,7 @@ services:
         condition: service_healthy
 
   anonymizer:
-    image: asia.gcr.io/gdp-labs/gl-common-infra/anonymizer:${GDPLABS_ANONYMIZER_VERSION}
+    image: asia-southeast2-docker.pkg.dev/gdp-labs/projects/gdplabs-ner-api/gdplabs-ner-api:${GDPLABS_ANONYMIZER_VERSION}
     environment:
       LOG_LEVEL: "ERROR"
     healthcheck:
