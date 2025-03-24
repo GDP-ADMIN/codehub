@@ -1,0 +1,11 @@
+# This file is used by `docker-compose up -d`
+
+services:
+  appy:
+    # Result of container image created by `docker build`
+    image: appy
+    # Format: Host:Container ; It means expose to port 5001 on the host level, and forward the traffic to port 5001 inside container
+    ports:
+      - "5001:5000"
+    # Automatically start container after host reboot
+    restart: always
