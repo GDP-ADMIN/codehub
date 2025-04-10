@@ -18,12 +18,49 @@ The script automates the deployment of:
 - nano text editor (for .env file editing)
 - Basic understanding of OAuth2 and Google OAuth credentials
 
+## User Interaction Guide
+
+When running the script "Option 1: One-Click Deployment or Option 2: Manual Installation" , you'll be prompted to provide the following values:
+
+1. **OAuth2 Proxy Client ID**
+   - Description: Your Google OAuth application's Client ID
+   - Example: `123456789-abcdef.apps.googleusercontent.com`
+   - Where to get it: Google Cloud Console > APIs & Services > Credentials
+
+2. **OAuth2 Proxy Client Secret**
+   - Description: Your Google OAuth application's Client Secret
+   - Example: `GOCSPX-abcdefghijklmnopqrstuvwxyz`
+   - Where to get it: Google Cloud Console > APIs & Services > Credentials
+
+3. **Backend Port**
+   - Description: The port number where your application is running
+   - Example: `3000`
+   - Note: Must be a valid port number (1-65535)
+
+4. **Domain Name**
+   - Description: Your application's domain name
+   - Example: `app.example.com`
+   - Note: This will be used for SSL certificate generation
+
+5. **Whitelist Domains**
+   - Description: Comma-separated list of email domains allowed to access
+   - Example: `example.com,company.com`
+   - Note: Use `*` to allow all domains
+
+After providing these values, the script will:
+- Generate a secure cookie secret on
+- Create persistent environtment .env
+- Create SSL certificates
+- Set up Nginx configuration
+- Configure Docker containers
+- Start the services
+
 ## Deployment Options
 
 ### Option 1: One-Click Deployment (Recommended)
 The fastest way to deploy OAuth2 Proxy with Nginx. Simply run:
 ```bash
-curl -sSL https://raw.githubusercontent.com/yourusername/repository/main/1click-oauth2-proxy.sh | bash
+curl -sSL https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/oauth2-proxy/1click-oauth2-proxy.sh | bash
 ```
 
 ### Option 2: Manual Installation
