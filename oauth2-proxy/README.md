@@ -60,7 +60,7 @@ After providing these values, the script will:
 ### Option 1: One-Click Deployment (Recommended)
 The fastest way to deploy OAuth2 Proxy with Nginx. Simply run:
 ```bash
-curl -sSL https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/oauth2-proxy/1click-oauth2-proxy.sh | bash
+wget https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/oauth2-proxy_install/oauth2-proxy/1click-oauth2-proxy.sh -O 1click-oauth2-proxy.sh | chmod a+x 1click-oauth2-proxy.sh; ./1click-oauth2-proxy.sh
 ```
 
 ### Option 2: Manual Installation
