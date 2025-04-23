@@ -143,7 +143,7 @@ NGINX_CONF_FILE="$NGINX_CONF_DIR/nginx.conf"
 mkdir -p "$SSL_DIR" "$NGINX_CONF_DIR"
 
 # Ask user if they want to use their own SSL certificate
-read -p "Do you want to use your own SSL certificate? (y/N): " use_custom_cert
+read -p "Do you want to use your own SSL certificate? (y/N), Enter when already setup before: " use_custom_cert
 if [[ "$use_custom_cert" =~ ^[Yy]$ ]]; then
   echo "Please enter the full absolute path to your SSL certificate and key files."
   read -p "Enter the full path to your SSL certificate (.pem): " custom_cert
@@ -166,7 +166,7 @@ else
     echo "Generating self-signed SSL certificate for $DOMAIN_NAME..."
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
       -keyout "$SSL_KEY" -out "$SSL_CERT" \
-      -subj "/C=US/ST=California/L=San Francisco/O=Your Organization/OU=Your Unit/CN=$DOMAIN_NAME"
+      -subj "/C=ID/ST=Jakarta/L=Jakarta/O=GDPLabs/OU=GDPLabs/CN=$DOMAIN_NAME"
   else
     echo "Using existing SSL certificate and key for $DOMAIN_NAME."
   fi
@@ -280,7 +280,7 @@ services:
       - --relative-redirect-url=true
 
   nginx-oauth2-proxy:
-    image: nginx:latest
+    image: docker.io/library/nginx:latest
     container_name: nginx-oauth2-proxy
     restart: always
     volumes:
