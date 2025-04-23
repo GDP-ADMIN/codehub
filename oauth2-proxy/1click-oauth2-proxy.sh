@@ -280,7 +280,7 @@ services:
       - --relative-redirect-url=true
 
   nginx-oauth2-proxy:
-    image: docker.io/library/nginx:latest
+    image: docker.io/library/nginx:stable-alpine
     container_name: nginx-oauth2-proxy
     restart: always
     volumes:
