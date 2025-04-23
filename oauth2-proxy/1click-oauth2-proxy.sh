@@ -129,7 +129,6 @@ source .env
 # Check if the given port is already in use
 if lsof -Pi :4180 -sTCP:LISTEN -t >/dev/null; then
     echo "Port 4180 is already in use. oauth2-proxy need that port"
-    exit 1
 fi
 
 # Define the paths for SSL certificate and key
