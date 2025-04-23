@@ -83,13 +83,14 @@ setup_env_file() {
         echo "Creating .env file. Please provide the required inputs."
         
         # Prompt for required values
-        OAUTH2_PROXY_CLIENT_ID=$(prompt_user_input "Enter OAuth2 Proxy Client ID")
-        OAUTH2_PROXY_CLIENT_SECRET=$(prompt_user_input "Enter OAuth2 Proxy Client Secret")        
+        OAUTH2_PROXY_PROVIDER=$(prompt_user_input "Enter OAuth2 Proxy Provider (e.g., google, github)")
+        OAUTH2_PROXY_CLIENT_ID=$(prompt_user_input "Enter $OAUTH2_PROXY_PROVIDER OAuth2 Proxy Client ID")
+        OAUTH2_PROXY_CLIENT_SECRET=$(prompt_user_input "Enter $OAUTH2_PROXY_PROVIDER OAuth2 Proxy Client Secret")        
         DOMAIN_NAME=$(prompt_user_input "Enter your domain name (e.g., yourdomain.com)")
         WHITELIST_DOMAINS=$(prompt_user_input "Enter domains to whitelist (comma-separated, e.g., example.com,another.com)")
 
         # Check for empty inputs
-        if [ -z "$OAUTH2_PROXY_CLIENT_ID" ] || [ -z "$OAUTH2_PROXY_CLIENT_SECRET" ] || [ -z "$DOMAIN_NAME" ] || [ -z "$WHITELIST_DOMAINS" ]; then
+        if [ -z "$OAUTH2_PROXY_PROVIDER" ] || [ -z "$OAUTH2_PROXY_CLIENT_ID" ] || [ -z "$OAUTH2_PROXY_CLIENT_SECRET" ] || [ -z "$DOMAIN_NAME" ] || [ -z "$WHITELIST_DOMAINS" ]; then
             echo "All fields are required. Exiting..."
             exit 1
         fi
@@ -104,6 +105,8 @@ setup_env_file() {
 
         # Create .env file
       {
+            echo "# OAuth2 Proxy Provider (e.g., google, github)"
+            echo "OAUTH2_PROXY_PROVIDER=$OAUTH2_PROXY_PROVIDER"
             echo "# OAuth2 Proxy Client ID"
             echo "OAUTH2_PROXY_CLIENT_ID=$OAUTH2_PROXY_CLIENT_ID"
             echo "# OAuth2 Proxy Client Secret"
@@ -115,7 +118,7 @@ setup_env_file() {
             echo "# Your domain name (e.g., yourdomain.com)"
             echo "DOMAIN_NAME=$DOMAIN_NAME"
             echo "# Domains to whitelist (comma-separated, e.g., example.com,another.com)"
-            echo "WHITELIST_DOMAINS=$WHITELIST_DOMAINS"
+            echo "WHITELIST_DOMAINS=$DOMAIN_NAME,$WHITELIST_DOMAINS"
         } > .env
         echo -e "\n✅ .env file created successfully at $(pwd)/.env"
           else
@@ -128,7 +131,39 @@ setup_env_file() {
 setup_env_file
 
 # Load environment variables from the .env file
+if [ ! -f ".env" ]; then
+  echo "Error: .env file not found. Please run the setup first."
+  exit 1
+fi
 source .env
+
+# Check required environment variables
+echo -e "\n🔎 Checking required environment variables in .env file..."
+REQUIRED_VARS=(
+  "OAUTH2_PROXY_PROVIDER"
+  "OAUTH2_PROXY_CLIENT_ID"
+  "OAUTH2_PROXY_CLIENT_SECRET"
+  "OAUTH2_PROXY_COOKIE_SECRET"
+  "WHITELIST_DOMAINS"
+  "DOMAIN_NAME"
+  "BACKEND_PORT"
+)
+
+for var in "${REQUIRED_VARS[@]}"; do
+  if [ -z "${!var}" ]; then
+    echo "Error: Required environment variable '$var' is missing or empty in .env file."
+    exit 1
+  else
+    case "$var" in
+      "OAUTH2_PROXY_PROVIDER"|"WHITELIST_DOMAINS"|"DOMAIN_NAME"|"BACKEND_PORT")
+        echo "✅ $var is set. Value: ${!var}"
+        ;;
+      *)
+        echo "✅ $var is set. Value: [REDACTED]"
+        ;;
+    esac
+  fi
+done
 
 # Define the paths for SSL certificate and key
 SSL_DIR="./nginx"
@@ -252,7 +287,7 @@ services:
     ports:
       - "4180:4180"
     environment:
-      - OAUTH2_PROXY_PROVIDER=google
+      - OAUTH2_PROXY_PROVIDER=${OAUTH2_PROXY_PROVIDER}
       - OAUTH2_PROXY_CLIENT_ID=${OAUTH2_PROXY_CLIENT_ID}
       - OAUTH2_PROXY_CLIENT_SECRET=${OAUTH2_PROXY_CLIENT_SECRET}
       - OAUTH2_PROXY_COOKIE_SECRET=${OAUTH2_PROXY_COOKIE_SECRET}
@@ -274,10 +309,10 @@ services:
       - --http-address=0.0.0.0:4180
       - --upstream=https://$DOMAIN_NAME/oauth2/callback
       - --redirect-url=https://$DOMAIN_NAME/oauth2/callback
-      - --whitelist-domain=${WHITELIST_DOMAINS//,/ }
+      - --whitelist-domain=${WHITELIST_DOMAINS}
       - --skip-provider-button=true
       - --skip-auth-preflight=true
-      - --footer=pwpush.$DOMAIN_NAME
+      - --footer=$DOMAIN_NAME
       - --reverse-proxy=true
       - --cookie-secure=true
       - --cookie-samesite=lax
@@ -310,12 +345,12 @@ $DOCKER_COMPOSE_CMD up -d --force-recreate
 sleep 10
 # Get the last 100 logs from the oauth2-proxy service
 echo -e "\n📜 Fetching the last 100 logs from the oauth2-proxy service..."
-$DOCKER_COMPOSE_CMD logs --tail 10
+$DOCKER_COMPOSE_CMD logs --tail 10 nginx-oauth2-proxy
+$DOCKER_COMPOSE_CMD logs --tail 10 oauth2-proxy
 
 echo -e "\n🔍 Checking status of Docker services..."
 $DOCKER_COMPOSE_CMD ps
 
 echo -e "\n✅ All services are up and running!"
 echo -e "🔑 Oauth2-proxy is running at: http://localhost:4180"
-echo -e "🌐 Nginx is available at:   http://$DOMAIN_NAME  and  https://$DOMAIN_NAME"
-echo -e "🌟 Your site is available on: https://$DOMAIN_NAME"
+echo -e "🌟 Your site is available on:  http://$DOMAIN_NAME  and  https://$DOMAIN_NAME"
