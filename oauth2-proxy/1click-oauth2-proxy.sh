@@ -79,15 +79,7 @@ setup_env_file() {
         
         # Prompt for required values
         OAUTH2_PROXY_CLIENT_ID=$(prompt_user_input "Enter OAuth2 Proxy Client ID")
-        OAUTH2_PROXY_CLIENT_SECRET=$(prompt_user_input "Enter OAuth2 Proxy Client Secret")
-        BACKEND_PORT=$(prompt_user_input "Enter the port for the backend service to secure (e.g., 3000)")
-
-        # Validate backend port input
-        if ! [[ "$BACKEND_PORT" =~ ^[0-9]+$ ]]; then
-            echo "Invalid port number."
-            exit 1
-        fi
-        
+        OAUTH2_PROXY_CLIENT_SECRET=$(prompt_user_input "Enter OAuth2 Proxy Client Secret")        
         DOMAIN_NAME=$(prompt_user_input "Enter your domain name (e.g., yourdomain.com)")
         WHITELIST_DOMAINS=$(prompt_user_input "Enter domains to whitelist (comma-separated, e.g., example.com,another.com)")
 
@@ -96,7 +88,12 @@ setup_env_file() {
             echo "All fields are required. Exiting..."
             exit 1
         fi
-
+        BACKEND_PORT=$(prompt_user_input "Enter the port for the backend service to secure (e.g., 3000)")
+        # Validate backend port input
+        if ! [[ "$BACKEND_PORT" =~ ^[0-9]+$ ]]; then
+            echo "Invalid port number."
+            exit 1
+        fi
         # Generate a 32-byte random base64 cookie secret
         OAUTH2_PROXY_COOKIE_SECRET=$(openssl rand -base64 24)  # 24 bytes => Base64 == 32 bytes
 

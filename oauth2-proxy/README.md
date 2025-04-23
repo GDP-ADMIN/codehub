@@ -12,11 +12,30 @@ The script automates the deployment of:
 
 ## Prerequisites
 
+- **Google OAuth Credentials** (Client ID and Client Secret)  
+  See instructions below on how to create these credentials.
 - Docker and Docker Compose installed
 - bash shell environment
 - openssl for SSL certificate generation
 - nano text editor (for .env file editing)
 - Basic understanding of OAuth2 and Google OAuth credentials
+
+### How to Create Google OAuth Credentials
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Select your project or create a new one.
+3. Navigate to **APIs & Services > Credentials**.
+4. Click **+ CREATE CREDENTIALS** and select **OAuth client ID**.
+5. If prompted, configure the consent screen (fill in required fields).
+6. Choose **Web application** as the application type.
+7. Set an appropriate name (e.g., "OAuth2 Proxy").
+8. Under **Authorized redirect URIs**, add:  
+   ```
+   https://<your-domain>/oauth2/callback
+   ```
+   Replace `<your-domain>` with your actual domain name.
+9. Click **Create**.
+10. Copy the **Client ID** and **Client Secret**. You will need these for the script.
 
 ## User Interaction Guide
 
@@ -175,4 +194,4 @@ This project is open source and available under the MIT License.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. 
+Contributions are welcome! Please feel free to submit a Pull Request.
