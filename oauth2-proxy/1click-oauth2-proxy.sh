@@ -1,5 +1,46 @@
 #!/bin/bash
+# set -x
 set -e  # Exit immediately if a command exits with a non-zero status
+# Detect OS
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+else
+    OS="unknown"
+fi
+
+if [[ "$OS" != "debian" && "$OS" != "ubuntu" ]]; then
+    echo "This script only supports Debian or Ubuntu."
+    exit 1
+fi
+
+missing=()
+
+# Check lsof
+if ! command -v lsof >/dev/null 2>&1; then
+    missing+=("lsof")
+fi
+
+# Check docker compose or docker-compose
+if ! command -v docker compose >/dev/null 2>&1; then
+  if ! command -v docker-compose >/dev/null 2>&1; then
+    missing+=("docker-compose")
+  fi
+fi
+
+# Check openssl
+if ! command -v openssl >/dev/null 2>&1; then
+    missing+=("openssl")
+fi
+
+if [ ${#missing[@]} -ne 0 ]; then
+    echo "Error: The following packages are missing: ${missing[*]}"
+    echo "To install them, run:"
+    echo "  sudo apt update && sudo apt install ${missing[*]}"
+    exit 1
+else
+    echo "All required packages are installed."
+fi
 
 # Function to read user input
 prompt_user_input() {
@@ -199,9 +240,9 @@ services:
       - --cookie-refresh=1m
       - --relative-redirect-url=true
 
-  nginx:
+  nginx-oauth2-proxy:
     image: nginx:latest
-    container_name: nginx
+    container_name: nginx-oauth2-proxy
     restart: always
     volumes:
       - $NGINX_CONF_FILE:/etc/nginx/conf.d/default.conf
@@ -215,15 +256,40 @@ services:
 EOF
 
 echo -e "\nRunning the Docker containers using the generated docker-compose.yml..."
-docker compose up -d --force-recreate
+if command -v docker compose >/dev/null 2>&1; then
+  DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+  DOCKER_COMPOSE_CMD="docker-compose"
+else
+  echo "Error: Neither 'docker compose' nor 'docker-compose' is installed."
+  echo "To install Docker Compose, run:"
+  echo "  sudo apt update && sudo apt install docker-compose"
+  exit 1
+fi
+
+$DOCKER_COMPOSE_CMD up -d --force-recreate
+
+# Choose the available Docker Compose command (docker compose or docker-compose)
+if command -v docker compose >/dev/null 2>&1; then
+  DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+  DOCKER_COMPOSE_CMD="docker-compose"
+else
+  echo "Error: Neither 'docker compose' nor 'docker-compose' is installed."
+  echo "To install Docker Compose, run:"
+  echo "  sudo apt update && sudo apt install docker-compose"
+  exit 1
+fi
+
+$DOCKER_COMPOSE_CMD up -d --force-recreate
 
 sleep 10
 # Get the last 100 logs from the oauth2-proxy service
 echo -e "\nFetching the last 100 logs from the oauth2-proxy service..."
-docker compose logs --tail 100 oauth2-proxy
+$DOCKER_COMPOSE_CMD logs --tail 100 oauth2-proxy
 
 echo -e "\nGetting info of docker services..."
-docker compose ps
+$DOCKER_COMPOSE_CMD ps
 echo -e "\nAll services are up:"
 echo "Nginx is running on http://$DOMAIN_NAME and https://$DOMAIN_NAME"
 echo "Oauth2-proxy is running on http://localhost:4180"
