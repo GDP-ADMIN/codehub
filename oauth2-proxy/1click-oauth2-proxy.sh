@@ -142,30 +142,37 @@ mkdir -p "$SSL_DIR" "$NGINX_CONF_DIR"
 
 # Check if SSL certificate and key already exist, if not create them
 if [ ! -f "$SSL_CERT" ] || [ ! -f "$SSL_KEY" ]; then
-  read -p "Do you want to use your own SSL certificate? (y/N), Enter when already setup before: " use_custom_cert
+  echo -e "\n🔒 SSL certificate and key not found for $DOMAIN_NAME."
+  read -p "👉 Do you want to use your own SSL certificate? (y/N), Enter when already setup before: " use_custom_cert
   if [[ "$use_custom_cert" =~ ^[Yy]$ ]]; then
-    echo "Please enter the full absolute path to your SSL certificate and key files."
-    read -p "Enter the full path to your SSL certificate (.pem): " custom_cert
-    read -p "Enter the full path to your SSL private key (.key): " custom_key
+    echo -e "\n📥 Please enter the full absolute path to your SSL certificate and key files."
+    read -p "🔑 Enter the full path to your SSL certificate (.pem): " custom_cert
+    read -p "🔑 Enter the full path to your SSL private key (.key): " custom_key
     # Check if the provided paths are valid
     if [ ! -f "$custom_cert" ] || [ ! -f "$custom_key" ]; then
-      echo "Error: Provided certificate or key file does not exist."
+      echo -e "\n❌ Error: Provided certificate or key file does not exist."
       exit 1
     else
-        # Copy custom certificate and key to SSL_DIR
-        cp -uf "$custom_cert" "$SSL_CERT"
-        cp -uf "$custom_key" "$SSL_KEY"
-        SSL_CERT="$SSL_CERT"
-        SSL_KEY="$SSL_KEY"
-        echo "Using custom SSL certificate and key."
+      # Copy custom certificate and key to SSL_DIR
+      cp -uf "$custom_cert" "$SSL_CERT"
+      cp -uf "$custom_key" "$SSL_KEY"
+      SSL_CERT="$SSL_CERT"
+      SSL_KEY="$SSL_KEY"
+      echo -e "\n✅ Using custom SSL certificate and key for $DOMAIN_NAME."
+      echo -e "🔒 SSL Key:  $SSL_KEY"
+      echo -e "🔒 SSL Cert: $SSL_CERT"
     fi
   else
-    if [ ! -f "$SSL_CERT" ] || [ ! -f "$SSL_KEY" ]; then
-    echo "Generating self-signed SSL certificate for $DOMAIN_NAME..., it only use for testing purpose, please use your own SSL certificate for production. with editing the SSL: $SSL_KEY and $SSL_CERT file"
+    echo -e "\n⚠️  Generating self-signed SSL certificate for $DOMAIN_NAME..."
+    sleep 3
+    echo -e "   This is for testing only. For production, replace these files:"
+    sleep 3
+    echo -e "   🔒 SSL Key:  $SSL_KEY"
+    echo -e "   🔒 SSL Cert: $SSL_CERT"
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
       -keyout "$SSL_KEY" -out "$SSL_CERT" \
-      -subj "/C=ID/ST=Jakarta/L=Jakarta/O=GDPLabs/OU=GDPLabs/CN=$DOMAIN_NAME"
-  fi
+      -subj "/C=ID/ST=Jakarta/L=Jakarta/O=GDPLabs/OU=GDPLabs/CN=$DOMAIN_NAME" 2>/dev/null
+    echo -e "\n✅ Self-signed SSL certificate generated."
   fi
 else
   echo -e "\n✅ Using existing SSL certificate and key for $DOMAIN_NAME."
@@ -303,11 +310,12 @@ $DOCKER_COMPOSE_CMD up -d --force-recreate
 sleep 10
 # Get the last 100 logs from the oauth2-proxy service
 echo -e "\n📜 Fetching the last 100 logs from the oauth2-proxy service..."
-$DOCKER_COMPOSE_CMD logs --tail 100
+$DOCKER_COMPOSE_CMD logs --tail 10
 
 echo -e "\n🔍 Checking status of Docker services..."
 $DOCKER_COMPOSE_CMD ps
 
 echo -e "\n✅ All services are up and running!"
-echo -e "🌐 Nginx is available at:   http://$DOMAIN_NAME  and  https://$DOMAIN_NAME"
 echo -e "🔑 Oauth2-proxy is running at: http://localhost:4180"
+echo -e "🌐 Nginx is available at:   http://$DOMAIN_NAME  and  https://$DOMAIN_NAME"
+echo -e "🌟 Your site is available on: https://$DOMAIN_NAME"
