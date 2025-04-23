@@ -126,11 +126,6 @@ setup_env_file
 # Load environment variables from the .env file
 source .env
 
-# Check if the given port is already in use
-if lsof -Pi :4180 -sTCP:LISTEN -t >/dev/null; then
-    echo "Port 4180 is already in use. oauth2-proxy need that port"
-fi
-
 # Define the paths for SSL certificate and key
 SSL_DIR="./nginx"
 SSL_CERT="$SSL_DIR/${DOMAIN_NAME//./_}.pem"  # Replace dots with underscores for filename validity
