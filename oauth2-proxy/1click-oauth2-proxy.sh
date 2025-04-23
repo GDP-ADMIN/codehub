@@ -2,6 +2,13 @@
 # set -x
 set -e  # Exit immediately if a command exits with a non-zero status
 # Detect OS
+
+echo "==============================================="
+echo " 1-Click OAuth2 Proxy + Nginx Setup Script"
+echo "==============================================="
+echo "This script will help you set up OAuth2 Proxy and Nginx with SSL for your backend service."
+echo "Supported OS: Debian/Ubuntu"
+echo
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS=$ID
@@ -55,9 +62,7 @@ else
   exit 1
 fi
 
-if $DOCKER_COMPOSE_CMD ps | grep -q "nginx-oauth2-proxy"; then
-  echo "nginx-oauth2-proxy container is already running."
-else
+if ! $DOCKER_COMPOSE_CMD ps | grep -q "nginx-oauth2-proxy"; then
   # Check if port 80 or 443 is in use only if container is not running
   if lsof -Pi :80 -sTCP:LISTEN -t >/dev/null || lsof -Pi :443 -sTCP:LISTEN -t >/dev/null; then
     echo "Error: Port 80 or 443 is already in use. This script does not support running alongside another nginx instance."
@@ -112,12 +117,11 @@ setup_env_file() {
             echo "# Domains to whitelist (comma-separated, e.g., example.com,another.com)"
             echo "WHITELIST_DOMAINS=$WHITELIST_DOMAINS"
         } > .env
-        echo ".env file created successfully."
-    else
-        echo ".env file already exists. Opening in nano for editing..."
-        sleep 3
-        nano .env
-    fi
+        echo -e "\n✅ .env file created successfully at $(pwd)/.env"
+          else
+        echo -e "\nℹ️  .env file already exists. Continuing setup..."
+        sleep 2
+          fi
 }
 
 # Setup .env file
@@ -136,34 +140,38 @@ NGINX_CONF_FILE="$NGINX_CONF_DIR/nginx.conf"
 # Create SSL and Nginx directories
 mkdir -p "$SSL_DIR" "$NGINX_CONF_DIR"
 
-# Ask user if they want to use their own SSL certificate
-read -p "Do you want to use your own SSL certificate? (y/N), Enter when already setup before: " use_custom_cert
-if [[ "$use_custom_cert" =~ ^[Yy]$ ]]; then
-  echo "Please enter the full absolute path to your SSL certificate and key files."
-  read -p "Enter the full path to your SSL certificate (.pem): " custom_cert
-  read -p "Enter the full path to your SSL private key (.key): " custom_key
-  # Check if the provided paths are valid
-  if [ ! -f "$custom_cert" ] || [ ! -f "$custom_key" ]; then
-    echo "Error: Provided certificate or key file does not exist."
-    exit 1
+# Check if SSL certificate and key already exist, if not create them
+if [ ! -f "$SSL_CERT" ] || [ ! -f "$SSL_KEY" ]; then
+  read -p "Do you want to use your own SSL certificate? (y/N), Enter when already setup before: " use_custom_cert
+  if [[ "$use_custom_cert" =~ ^[Yy]$ ]]; then
+    echo "Please enter the full absolute path to your SSL certificate and key files."
+    read -p "Enter the full path to your SSL certificate (.pem): " custom_cert
+    read -p "Enter the full path to your SSL private key (.key): " custom_key
+    # Check if the provided paths are valid
+    if [ ! -f "$custom_cert" ] || [ ! -f "$custom_key" ]; then
+      echo "Error: Provided certificate or key file does not exist."
+      exit 1
+    else
+        # Copy custom certificate and key to SSL_DIR
+        cp -uf "$custom_cert" "$SSL_CERT"
+        cp -uf "$custom_key" "$SSL_KEY"
+        SSL_CERT="$SSL_CERT"
+        SSL_KEY="$SSL_KEY"
+        echo "Using custom SSL certificate and key."
+    fi
   else
-    # Copy custom certificate and key to SSL_DIR
-    cp -uf "$custom_cert" "$SSL_CERT"
-    cp -uf "$custom_key" "$SSL_KEY"
-    SSL_CERT="$SSL_CERT"
-    SSL_KEY="$SSL_KEY"
-    echo "Using custom SSL certificate and key."
-  fi
-else
-  # Check if SSL certificate and key already exist, if not create them
-  if [ ! -f "$SSL_CERT" ] || [ ! -f "$SSL_KEY" ]; then
-    echo "Generating self-signed SSL certificate for $DOMAIN_NAME..."
+    if [ ! -f "$SSL_CERT" ] || [ ! -f "$SSL_KEY" ]; then
+    echo "Generating self-signed SSL certificate for $DOMAIN_NAME..., it only use for testing purpose, please use your own SSL certificate for production. with editing the SSL: $SSL_KEY and $SSL_CERT file"
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
       -keyout "$SSL_KEY" -out "$SSL_CERT" \
       -subj "/C=ID/ST=Jakarta/L=Jakarta/O=GDPLabs/OU=GDPLabs/CN=$DOMAIN_NAME"
-  else
-    echo "Using existing SSL certificate and key for $DOMAIN_NAME."
   fi
+  fi
+else
+  echo -e "\n✅ Using existing SSL certificate and key for $DOMAIN_NAME."
+  echo -e "🔒 SSL Key:  $SSL_KEY"
+  echo -e "🔒 SSL Cert: $SSL_CERT"
+  sleep 3
 fi
 
 # Create Nginx configuration file
@@ -288,17 +296,18 @@ services:
       - oauth2-proxy
 EOF
 
-echo -e "\nRunning the Docker containers using the generated docker-compose.yml..."
+echo -e "\n🚀 Starting Docker containers using the generated docker-compose.yml..."
 # Start the Docker containers
 $DOCKER_COMPOSE_CMD up -d --force-recreate
 
 sleep 10
 # Get the last 100 logs from the oauth2-proxy service
-echo -e "\nFetching the last 100 logs from the oauth2-proxy service..."
+echo -e "\n📜 Fetching the last 100 logs from the oauth2-proxy service..."
 $DOCKER_COMPOSE_CMD logs --tail 100
 
-echo -e "\nGetting info of docker services..."
+echo -e "\n🔍 Checking status of Docker services..."
 $DOCKER_COMPOSE_CMD ps
-echo -e "\nAll services are up:"
-echo "Nginx is running on http://$DOMAIN_NAME and https://$DOMAIN_NAME"
-echo "Oauth2-proxy is running on http://localhost:4180"
+
+echo -e "\n✅ All services are up and running!"
+echo -e "🌐 Nginx is available at:   http://$DOMAIN_NAME  and  https://$DOMAIN_NAME"
+echo -e "🔑 Oauth2-proxy is running at: http://localhost:4180"
