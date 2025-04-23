@@ -127,8 +127,8 @@ setup_env_file
 source .env
 
 # Check if the given port is already in use
-if lsof -Pi :$BACKEND_PORT -sTCP:LISTEN -t >/dev/null; then
-    echo "Port $BACKEND_PORT is already in use."
+if lsof -Pi :4180 -sTCP:LISTEN -t >/dev/null; then
+    echo "Port 4180 is already in use. oauth2-proxy need that port"
     exit 1
 fi
 
