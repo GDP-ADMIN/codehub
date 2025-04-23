@@ -42,6 +42,30 @@ else
     echo "All required packages are installed."
 fi
 
+# Check if nginx-oauth2-proxy container is already running
+
+if command -v docker compose >/dev/null 2>&1; then
+  DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+  DOCKER_COMPOSE_CMD="docker-compose"
+else
+  echo "Error: Neither 'docker compose' nor 'docker-compose' is installed."
+  echo "To install Docker Compose, run:"
+  echo "  sudo apt update && sudo apt install docker-compose"
+  exit 1
+fi
+
+if $DOCKER_COMPOSE_CMD ps | grep -q "nginx-oauth2-proxy"; then
+  echo "nginx-oauth2-proxy container is already running."
+else
+  # Check if port 80 or 443 is in use only if container is not running
+  if lsof -Pi :80 -sTCP:LISTEN -t >/dev/null || lsof -Pi :443 -sTCP:LISTEN -t >/dev/null; then
+    echo "Error: Port 80 or 443 is already in use. This script does not support running alongside another nginx instance."
+    echo "Please stop any existing services using these ports or configure manually."
+    exit 1
+  fi
+fi
+
 # Function to read user input
 prompt_user_input() {
     read -p "$1: " input
@@ -94,7 +118,7 @@ setup_env_file() {
         echo ".env file created successfully."
     else
         echo ".env file already exists. Opening in nano for editing..."
-        sleep 5
+        sleep 3
         nano .env
     fi
 }
@@ -121,14 +145,34 @@ NGINX_CONF_FILE="$NGINX_CONF_DIR/nginx.conf"
 # Create SSL and Nginx directories
 mkdir -p "$SSL_DIR" "$NGINX_CONF_DIR"
 
-# Check if SSL certificate and key already exist, if not create them
-if [ ! -f "$SSL_CERT" ] || [ ! -f "$SSL_KEY" ]; then
+# Ask user if they want to use their own SSL certificate
+read -p "Do you want to use your own SSL certificate? (y/N): " use_custom_cert
+if [[ "$use_custom_cert" =~ ^[Yy]$ ]]; then
+  echo "Please enter the full absolute path to your SSL certificate and key files."
+  read -p "Enter the full path to your SSL certificate (.pem): " custom_cert
+  read -p "Enter the full path to your SSL private key (.key): " custom_key
+  # Check if the provided paths are valid
+  if [ ! -f "$custom_cert" ] || [ ! -f "$custom_key" ]; then
+    echo "Error: Provided certificate or key file does not exist."
+    exit 1
+  else
+    # Copy custom certificate and key to SSL_DIR
+    cp -uf "$custom_cert" "$SSL_CERT"
+    cp -uf "$custom_key" "$SSL_KEY"
+    SSL_CERT="$SSL_CERT"
+    SSL_KEY="$SSL_KEY"
+    echo "Using custom SSL certificate and key."
+  fi
+else
+  # Check if SSL certificate and key already exist, if not create them
+  if [ ! -f "$SSL_CERT" ] || [ ! -f "$SSL_KEY" ]; then
     echo "Generating self-signed SSL certificate for $DOMAIN_NAME..."
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-        -keyout "$SSL_KEY" -out "$SSL_CERT" \
-        -subj "/C=US/ST=California/L=San Francisco/O=Your Organization/OU=Your Unit/CN=$DOMAIN_NAME"
-else
+      -keyout "$SSL_KEY" -out "$SSL_CERT" \
+      -subj "/C=US/ST=California/L=San Francisco/O=Your Organization/OU=Your Unit/CN=$DOMAIN_NAME"
+  else
     echo "Using existing SSL certificate and key for $DOMAIN_NAME."
+  fi
 fi
 
 # Create Nginx configuration file
@@ -136,7 +180,7 @@ cat <<EOF > "$NGINX_CONF_FILE"
 server_tokens off;
 
 server {
-  listen 80;
+  listen 80 default_server;
   server_name $DOMAIN_NAME;
 
   # Redirect HTTP to HTTPS
@@ -194,8 +238,6 @@ EOF
 
 # Create docker-compose.yml with oauth2-proxy and nginx
 cat <<EOF > docker-compose.yml
-version: '3.7'
-
 services:
   oauth2-proxy:
     image: quay.io/oauth2-proxy/oauth2-proxy:latest
@@ -256,37 +298,13 @@ services:
 EOF
 
 echo -e "\nRunning the Docker containers using the generated docker-compose.yml..."
-if command -v docker compose >/dev/null 2>&1; then
-  DOCKER_COMPOSE_CMD="docker compose"
-elif command -v docker-compose >/dev/null 2>&1; then
-  DOCKER_COMPOSE_CMD="docker-compose"
-else
-  echo "Error: Neither 'docker compose' nor 'docker-compose' is installed."
-  echo "To install Docker Compose, run:"
-  echo "  sudo apt update && sudo apt install docker-compose"
-  exit 1
-fi
-
-$DOCKER_COMPOSE_CMD up -d --force-recreate
-
-# Choose the available Docker Compose command (docker compose or docker-compose)
-if command -v docker compose >/dev/null 2>&1; then
-  DOCKER_COMPOSE_CMD="docker compose"
-elif command -v docker-compose >/dev/null 2>&1; then
-  DOCKER_COMPOSE_CMD="docker-compose"
-else
-  echo "Error: Neither 'docker compose' nor 'docker-compose' is installed."
-  echo "To install Docker Compose, run:"
-  echo "  sudo apt update && sudo apt install docker-compose"
-  exit 1
-fi
-
+# Start the Docker containers
 $DOCKER_COMPOSE_CMD up -d --force-recreate
 
 sleep 10
 # Get the last 100 logs from the oauth2-proxy service
 echo -e "\nFetching the last 100 logs from the oauth2-proxy service..."
-$DOCKER_COMPOSE_CMD logs --tail 100 oauth2-proxy
+$DOCKER_COMPOSE_CMD logs --tail 100
 
 echo -e "\nGetting info of docker services..."
 $DOCKER_COMPOSE_CMD ps
