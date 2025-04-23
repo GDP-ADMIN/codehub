@@ -17,6 +17,7 @@ The script automates the deployment of:
 - Docker and Docker Compose installed
 - bash shell environment
 - openssl for SSL certificate generation
+- SSL Certificate, if using on https website
 - nano text editor (for .env file editing)
 - Basic understanding of OAuth2 and Google OAuth credentials
 
@@ -65,6 +66,11 @@ When running the script "Option 1: One-Click Deployment or Option 2: Manual Inst
    - Description: Comma-separated list of email domains allowed to access
    - Example: `example.com,company.com`
    - Note: Use `*` to allow all domains
+
+6. **SSL Certificate**
+   - Description: Path to your SSL certificate and key, or let the script generate a self-signed certificate for testing purposes.
+   - Example: Provide your own `.pem` and `.key` files, or leave blank to auto-generate.
+   - Note: The script will generate a self-signed SSL certificate if you do not provide one. This is suitable for development and testing, but for production use, supply a valid SSL certificate.
 
 After providing these values, the script will:
 - Generate a secure cookie secret on
