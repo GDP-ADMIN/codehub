@@ -1,6 +1,6 @@
 <!-- Logo -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/oauth2-proxy/oauth2-proxy/master/docs/static/img/logos/OAuth2_Proxy_horizontal.svg" alt="OAuth2 Proxy Logo" width="200"/>
+  <img src="https://raw.githubusercontent.com/oauth2-proxy/oauth2-proxy/master/docs/static/img/logos/OAuth2_Proxy_horizontal.svg" alt="OAuth2 Proxy Logo" width="500"/>
 </p>
 
 # 1-Click OAuth2 Proxy Setup
@@ -42,21 +42,21 @@ This repository contains a bash script that simplifies the setup of OAuth2 Proxy
 ## Overview
 
 The script automates the deployment of:
-- OAuth2 Proxy for authentication
-- Nginx as a reverse proxy
-- SSL certificate generation
-- Docker container setup and configuration
+- **OAuth2 Proxy** for authentication
+- **Nginx** as a reverse proxy
+- **SSL certificate generation**
+- **Docker container setup and configuration**
 
 ## Prerequisites
 
-- **Google OAuth Credentials** (Client ID and Client Secret)  
-  See instructions below on how to create these credentials.
-- Docker and Docker Compose installed
-- bash shell environment
-- openssl for SSL certificate generation
-- nano text editor (for .env file editing)
+- **OAuth Provider Credentials** (Client ID and Client Secret)
+  - Google, GitHub, Azure, OIDC, or other supported providers. See instructions below on how to create these credentials for your provider.
+- **Docker and Docker Compose** installed
+- **bash** shell environment
+- **openssl** for SSL certificate generation
+- **nano** text editor (for .env file editing)
 - **SSL Certificate (optional):** If you do not have a valid SSL certificate, the script can generate a self-signed certificate for testing purposes. For production, you should use a valid SSL certificate.
-- Basic understanding of OAuth2 and Google OAuth credentials
+- Basic understanding of OAuth2 and your chosen OAuth provider's credentials
 
 > **Note:** The script will check for required dependencies (`docker`, `docker compose` or `docker-compose`, `openssl`, `lsof`) and provide install instructions if missing.
 
@@ -69,7 +69,7 @@ The script automates the deployment of:
 5. If prompted, configure the consent screen (fill in required fields).
 6. Choose **Web application** as the application type.
 7. Set an appropriate name (e.g., "OAuth2 Proxy").
-8. Under **Authorized redirect URIs**, add:  
+8. Under **Authorized redirect URIs**, add:
    ```
    https://<your-domain>/oauth2/callback
    ```
@@ -77,15 +77,17 @@ The script automates the deployment of:
 9. Click **Create**.
 10. Copy the **Client ID** and **Client Secret**. You will need these for the script.
 
+> **Using another provider?** See [Using Other OAuth Providers](#using-other-oauth-providers) for GitHub, Azure, OIDC, and more.
+
 ## Deployment Options
 
-### Option 1: One-Click Deployment (Recommended)
+### 🚀 Option 1: One-Click Deployment (Recommended)
 The fastest way to deploy OAuth2 Proxy with Nginx. Simply run:
 ```bash
 wget https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/main/oauth2-proxy/1click-oauth2-proxy.sh -O 1click-oauth2-proxy.sh | chmod a+x 1click-oauth2-proxy.sh; ./1click-oauth2-proxy.sh
 ```
 
-### Option 2: Manual Installation
+### 🛠 Option 2: Manual Installation
 For users who prefer manual control over the deployment process:
 1. Clone this repository
 2. Make the script executable:
@@ -97,7 +99,7 @@ For users who prefer manual control over the deployment process:
    ./1click-oauth2-proxy.sh
    ```
 
-### Option 3: DevSecOps Managed Deployment
+### 🏢 Option 3: DevSecOps Managed Deployment
 For production environments, you can request deployment through our DevSecOps team:
 
 1. Contact your DevSecOps team lead or manager
@@ -119,24 +121,25 @@ Our DevSecOps team will review your request and assist with the deployment proce
 
 When you run the script for the first time, you'll be prompted to provide:
 
-- OAuth2 Proxy Client ID (from Google Cloud Console)
-- OAuth2 Proxy Client Secret (from Google Cloud Console)
-- Backend Port (the port of your application to secure)
-- Domain Name (your application's domain)
-- Whitelist Domains (comma-separated list of allowed domains)
-- SSL Certificate: You can provide your own certificate and key, or let the script generate a self-signed certificate for you (recommended only for development/testing).
+- **OAuth2 Proxy Provider** (e.g., google, github, azure, oidc)
+- **OAuth2 Proxy Client ID** (from your OAuth provider)
+- **OAuth2 Proxy Client Secret** (from your OAuth provider)
+- **Backend Port** (the port of your application to secure)
+- **Domain Name** (your application's domain)
+- **Whitelist Domains** (comma-separated list of allowed domains)
+- **SSL Certificate:** You can provide your own certificate and key, or let the script generate a self-signed certificate for you (recommended only for development/testing).
 
 These configurations are stored in a `.env` file and can be edited later using the nano editor.
 
 ## Features
 
-- **Automatic SSL Setup**: Generates self-signed SSL certificates if you do not provide your own
-- **Secure Configuration**: 
+- **Automatic SSL Setup:** Generates self-signed SSL certificates if you do not provide your own
+- **Secure Configuration:**
   - HTTP to HTTPS redirection
   - Secure cookie settings
   - CSRF protection
   - Proper header forwarding
-- **Docker Integration**:
+- **Docker Integration:**
   - Uses official OAuth2 Proxy and Nginx images
   - Automatic container orchestration
   - Persistent configuration
@@ -162,7 +165,7 @@ The following environment variables are configured automatically:
 
 ## Directory Structure
 
-```
+```text
 .
 ├── 1click-oauth2-proxy.sh
 ├── .env
@@ -218,7 +221,7 @@ The following environment variables are configured automatically:
 
 When the script completes successfully, you should see output similar to:
 
-```
+```text
 ✅ All services are up and running!
 🔑 Oauth2-proxy is running at: http://localhost:4180
 🌟 Your site is available on:  http://your-domain  and  https://your-domain
@@ -231,3 +234,55 @@ This project is open source and available under the MIT License.
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Using Other OAuth Providers
+
+While this script and guide focus on Google OAuth, **OAuth2 Proxy** supports many other providers, such as GitHub, GitLab, Microsoft Azure, Facebook, and generic OIDC providers.
+
+---
+
+### 🌟 Example: GitHub OAuth Setup
+
+1. **Register a new OAuth application** at [GitHub Developer Settings](https://github.com/settings/developers).
+2. Set the **Authorization callback URL** to:
+   ```
+   https://<your-domain>/oauth2/callback
+   ```
+3. Note your **Client ID** and **Client Secret**.
+4. When prompted by the script, set:
+   - `OAUTH2_PROXY_PROVIDER=github`
+   - `OAUTH2_PROXY_CLIENT_ID` and `OAUTH2_PROXY_CLIENT_SECRET` to your GitHub values.
+
+---
+
+### 🌟 Example: Microsoft Azure AD Setup
+
+1. **Register an application** in [Azure Portal](https://portal.azure.com/).
+2. Set the **Redirect URI** to:
+   ```
+   https://<your-domain>/oauth2/callback
+   ```
+3. Note your **Application (client) ID** and **Client Secret**.
+4. When prompted by the script, set:
+   - `OAUTH2_PROXY_PROVIDER=azure`
+   - `OAUTH2_PROXY_CLIENT_ID` and `OAUTH2_PROXY_CLIENT_SECRET` to your Azure values.
+   - You may also need to set `OAUTH2_PROXY_TENANT_ID` as an environment variable.
+
+---
+
+### 🌟 Example: Generic OIDC Provider
+
+1. Register your application with your OIDC provider.
+2. Set the **Redirect URI** to:
+   ```
+   https://<your-domain>/oauth2/callback
+   ```
+3. Note your **Client ID** and **Client Secret**.
+4. When prompted by the script, set:
+   - `OAUTH2_PROXY_PROVIDER=oidc`
+   - `OAUTH2_PROXY_CLIENT_ID` and `OAUTH2_PROXY_CLIENT_SECRET` to your OIDC values.
+   - Set `OAUTH2_PROXY_OIDC_ISSUER_URL` to your provider's issuer URL.
+
+---
+
+For more details and a full list of supported providers and their configuration options, see the [OAuth2 Proxy Provider Documentation](https://oauth2-proxy.github.io/oauth2-proxy/docs/configuration/oauth_provider/).
