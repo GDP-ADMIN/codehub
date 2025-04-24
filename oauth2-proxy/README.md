@@ -1,4 +1,41 @@
+<!-- Logo -->
+<p align="center">
+  <img src="https://raw.githubusercontent.com/oauth2-proxy/oauth2-proxy/master/docs/static/img/logos/OAuth2_Proxy_horizontal.svg" alt="OAuth2 Proxy Logo" width="200"/>
+</p>
+
 # 1-Click OAuth2 Proxy Setup
+
+## Introduction
+
+Welcome to the 1-Click OAuth2 Proxy Setup! This project provides a simple, automated way to secure your web applications using Google OAuth authentication, Nginx as a reverse proxy, and Docker for container orchestration. With a single script, you can deploy a production-ready authentication proxy with minimal manual configuration. This solution is ideal for developers and DevOps teams who want to quickly add OAuth2-based authentication to their services.
+
+## How It Works
+
+1. **User Access:**
+   - The user visits your web application via the domain configured in the script.
+2. **Nginx Reverse Proxy:**
+   - Nginx receives the request and checks if the user is authenticated.
+   - If not authenticated, Nginx forwards the request to the OAuth2 Proxy service.
+3. **OAuth2 Proxy Authentication:**
+   - OAuth2 Proxy redirects the user to Google OAuth for login.
+   - The user logs in with their Google account and grants access.
+   - Google redirects the user back to OAuth2 Proxy with an authentication code.
+   - OAuth2 Proxy exchanges the code for user info and sets a secure cookie.
+4. **Access to Backend:**
+   - Once authenticated, Nginx proxies the request to your backend application, passing user identity headers.
+   - The backend receives the request with user information and serves the response.
+5. **SSL Handling:**
+   - The script can generate a self-signed SSL certificate for development/testing, or you can provide your own for production.
+6. **Container Orchestration:**
+   - All services (Nginx, OAuth2 Proxy) run in Docker containers managed by Docker Compose for easy deployment and management.
+
+<p align="center">
+  <img src="https://github.com/oauth2-proxy/oauth2-proxy/raw/master/docs/static/img/simplified-architecture.svg" alt="OAuth2 Proxy Architecture" width="600"/>
+</p>
+
+## Reference
+
+- [oauth2-proxy GitHub Repository](https://github.com/oauth2-proxy/oauth2-proxy)
 
 This repository contains a bash script that simplifies the setup of OAuth2 Proxy with Nginx for securing your web applications using Google OAuth authentication.
 
@@ -17,9 +54,11 @@ The script automates the deployment of:
 - Docker and Docker Compose installed
 - bash shell environment
 - openssl for SSL certificate generation
-- SSL Certificate, if using on https website
 - nano text editor (for .env file editing)
+- **SSL Certificate (optional):** If you do not have a valid SSL certificate, the script can generate a self-signed certificate for testing purposes. For production, you should use a valid SSL certificate.
 - Basic understanding of OAuth2 and Google OAuth credentials
+
+> **Note:** The script will check for required dependencies (`docker`, `docker compose` or `docker-compose`, `openssl`, `lsof`) and provide install instructions if missing.
 
 ### How to Create Google OAuth Credentials
 
@@ -37,48 +76,6 @@ The script automates the deployment of:
    Replace `<your-domain>` with your actual domain name.
 9. Click **Create**.
 10. Copy the **Client ID** and **Client Secret**. You will need these for the script.
-
-## User Interaction Guide
-
-When running the script "Option 1: One-Click Deployment or Option 2: Manual Installation" , you'll be prompted to provide the following values:
-
-1. **OAuth2 Proxy Client ID**
-   - Description: Your Google OAuth application's Client ID
-   - Example: `123456789-abcdef.apps.googleusercontent.com`
-   - Where to get it: Google Cloud Console > APIs & Services > Credentials
-
-2. **OAuth2 Proxy Client Secret**
-   - Description: Your Google OAuth application's Client Secret
-   - Example: `GOCSPX-abcdefghijklmnopqrstuvwxyz`
-   - Where to get it: Google Cloud Console > APIs & Services > Credentials
-
-3. **Backend Port**
-   - Description: The port number where your application is running
-   - Example: `3000`
-   - Note: Must be a valid port number (1-65535)
-
-4. **Domain Name**
-   - Description: Your application's domain name
-   - Example: `app.example.com`
-   - Note: This will be used for SSL certificate generation
-
-5. **Whitelist Domains**
-   - Description: Comma-separated list of email domains allowed to access
-   - Example: `example.com,company.com`
-   - Note: Use `*` to allow all domains
-
-6. **SSL Certificate**
-   - Description: Path to your SSL certificate and key, or let the script generate a self-signed certificate for testing purposes.
-   - Example: Provide your own `.pem` and `.key` files, or leave blank to auto-generate.
-   - Note: The script will generate a self-signed SSL certificate if you do not provide one. This is suitable for development and testing, but for production use, supply a valid SSL certificate.
-
-After providing these values, the script will:
-- Generate a secure cookie secret on
-- Create persistent environtment .env
-- Create SSL certificates
-- Set up Nginx configuration
-- Configure Docker containers
-- Start the services
 
 ## Deployment Options
 
@@ -104,13 +101,12 @@ For users who prefer manual control over the deployment process:
 For production environments, you can request deployment through our DevSecOps team:
 
 1. Contact your DevSecOps team lead or manager
-   or
-   Send an email to `ticket@gdplabs.id`
+2. Or send an email to `ticket@gdplabs.id`
 3. Use the following subject format:
    ```
    [Production Deployment] OAuth2 Proxy Setup for {Your Application Name}
    ```
-3. Include the following information in your request:
+4. Include the following information in your request:
    - Application name
    - Target domain
    - Required backend port
@@ -128,12 +124,13 @@ When you run the script for the first time, you'll be prompted to provide:
 - Backend Port (the port of your application to secure)
 - Domain Name (your application's domain)
 - Whitelist Domains (comma-separated list of allowed domains)
+- SSL Certificate: You can provide your own certificate and key, or let the script generate a self-signed certificate for you (recommended only for development/testing).
 
 These configurations are stored in a `.env` file and can be edited later using the nano editor.
 
 ## Features
 
-- **Automatic SSL Setup**: Generates self-signed SSL certificates
+- **Automatic SSL Setup**: Generates self-signed SSL certificates if you do not provide your own
 - **Secure Configuration**: 
   - HTTP to HTTPS redirection
   - Secure cookie settings
@@ -176,23 +173,56 @@ The following environment variables are configured automatically:
     └── domain.key
 ```
 
-## Troubleshooting
+## Troubleshooting & FAQ
 
-1. Check container logs:
+1. **Check container logs:**
    ```bash
    docker compose logs oauth2-proxy
-   docker compose logs nginx
+   docker compose logs nginx-oauth2-proxy
    ```
 
-2. Verify services are running:
+2. **Verify services are running:**
    ```bash
    docker compose ps
    ```
 
-3. Common issues:
-   - Port conflicts: Ensure ports 80, 443, and your backend port are available
-   - SSL certificate issues: Check nginx/domain.pem and nginx/domain.key exist
-   - OAuth2 configuration: Verify your Google OAuth credentials
+3. **Common issues:**
+   - **Port conflicts:** Ensure ports 80, 443, and your backend port are available and not used by other services (e.g., Apache, another Nginx, or other containers).
+   - **SSL certificate issues:** Check that `nginx/domain.pem` and `nginx/domain.key` exist and are readable. If you provided your own certificate, ensure the paths are correct and the files are valid.
+   - **OAuth2 configuration:** Verify your Google OAuth credentials are correct and that the redirect URI matches what you set in the Google Cloud Console.
+   - **.env file issues:** Make sure the `.env` file exists and contains all required variables. If you edit it manually, avoid extra spaces or quotes.
+   - **Docker Compose not found:** If you see errors about `docker compose` or `docker-compose` not being found, install Docker Compose with `sudo apt install docker-compose` or update Docker to a recent version that includes the `docker compose` subcommand.
+   - **Permission denied:** If you get permission errors, try running the script or Docker commands with `sudo`.
+   - **Firewall issues:** Ensure your firewall allows inbound connections on ports 80 and 443.
+   - **Browser SSL warnings:** If using a self-signed certificate, browsers will show a warning. This is expected for development/testing. For production, use a valid SSL certificate.
+   - **Container restart loops:** Check logs for misconfiguration, missing environment variables, or port conflicts.
+   - **Network issues:** If containers cannot communicate, ensure Docker networking is functioning and not blocked by system policies.
+   - **OAuth redirect fails / Google Auth fails in browser:**
+     - **Error 400:** This usually means the redirect URI registered in your Google Cloud Console does not exactly match the URI used by OAuth2 Proxy. Double-check for typos, missing paths, or protocol mismatches (http vs https).
+     - **Error on redirect:** Ensure your application's domain and the redirect URI in Google Cloud Console are correct and use HTTPS if required. Also, make sure your local machine or server is accessible from the browser and not blocked by firewalls or NAT.
+     - **Unauthenticated error:** This can occur if the OAuth2 Proxy is not able to validate the authentication cookie, or if the session has expired. Try clearing your browser cookies, ensure your system clock is correct, and verify that the `OAUTH2_PROXY_COOKIE_SECRET` is set and consistent across restarts.
+     - **General troubleshooting:**
+       - Check the logs of both `oauth2-proxy` and `nginx-oauth2-proxy` containers for detailed error messages.
+       - Make sure your Google OAuth credentials (Client ID/Secret) are correct and active.
+       - If using self-signed SSL, your browser may block or warn about the callback; accept the risk for development, but use a valid certificate for production.
+       - If running locally, use `localhost` or a domain mapped to `127.0.0.1` and ensure it matches the Google Cloud Console configuration.
+
+4. **Still having trouble?**
+   - Review the logs for both containers for error messages.
+   - Double-check your Google OAuth credentials and redirect URIs.
+   - Consult the [oauth2-proxy documentation](https://oauth2-proxy.github.io/oauth2-proxy/docs/) for advanced configuration and troubleshooting.
+   - Search for your error message in the [oauth2-proxy GitHub issues](https://github.com/oauth2-proxy/oauth2-proxy/issues).
+   - **If you are still having issues, contact your DevSecOps team or email `ticket@gdplabs.id` for further assistance.**
+
+## Example Output
+
+When the script completes successfully, you should see output similar to:
+
+```
+✅ All services are up and running!
+🔑 Oauth2-proxy is running at: http://localhost:4180
+🌟 Your site is available on:  http://your-domain  and  https://your-domain
+```
 
 ## License
 
