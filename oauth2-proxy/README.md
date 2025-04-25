@@ -51,14 +51,9 @@ The script automates the deployment of:
 
 - **OAuth Provider Credentials** (Client ID and Client Secret)
   - Google, GitHub, Azure, OIDC, or other supported providers. See instructions below on how to create these credentials for your provider.
-- **Docker and Docker Compose** installed
-- **bash** shell environment
-- **openssl** for SSL certificate generation
-- **nano** text editor (for .env file editing)
-- **SSL Certificate (optional):** If you do not have a valid SSL certificate, the script can generate a self-signed certificate for testing purposes. For production, you should use a valid SSL certificate.
+- **Domain:** You must have a domain name configured for your application (e.g., example.com).
+- **SSL Certificate:** If you do not have a valid SSL certificate, the script can generate a self-signed certificate for testing purposes. For production, you should use a valid SSL certificate and ensure it is already copied on the server.
 - Basic understanding of OAuth2 and your chosen OAuth provider's credentials
-
-> **Note:** The script will check for required dependencies (`docker`, `docker compose` or `docker-compose`, `openssl`, `lsof`) and provide install instructions if missing.
 
 ### How to Create Google OAuth Credentials
 
