@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 cd ~
 
 # Install git, make, curl
@@ -45,3 +45,8 @@ sudo usermod -aG docker $(whoami)
 
 # Install device-mapper
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y dmsetup
+
+which dmsetup
+dmsetup --version
+which go
+go version

@@ -17,6 +17,26 @@ This directory contains a collection of shell scripts to automate the setup, con
 - Debian/Ubuntu system
 - `curl`, `wget`, `jq`, `git`, `make`, `docker`, `containerd`, `firecracker`, `firecracker-containerd`
 - Some scripts require `sudo` privileges
+- System CPU mustbe one of or newer of **Skylake, Cascade Lake, Ice Lake, Milan, Neoverse V1**
+- AES EC2, exclusively use .metal instance types, because EC2 only supports KVM on .metal instance types.
+- Supported Kernel
+        ### Host Kernel
+
+        | Host kernel | Min. version | Min. end of support |
+        | ----------: | -----------: | ------------------: |
+        |       v5.10 |       v1.0.0 |          2024-01-31 |
+        |        v6.1 |       v1.5.0 |          2025-10-12 |
+
+        ### Guest Kernel
+
+        | Guest kernel | Min. version | Min. end of support |
+        | -----------: | -----------: | ------------------: |
+        |        v5.10 |       v1.0.0 |          2024-01-31 |
+        |         v6.1 |       v1.9.0 |          2026-09-02 |
+
+
+### Before start Please Read
+- https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md
 
 ---
 
@@ -97,12 +117,11 @@ _Downloads and installs the latest Firecracker binary for your architecture._
 
 **Example Output:**
 ```
-+ ARCH=x86_64
-+ release_url=https://github.com/firecracker-microvm/firecracker/releases
-+ latest=...
-+ curl -L ... | tar -xz
-+ mv ... firecracker
-+ cp firecracker /usr/local/bin/
+0 upgraded, 0 newly installed, 0 to remove and 94 not upgraded.
+kvm_intel             380928  0
+kvm                  1146880  1 kvm_intel
+irqbypass              16384  1 kvm
+Access granted.
 ```
 
 ---
@@ -120,11 +139,12 @@ Kernel: vmlinux-...
 Rootfs: ubuntu-...ext4
 SSH Key: ubuntu-....id_rsa
 ```
+Make sure that files exist on current dir
 
 ---
 
 
-### 4. Set Up Networking and Start a MicroVM
+### 4. Set Up Networking and Start a MicroVM via API
 
 #### a) Firecracker API (Recommended, less ambiguous)
 
@@ -150,6 +170,34 @@ Welcome to Ubuntu ...
 root@microvm:~#
 ```
 
+### 5. Create Debian Costum Rom
+```bash
+sudo ./4th-firecracker-debian-custum-rom.sh
+```
+_Create Rom with debian based_
+ if you need add some package or apps, just edit after line 
+
+ ```# Chroot into the new system and configure it```
+ 
+**Example Output:**
+```
+Root filesystem image 'debian_bookworm_rootfs.ext4' has been created and configured with Python 3, Node.js, Nano, Vim, Neofetch, and an alias for 'python' pointing to 'python3'.
+```
+Make sure that files **debian_bookworm_rootfs.ext4** exist on current dir
+
+### 5. Start Debian Costum Rom
+```bash
+5th-firecracker-start-debian-cusrom.sh
+```
+**Example Output:**
+```bash
+Welcome to Debian ...
+root@microvm:~#
+```
+---
+
+
+
 #### b) One-Click VM Start
 
 ```bash
@@ -168,7 +216,47 @@ root@microvm:~#
 
 ---
 
-### 5. (Optional) Build and Run Firecracker-containerd
+# Run firecrackers as containerd replacement
+
+### Before start Please Read
+- https://github.com/firecracker-microvm/firecracker-containerd/blob/main/docs/quickstart.md
+- https://github.com/firecracker-microvm/firecracker-containerd/blob/main/docs/getting-started.md
+
+## Prerequisites
+
+You need to have the following things in order to use firecracker-containerd:
+
+* A computer with a recent-enough version of Linux (4.14+), an Intel x86_64
+  processor (AMD and Arm are on the roadmap, but not yet supported), and KVM
+  enabled.  An i3.metal running Amazon Linux 2 is a good candidate.
+
+  <details>
+
+  <summary>Click here to see a bash script that will check if your system meets
+  the basic requirements to run Firecracker.</summary>
+
+  ```bash
+  #!/bin/bash
+  err=""; \
+  [ "$(uname) $(uname -m)" = "Linux x86_64" ] \
+    || err="ERROR: your system is not Linux x86_64."; \
+  [ -r /dev/kvm ] && [ -w /dev/kvm ] \
+    || err="$err\nERROR: /dev/kvm is inaccessible."; \
+  (( $(uname -r | cut -d. -f1)*1000 + $(uname -r | cut -d. -f2) >= 4014 )) \
+    || err="$err\nERROR: your kernel version ($(uname -r)) is too old."; \
+  dmesg | grep -i "hypervisor detected" \
+    && echo "WARNING: you are running in a virtual machine. Firecracker is not well tested under nested virtualization."; \
+  [ -z "$err" ] && echo "Your system looks ready for Firecracker!" || echo -e "$err"
+  ```
+
+  </details>
+* git
+* gcc, required by the Firecracker agent for building
+* A recent installation of [Docker CE](https://docker.com).
+* Go 1.23 or later, which you can download from [here](https://golang.org/dl/).
+
+
+### 1. Build and Run Firecracker-containerd
 
 #### a) Install Containerd/Dev Tools
 
@@ -176,22 +264,52 @@ root@microvm:~#
 cd firecracker-container
 sudo ./1st-fc-ct-deps.sh
 ```
+**Example Output:**
+```
+Library version:   1.02.185 (2022-05-18)
+Driver version:    4.47.0
+
+go version go1.23.4 linux/amd64
+```
 
 #### b) Compile Firecracker-containerd
 
 ```bash
 sudo ./2nd-fc-ct-compile.sh
 ```
-
+**Example Output:**
+```
 #### c) Start Firecracker-containerd Daemon
 
 ```bash
 sudo ./3rd-fc-ct-run-daemon.sh
 ```
+**Example Output:**
+```
++ mkdir -p /var/lib/firecracker-containerd
++ sudo tee /etc/systemd/system/firecracker-containerd.service
++ sudo firecracker-containerd --config /etc/firecracker-containerd/config.toml
++ sudo systemctl daemon-reload
++ sudo systemctl enable firecracker-containerd
++ sudo systemctl start firecracker-containerd
++ sudo systemctl status firecracker-containerd
+* firecracker-containerd.service - Firecracker Containerd Service
+     Loaded: loaded (/etc/systemd/system/firecracker-containerd.service; enabled; preset: enabled)
+     Active: active (running) since Fri 2025-05-23 10:06:00 WIB; 1h 57min ago
+   Main PID: 134726 (firecracker-con)
+      Tasks: 8 (limit: 1020)
+     Memory: 9.3M
+        CPU: 40.314s
+     CGroup: /system.slice/firecracker-containerd.service
+             `-134726 /usr/local/bin/firecracker-containerd --config /etc/firecracker-containerd/config.toml
+
+May 23 10:06:00 vm-rochmads systemd[1]: Started firecracker-containerd.service - Firecracker Containerd Service.
+```
+Firecracer-containerd already served into sock **/run/firecracker-containerd/containerd.sock**
 
 ---
 
-### 6. Benchmark Performance
+## Benchmark Performance
 
 ```bash
 sudo ./benchmark.sh
@@ -208,11 +326,7 @@ _Runs startup, CPU, IO, memory, and network benchmarks for both containerd and f
 ✅ Benchmark completed! Review the results above.
 ```
 
----
 
-> _For more details, see comments in each script. Fill in the example output sections with your actual results for future reference!_
-
----
 
 ## Notes
 
@@ -245,6 +359,81 @@ The following summarizes the results of running `benchmark.sh` to compare standa
 
 ---
 
+## Use Case: Firecracker-containerd as a Replacement for containerd
+
+
+Firecracker-containerd can serve as a secure, lightweight alternative to containerd for running OCI-compatible container images. It leverages microVMs for enhanced isolation, making it ideal for multi-tenant platforms, CI/CD, serverless workloads, and any scenario where VM-level security is desired with container-like speed and resource efficiency.
+
+---
+
+## Example: Running Docker Images with Firecracker-containerd
+
+You can pull and run standard Docker images using `firecracker-ctr` (a containerd-compatible CLI for Firecracker):
+
+```bash
+# Pull a Docker image (e.g., Debian)
+sudo firecracker-ctr --address /run/firecracker-containerd/containerd.sock -n fc images pull docker.io/library/debian:stable-slim
+
+# Run a container in the foreground (interactive shell)
+firecracker-ctr --address /run/firecracker-containerd/containerd.sock -n fc run --net-host --rm docker.io/library/debian:stable-slim cpu-test /bin/bash
+```
+
+### Running in the Background
+
+To run a container in the background (detached), use the `-d` flag and specify a long-running process:
+
+```bash
+firecracker-ctr --address /run/firecracker-containerd/containerd.sock -n fc run -d --net-host --rm docker.io/library/nginx:alpine webserver nginx -g 'daemon off;'
+```
+
+### Docker Compose-like Multi-Container Example
+
+While Firecracker-containerd does not natively support Docker Compose, you can achieve similar results by running multiple containers with custom networking. For example:
+
+```bash
+# Start a web server
+firecracker-ctr --address /run/firecracker-containerd/containerd.sock -n fc run -d --net-host --rm docker.io/library/nginx:alpine webserver nginx -g 'daemon off;'
+
+# Start a database
+firecracker-ctr --address /run/firecracker-containerd/containerd.sock -n fc run -d --net-host --rm docker.io/library/mariadb:latest dbserver mysqld
+
+# Start an app container
+firecracker-ctr --address /run/firecracker-containerd/containerd.sock -n fc run -d --net-host --rm docker.io/library/python:3.11-slim appserver python app.py
+```
+
+You can script these commands or use a shell script to orchestrate multi-container setups, similar to a simple Compose file. For more advanced orchestration, consider integrating with tools like Nomad or Kubernetes with Firecracker support.
+
+
+
+> _For more details, see comments in each script. Fill in the example output sections with your actual results for future reference!_
+
+---
+
+## Using Kata container with firecracker [not working [05 2026]]
+
+ facing issue with
+```bash
+ctr: failed to start shim: start failed: aws.firecracker: unexpected error from CreateVM: rpc error: code = Unknown desc = failed to create VM: failed to start the VM: [PUT /actions][400] createSyncActionBadRequest  &{FaultMessage:Start microvm error: Failed to get CPU template: The current CPU model is not permitted to apply the CPU template.}: exit status 1: unknown
+```
+and  vsock that cant bind
+
+#### For further documentation See
+- https://github.com/kata-containers/kata-containers/blob/main/docs/how-to/how-to-use-kata-containers-with-firecracker.md
+---
+
+
+## Dificulties
+- Deprecated devmapper (beacause firecracker relay on this, to achive fast load) its cant be advantage this day 
+    - https://github.com/cri-o/cri-o/issues/7002
+    - https://github.com/containerd/containerd/issues/6657
+- Devmapper show slow performance rather than modern like overlayfs 
+    - https://github.com/containerd/containerd/discussions/6625
+
+- Firecracker now focused on security rather than performance starting within miliseconds
+    - https://some-natalie.dev/blog/stop-saying-just-use-firecracker/
+
+---
+
 ## References & Further Reading
 
 - https://github.com/firecracker-microvm/firecracker-demo
@@ -262,3 +451,4 @@ The following summarizes the results of running `benchmark.sh` to compare standa
 - https://parandrus.dev/devicemapper/
 - https://jvns.ca/blog/2021/01/27/day-47--using-device-mapper-to-manage-firecracker-images/
 - https://blog.oddbit.com/post/2018-01-25-fun-with-devicemapper-snapshot/
+- https://some-natalie.dev/blog/stop-saying-just-use-firecracker/
