@@ -416,6 +416,10 @@ You can script these commands or use a shell script to orchestrate multi-contain
 ctr: failed to start shim: start failed: aws.firecracker: unexpected error from CreateVM: rpc error: code = Unknown desc = failed to create VM: failed to start the VM: [PUT /actions][400] createSyncActionBadRequest  &{FaultMessage:Start microvm error: Failed to get CPU template: The current CPU model is not permitted to apply the CPU template.}: exit status 1: unknown
 ```
 and  vsock that cant bind
+```
+attempt=129 error="temporary vsock dial failure: vsock ack message failure: failed to read \"OK <port>\" within 1s: EOF" runtime=aws.firecracker vmID=f3fec9c3-7a73-42f0-be5b-0ea1d0352594
+DEBU[2025-05-22T16:54:10.258152680+07:00]  
+```
 
 #### For further documentation See
 - https://github.com/kata-containers/kata-containers/blob/main/docs/how-to/how-to-use-kata-containers-with-firecracker.md
