@@ -1,0 +1,100 @@
+######### know error , this caused by run on default namespace "mybe confilc with other containerd"
+# firecracker-containerd --debug --namespace default
+
+ctr: failed to start shim: start failed: aws.firecracker: unexpected error from CreateVM: rpc error: code = Unknown desc = failed to create VM: failed to start the VM: [PUT /actions][400] createSyncActionBadRequest  &{FaultMessage:Start microvm error: Failed to get CPU template: The current CPU model is not permitted to apply the CPU template.}: exit status 1: unknown
+
+
+
+DEBU[2025-05-23T09:14:53.860872880+07:00] stat snapshot                                 key="sha256:2f7436e79a0bc6cdec6536da54ae6a5863c8e3b5f145e0f8ac0b96306baddbc9" snapshotter=devmapper
+DEBU[2025-05-23T09:14:53.861299732+07:00] stat                                          key="default/2/sha256:2f7436e79a0bc6cdec6536da54ae6a5863c8e3b5f145e0f8ac0b96306baddbc9"
+DEBU[2025-05-23T09:14:53.881629763+07:00] prepare snapshot                              key=test parent="sha256:2f7436e79a0bc6cdec6536da54ae6a5863c8e3b5f145e0f8ac0b96306baddbc9" snapshotter=devmapper
+DEBU[2025-05-23T09:14:53.888667250+07:00] prepare                                       key=default/8/test parent="default/2/sha256:2f7436e79a0bc6cdec6536da54ae6a5863c8e3b5f145e0f8ac0b96306baddbc9"
+DEBU[2025-05-23T09:14:53.889201210+07:00] creating snapshot device 'fc-dev-thinpool-snap-7' from 'fc-dev-thinpool-snap-1' with fsType: 'ext4'
+DEBU[2025-05-23T09:14:54.050498545+07:00] get snapshot mounts                           key=test snapshotter=devmapper
+DEBU[2025-05-23T09:14:54.050601164+07:00] mounts                                        key=default/8/test
+DEBU[2025-05-23T09:14:54.050667599+07:00] stat                                          key=default/8/test
+DEBU[2025-05-23T09:14:54.080101673+07:00] get snapshot mounts                           key=test snapshotter=devmapper
+DEBU[2025-05-23T09:14:54.081115392+07:00] mounts                                        key=default/8/test
+DEBU[2025-05-23T09:14:54.083611406+07:00] stat                                          key=default/8/test
+time="2025-05-23T09:14:54.153223308+07:00" level=debug msg=StartShim runtime=aws.firecracker task_id=test
+DEBU[2025-05-23T09:14:54.155396456+07:00] create VM request: VMID:"ab67280b-c129-4f63-b557-fc514679702c"  ContainerCount:1  ExitAfterAllTasksDeleted:true
+DEBU[2025-05-23T09:14:54.155505511+07:00] using namespace: default
+DEBU[2025-05-23T09:14:54.156519026+07:00] starting containerd-shim-aws-firecracker      vmID=ab67280b-c129-4f63-b557-fc514679702c
+DEBU[2025-05-23T09:14:54.194689009+07:00] loading plugin "io.containerd.warning.v1.deprecations"...  runtime=aws.firecracker type=io.containerd.warning.v1
+DEBU[2025-05-23T09:14:54.194928518+07:00] loading plugin "io.containerd.service.v1.introspection-service"...  runtime=aws.firecracker type=io.containerd.service.v1
+DEBU[2025-05-23T09:14:54.195155545+07:00] loading plugin "io.containerd.grpc.v1.introspection"...  runtime=aws.firecracker type=io.containerd.grpc.v1
+DEBU[2025-05-23T09:14:54.195246690+07:00] loading plugin "io.containerd.event.v1.publisher"...  runtime=aws.firecracker type=io.containerd.event.v1
+DEBU[2025-05-23T09:14:54.195301983+07:00] loading plugin "io.containerd.ttrpc.v1.task"...  runtime=aws.firecracker type=io.containerd.ttrpc.v1
+DEBU[2025-05-23T09:14:54.195508737+07:00] registering ttrpc service                     id=io.containerd.ttrpc.v1.task
+DEBU[2025-05-23T09:14:54.195571110+07:00] loading plugin "io.containerd.internal.v1.shutdown"...  runtime=aws.firecracker type=io.containerd.internal.v1
+DEBU[2025-05-23T09:14:54.195922525+07:00] serving api on socket                         socket="[inherited from parent]"
+DEBU[2025-05-23T09:14:54.196006613+07:00] starting signal loop                          namespace=default path="/var/lib/firecracker-containerd/shim-base/default#ab67280b-c129-4f63-b557-fc514679702c" pid=120183 runtime=aws.firecracker
+INFO[2025-05-23T09:14:54.197593397+07:00] creating new VM                               runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c
+DEBU[2025-05-23T09:14:54.198044889+07:00] noop operation returning shim dir for JailPath  jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c
+DEBU[2025-05-23T09:14:54.198837738+07:00] using socket path: firecracker.sock           runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c
+DEBU[2025-05-23T09:14:54.199036232+07:00] noop operation returning shim dir for JailPath  jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c
+DEBU[2025-05-23T09:14:54.199829230+07:00] noop operation for StubDrivesOptions          jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c
+DEBU[2025-05-23T09:14:54.200280072+07:00] noop operation returning shim dir for JailPath  jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c
+DEBU[2025-05-23T09:14:54.200594201+07:00] noop operation for BuildJailedMachine         jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c
+DEBU[2025-05-23T09:14:54.201023256+07:00] No balloon device is setup                    runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c
+DEBU[2025-05-23T09:14:54.201320610+07:00] Called NewMachine()                           runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.201551716+07:00] Called Machine.Start()                        runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.201577255+07:00] Marking Machine as Started                    runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.201900071+07:00] Running handler validate.NetworkCfg           runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.202027861+07:00] Running handler validate.Cfg                  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.202393020+07:00] Running handler fcinit.SetupNetwork           runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.392337228+07:00] Running handler fcinit.SetupKernelArgs        runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.392473169+07:00] Running handler fcinit.StartVMM               runtime=aws.firecracker
+INFO[2025-05-23T09:14:54.392511762+07:00] Called startVMM(), setting up a VMM on firecracker.sock  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.392569444+07:00] Starting [/usr/local/bin/firecracker --api-sock firecracker.sock --id ab67280b-c129-4f63-b557-fc514679702c]  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.393335626+07:00] VMM started socket path is firecracker.sock   runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.393396707+07:00] Setting up signal handler: [interrupt quit terminated hangup aborted]  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.394287227+07:00] 2025-05-23T09:14:54.394109999 [ab67280b-c129-4f63-b557-fc514679702c:main] Running Firecracker v1.12.0  jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c vmm_stream=stdout
+DEBU[2025-05-23T09:14:54.394669556+07:00] 2025-05-23T09:14:54.394519678 [ab67280b-c129-4f63-b557-fc514679702c:main] Listening on API socket ("firecracker.sock").  jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c vmm_stream=stdout
+DEBU[2025-05-23T09:14:54.395463765+07:00] 2025-05-23T09:14:54.395197471 [ab67280b-c129-4f63-b557-fc514679702c:fc_api] API server started.  jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c vmm_stream=stdout
+DEBU[2025-05-23T09:14:54.405522645+07:00] 2025-05-23T09:14:54.405439810 [ab67280b-c129-4f63-b557-fc514679702c:fc_api] The API server received a Get request on "/machine-config".  jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c vmm_stream=stdout
+DEBU[2025-05-23T09:14:54.405700871+07:00] 2025-05-23T09:14:54.405507595 [ab67280b-c129-4f63-b557-fc514679702c:fc_api] The request was executed successfully. Status code: 200 OK.  jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c vmm_stream=stdout
+DEBU[2025-05-23T09:14:54.406125778+07:00] returning from startVMM()                     runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.406182200+07:00] Running handler fcinit.CreateLogFilesHandler  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.406295357+07:00] Created metrics and logging fifos.            runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.406327028+07:00] Running handler fcinit.BootstrapLogging       runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.406899601+07:00] 2025-05-23T09:14:54.406817267 [ab67280b-c129-4f63-b557-fc514679702c:fc_api] The API server received a Put request on "/logger" with body "{\"level\":\"Debug\",\"log_path\":\"/var/lib/firecracker-containerd/shim-base/default#ab67280b-c129-4f63-b557-fc514679702c/fc-logs.fifo\",\"show_level\":true,\"show_log_origin\":false}\n".  jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c vmm_stream=stdout
+DEBU[2025-05-23T09:14:54.407809348+07:00] Configured VMM logging to /var/lib/firecracker-containerd/shim-base/default#ab67280b-c129-4f63-b557-fc514679702c/fc-logs.fifo  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.409463410+07:00] Configured VMM metrics to /var/lib/firecracker-containerd/shim-base/default#ab67280b-c129-4f63-b557-fc514679702c/fc-metrics.fifo  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.409540047+07:00] setup logging: success                        runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.409591565+07:00] Running handler fcinit.CreateMachine          runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.411193650+07:00] PutMachineConfiguration returned              runtime=aws.firecracker
+INFO[2025-05-23T09:14:54.412442284+07:00] refreshMachineConfiguration: [GET /machine-config][200] getMachineConfigurationOK  &{CPUTemplate:T2 MemSizeMib:0xc0003f95f8 Smt:0xc0003f9600 TrackDirtyPages:false VcpuCount:0xc0003f95f0}  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.412498523+07:00] createMachine returning                       runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.412522504+07:00] Running handler fcinit.CreateBootSource       runtime=aws.firecracker
+INFO[2025-05-23T09:14:54.413690495+07:00] PutGuestBootSource: [PUT /boot-source][204] putGuestBootSourceNoContent   runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.413736426+07:00] Running handler fcinit.AttachDrives           runtime=aws.firecracker
+INFO[2025-05-23T09:14:54.413766644+07:00] Attaching drive /var/lib/firecracker-containerd/runtime/default-rootfs.img, slot root_drive, root true.  runtime=aws.firecracker
+INFO[2025-05-23T09:14:54.414933436+07:00] Attached drive /var/lib/firecracker-containerd/runtime/default-rootfs.img: [PUT /drives/{drive_id}][204] putGuestDriveByIdNoContent   runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.414977902+07:00] attachDrive returned for /var/lib/firecracker-containerd/runtime/default-rootfs.img  runtime=aws.firecracker
+INFO[2025-05-23T09:14:54.414999548+07:00] Attaching drive /var/lib/firecracker-containerd/shim-base/default#ab67280b-c129-4f63-b557-fc514679702c/ctrstub0, slot MN2HE43UOVRDA, root false.  runtime=aws.firecracker
+INFO[2025-05-23T09:14:54.416009192+07:00] Attached drive /var/lib/firecracker-containerd/shim-base/default#ab67280b-c129-4f63-b557-fc514679702c/ctrstub0: [PUT /drives/{drive_id}][204] putGuestDriveByIdNoContent   runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.416130449+07:00] attachDrive returned for /var/lib/firecracker-containerd/shim-base/default#ab67280b-c129-4f63-b557-fc514679702c/ctrstub0  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.416154284+07:00] Running handler fcinit.CreateNetworkInterfaces  runtime=aws.firecracker
+INFO[2025-05-23T09:14:54.416307578+07:00] Attaching NIC tap0 (hwaddr 6e:57:5a:fe:48:4a) at index 1  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.418953316+07:00] PutGuestNetworkInterfaceByID: [PUT /network-interfaces/{iface_id}][204] putGuestNetworkInterfaceByIdNoContent   runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.419038767+07:00] createNetworkInterface returned for tap0      runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.419224525+07:00] Running handler fcinit.AddVsocks              runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.421159055+07:00] Attach vsock firecracker.vsock successful: [PUT /vsock][204] putGuestVsockNoContent   runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.421242980+07:00] Running handler fcinit.ConfigMmds             runtime=aws.firecracker
+INFO[2025-05-23T09:14:54.421659859+07:00] No interfaces are allowed to access MMDS, skipping MMDS config  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.421832493+07:00] Running handler firecracker-containerd-jail-pid-handler  runtime=aws.firecracker
+ERRO[2025-05-23T09:14:54.423336256+07:00] Starting instance: [PUT /actions][400] createSyncActionBadRequest  &{FaultMessage:Start microvm error: Failed to get CPU template: The current CPU model is not permitted to apply the CPU template.}  runtime=aws.firecracker
+DEBU[2025-05-23T09:14:54.659151550+07:00] sending signal 9 to 120285                    jailer=noop runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c
+ERRO[2025-05-23T09:14:54.660593195+07:00] failed to create VM                           error="failed to start the VM: [PUT /actions][400] createSyncActionBadRequest  &{FaultMessage:Start microvm error: Failed to get CPU template: The current CPU model is not permitted to apply the CPU template.}" runtime=aws.firecracker vmID=ab67280b-c129-4f63-b557-fc514679702c
+DEBU[2025-05-23T09:14:54.661013650+07:00] stopVMM(): sending sigterm to firecracker     runtime=aws.firecracker
+WARN[2025-05-23T09:14:54.664377102+07:00] firecracker exited: signal: killed            runtime=aws.firecracker
+ERRO[2025-05-23T09:14:54.663341014+07:00] shim CreateVM returned error                  error="rpc error: code = Unknown desc = failed to create VM: failed to start the VM: [PUT /actions][400] createSyncActionBadRequest  &{FaultMessage:Start microvm error: Failed to get CPU template: The current CPU model is not permitted to apply the CPU template.}"
+DEBU[2025-05-23T09:14:54.668488038+07:00] shim has been terminated                      error="signal: killed" vmID=ab67280b-c129-4f63-b557-fc514679702c
+ERRO[2025-05-23T09:14:54.669147792+07:00] copy shim log                                 error="read /proc/self/fd/11: file already closed" namespace=default
+DEBU[2025-05-23T09:14:54.684690559+07:00] remove snapshot                               key=test snapshotter=devmapper
+DEBU[2025-05-23T09:14:54.771755431+07:00] schedule snapshotter cleanup                  snapshotter=devmapper
+DEBU[2025-05-23T09:14:54.771933875+07:00] walk
+DEBU[2025-05-23T09:14:54.772106163+07:00] remove                                        key=default/8/test
+DEBU[2025-05-23T09:14:54.871637654+07:00] removed snapshot                              key=default/8/test snapshotter=devmapper
+DEBU[2025-05-23T09:14:54.871740439+07:00] cleanup

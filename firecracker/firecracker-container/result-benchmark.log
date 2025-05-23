@@ -1,0 +1,633 @@
+🚀 Benchmark: Startup Time (nginx)
+[containerd]
+2025/05/23 03:16:47 [notice] 1#1: using the "epoll" event method
+2025/05/23 03:16:47 [notice] 1#1: nginx/1.27.5
+2025/05/23 03:16:47 [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14)
+2025/05/23 03:16:47 [notice] 1#1: OS: Linux 6.1.0-26-amd64
+2025/05/23 03:16:47 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1024:1024
+2025/05/23 03:16:47 [notice] 8#8: start worker processes
+2025/05/23 03:16:47 [notice] 8#8: start worker process 9
+2025/05/23 03:16:47 [notice] 8#8: start worker process 10
+
+real    0m0.498s
+user    0m0.070s
+sys     0m0.037s
+[firecracker-containerd]
+2025/05/23 03:16:48 [notice] 1#1: using the "epoll" event method
+2025/05/23 03:16:48 [notice] 1#1: nginx/1.27.5
+2025/05/23 03:16:48 [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14)
+2025/05/23 03:16:48 [notice] 1#1: OS: Linux 6.1.0-26-amd64
+2025/05/23 03:16:48 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1024:1024
+2025/05/23 03:16:48 [notice] 7#7: start worker processes
+2025/05/23 03:16:48 [notice] 7#7: start worker process 8
+2025/05/23 03:16:48 [notice] 7#7: start worker process 9
+
+real    0m0.690s
+user    0m0.068s
+sys     0m0.054s
+
+🚀 Benchmark: CPU Performance (sysbench)
+[containerd]
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Prime numbers limit: 20000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:   183.93
+
+General statistics:
+    total time:                          10.0036s
+    total number of events:              1841
+
+Latency (ms):
+         min:                                    5.12
+         avg:                                    5.43
+         max:                                    9.69
+         95th percentile:                        7.30
+         sum:                                 9993.32
+
+Threads fairness:
+    events (avg/stddev):           1841.0000/0.00
+    execution time (avg/stddev):   9.9933/0.00
+
+[firecracker-containerd]
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Prime numbers limit: 20000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:   182.34
+
+General statistics:
+    total time:                          10.0016s
+    total number of events:              1825
+
+Latency (ms):
+         min:                                    5.13
+         avg:                                    5.47
+         max:                                    8.69
+         95th percentile:                        7.56
+         sum:                                 9989.19
+
+Threads fairness:
+    events (avg/stddev):           1825.0000/0.00
+    execution time (avg/stddev):   9.9892/0.00
+
+
+🚀 Benchmark: IO Performance (sysbench)
+[containerd]
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+128 files, 8192Kb each, 1024Mb total
+Creating files for the test...
+Extra file open flags: (none)
+Creating file test_file.0
+Creating file test_file.1
+Creating file test_file.2
+Creating file test_file.3
+Creating file test_file.4
+Creating file test_file.5
+Creating file test_file.6
+Creating file test_file.7
+Creating file test_file.8
+Creating file test_file.9
+Creating file test_file.10
+Creating file test_file.11
+Creating file test_file.12
+Creating file test_file.13
+Creating file test_file.14
+Creating file test_file.15
+Creating file test_file.16
+Creating file test_file.17
+Creating file test_file.18
+Creating file test_file.19
+Creating file test_file.20
+Creating file test_file.21
+Creating file test_file.22
+Creating file test_file.23
+Creating file test_file.24
+Creating file test_file.25
+Creating file test_file.26
+Creating file test_file.27
+Creating file test_file.28
+Creating file test_file.29
+Creating file test_file.30
+Creating file test_file.31
+Creating file test_file.32
+Creating file test_file.33
+Creating file test_file.34
+Creating file test_file.35
+Creating file test_file.36
+Creating file test_file.37
+Creating file test_file.38
+Creating file test_file.39
+Creating file test_file.40
+Creating file test_file.41
+Creating file test_file.42
+Creating file test_file.43
+Creating file test_file.44
+Creating file test_file.45
+Creating file test_file.46
+Creating file test_file.47
+Creating file test_file.48
+Creating file test_file.49
+Creating file test_file.50
+Creating file test_file.51
+Creating file test_file.52
+Creating file test_file.53
+Creating file test_file.54
+Creating file test_file.55
+Creating file test_file.56
+Creating file test_file.57
+Creating file test_file.58
+Creating file test_file.59
+Creating file test_file.60
+Creating file test_file.61
+Creating file test_file.62
+Creating file test_file.63
+Creating file test_file.64
+Creating file test_file.65
+Creating file test_file.66
+Creating file test_file.67
+Creating file test_file.68
+Creating file test_file.69
+Creating file test_file.70
+Creating file test_file.71
+Creating file test_file.72
+Creating file test_file.73
+Creating file test_file.74
+Creating file test_file.75
+Creating file test_file.76
+Creating file test_file.77
+Creating file test_file.78
+Creating file test_file.79
+Creating file test_file.80
+Creating file test_file.81
+Creating file test_file.82
+Creating file test_file.83
+Creating file test_file.84
+Creating file test_file.85
+Creating file test_file.86
+Creating file test_file.87
+Creating file test_file.88
+Creating file test_file.89
+Creating file test_file.90
+Creating file test_file.91
+Creating file test_file.92
+Creating file test_file.93
+Creating file test_file.94
+Creating file test_file.95
+Creating file test_file.96
+Creating file test_file.97
+Creating file test_file.98
+Creating file test_file.99
+Creating file test_file.100
+Creating file test_file.101
+Creating file test_file.102
+Creating file test_file.103
+Creating file test_file.104
+Creating file test_file.105
+Creating file test_file.106
+Creating file test_file.107
+Creating file test_file.108
+Creating file test_file.109
+Creating file test_file.110
+Creating file test_file.111
+Creating file test_file.112
+Creating file test_file.113
+Creating file test_file.114
+Creating file test_file.115
+Creating file test_file.116
+Creating file test_file.117
+Creating file test_file.118
+Creating file test_file.119
+Creating file test_file.120
+Creating file test_file.121
+Creating file test_file.122
+Creating file test_file.123
+Creating file test_file.124
+Creating file test_file.125
+Creating file test_file.126
+Creating file test_file.127
+1073741824 bytes written in 4.35 seconds (235.32 MiB/sec).
+
+real    0m4.394s
+user    0m0.056s
+sys     0m3.052s
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Extra file open flags: (none)
+128 files, 8MiB each
+1GiB total file size
+Block size 16KiB
+Number of IO requests: 0
+Read/Write ratio for combined random IO test: 1.50
+Periodic FSYNC enabled, calling fsync() each 100 requests.
+Calling fsync() at the end of test, Enabled.
+Using synchronous I/O mode
+Doing random r/w test
+Initializing worker threads...
+
+Threads started!
+
+
+File operations:
+    reads/s:                      839.70
+    writes/s:                     559.78
+    fsyncs/s:                     1793.64
+
+Throughput:
+    read, MiB/s:                  13.12
+    written, MiB/s:               8.75
+
+General statistics:
+    total time:                          30.0384s
+    total number of events:              95806
+
+Latency (ms):
+         min:                                    0.01
+         avg:                                    0.31
+         max:                                   48.53
+         95th percentile:                        1.12
+         sum:                                29811.23
+
+Threads fairness:
+    events (avg/stddev):           95806.0000/0.00
+    execution time (avg/stddev):   29.8112/0.00
+
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Removing test files...
+[firecracker-containerd]
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+128 files, 8192Kb each, 1024Mb total
+Creating files for the test...
+Extra file open flags: (none)
+Creating file test_file.0
+Creating file test_file.1
+Creating file test_file.2
+Creating file test_file.3
+Creating file test_file.4
+Creating file test_file.5
+Creating file test_file.6
+Creating file test_file.7
+Creating file test_file.8
+Creating file test_file.9
+Creating file test_file.10
+Creating file test_file.11
+Creating file test_file.12
+Creating file test_file.13
+Creating file test_file.14
+Creating file test_file.15
+Creating file test_file.16
+Creating file test_file.17
+Creating file test_file.18
+Creating file test_file.19
+Creating file test_file.20
+Creating file test_file.21
+Creating file test_file.22
+Creating file test_file.23
+Creating file test_file.24
+Creating file test_file.25
+Creating file test_file.26
+Creating file test_file.27
+Creating file test_file.28
+Creating file test_file.29
+Creating file test_file.30
+Creating file test_file.31
+Creating file test_file.32
+Creating file test_file.33
+Creating file test_file.34
+Creating file test_file.35
+Creating file test_file.36
+Creating file test_file.37
+Creating file test_file.38
+Creating file test_file.39
+Creating file test_file.40
+Creating file test_file.41
+Creating file test_file.42
+Creating file test_file.43
+Creating file test_file.44
+Creating file test_file.45
+Creating file test_file.46
+Creating file test_file.47
+Creating file test_file.48
+Creating file test_file.49
+Creating file test_file.50
+Creating file test_file.51
+Creating file test_file.52
+Creating file test_file.53
+Creating file test_file.54
+Creating file test_file.55
+Creating file test_file.56
+Creating file test_file.57
+Creating file test_file.58
+Creating file test_file.59
+Creating file test_file.60
+Creating file test_file.61
+Creating file test_file.62
+Creating file test_file.63
+Creating file test_file.64
+Creating file test_file.65
+Creating file test_file.66
+Creating file test_file.67
+Creating file test_file.68
+Creating file test_file.69
+Creating file test_file.70
+Creating file test_file.71
+Creating file test_file.72
+Creating file test_file.73
+Creating file test_file.74
+Creating file test_file.75
+Creating file test_file.76
+Creating file test_file.77
+Creating file test_file.78
+Creating file test_file.79
+Creating file test_file.80
+Creating file test_file.81
+Creating file test_file.82
+Creating file test_file.83
+Creating file test_file.84
+Creating file test_file.85
+Creating file test_file.86
+Creating file test_file.87
+Creating file test_file.88
+Creating file test_file.89
+Creating file test_file.90
+Creating file test_file.91
+Creating file test_file.92
+Creating file test_file.93
+Creating file test_file.94
+Creating file test_file.95
+Creating file test_file.96
+Creating file test_file.97
+Creating file test_file.98
+Creating file test_file.99
+Creating file test_file.100
+Creating file test_file.101
+Creating file test_file.102
+Creating file test_file.103
+Creating file test_file.104
+Creating file test_file.105
+Creating file test_file.106
+Creating file test_file.107
+Creating file test_file.108
+Creating file test_file.109
+Creating file test_file.110
+Creating file test_file.111
+Creating file test_file.112
+Creating file test_file.113
+Creating file test_file.114
+Creating file test_file.115
+Creating file test_file.116
+Creating file test_file.117
+Creating file test_file.118
+Creating file test_file.119
+Creating file test_file.120
+Creating file test_file.121
+Creating file test_file.122
+Creating file test_file.123
+Creating file test_file.124
+Creating file test_file.125
+Creating file test_file.126
+Creating file test_file.127
+1073741824 bytes written in 12.59 seconds (81.37 MiB/sec).
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Extra file open flags: (none)
+128 files, 8MiB each
+1GiB total file size
+Block size 16KiB
+Number of IO requests: 0
+Read/Write ratio for combined random IO test: 1.50
+Periodic FSYNC enabled, calling fsync() each 100 requests.
+Calling fsync() at the end of test, Enabled.
+Using synchronous I/O mode
+Doing random r/w test
+Initializing worker threads...
+
+Threads started!
+
+
+File operations:
+    reads/s:                      266.67
+    writes/s:                     177.78
+    fsyncs/s:                     569.00
+
+Throughput:
+    read, MiB/s:                  4.17
+    written, MiB/s:               2.78
+
+General statistics:
+    total time:                          30.1444s
+    total number of events:              30427
+
+Latency (ms):
+         min:                                    0.01
+         avg:                                    0.98
+         max:                                  111.91
+         95th percentile:                        3.75
+         sum:                                29945.16
+
+Threads fairness:
+    events (avg/stddev):           30427.0000/0.00
+    execution time (avg/stddev):   29.9452/0.00
+
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Removing test files...
+
+real    0m0.189s
+user    0m0.004s
+sys     0m0.133s
+
+🚀 Benchmark: Memory Performance (sysbench)
+[containerd]
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Running memory speed test with the following options:
+  block size: 1KiB
+  total size: 100MiB
+  operation: write
+  scope: global
+
+Initializing worker threads...
+
+Threads started!
+
+Total operations: 102400 (1510371.67 per second)
+
+100.00 MiB transferred (1474.97 MiB/sec)
+
+
+General statistics:
+    total time:                          0.0623s
+    total number of events:              102400
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    0.00
+         max:                                    0.10
+         95th percentile:                        0.00
+         sum:                                   27.31
+
+Threads fairness:
+    events (avg/stddev):           102400.0000/0.00
+    execution time (avg/stddev):   0.0273/0.00
+
+[firecracker-containerd]
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 1
+Initializing random number generator from current time
+
+
+Running memory speed test with the following options:
+  block size: 1KiB
+  total size: 100MiB
+  operation: write
+  scope: global
+
+Initializing worker threads...
+
+Threads started!
+
+Total operations: 102400 (1544317.67 per second)
+
+100.00 MiB transferred (1508.12 MiB/sec)
+
+
+General statistics:
+    total time:                          0.0603s
+    total number of events:              102400
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    0.00
+         max:                                    0.20
+         95th percentile:                        0.00
+         sum:                                   26.19
+
+Threads fairness:
+    events (avg/stddev):           102400.0000/0.00
+    execution time (avg/stddev):   0.0262/0.00
+
+
+🔄 Restarting iperf3 server on host...
+
+🚀 Benchmark: Network Performance (iperf3)
+[containerd]
+Connecting to host localhost, port 5201
+[  5] local ::1 port 29600 connected to ::1 port 5201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.32 GBytes  11.4 Gbits/sec    0   1.44 MBytes
+[  5]   1.00-2.00   sec  1.50 GBytes  12.8 Gbits/sec    0   1.62 MBytes
+[  5]   2.00-3.00   sec  1.51 GBytes  12.9 Gbits/sec    0   1.75 MBytes
+[  5]   3.00-4.00   sec  1.51 GBytes  12.9 Gbits/sec    0   2.12 MBytes
+[  5]   4.00-5.00   sec  1.46 GBytes  12.6 Gbits/sec    0   2.12 MBytes
+[  5]   5.00-6.00   sec  1.45 GBytes  12.4 Gbits/sec    0   3.18 MBytes
+[  5]   6.00-7.00   sec  1.49 GBytes  12.8 Gbits/sec    0   3.18 MBytes
+[  5]   7.00-8.00   sec  1.49 GBytes  12.8 Gbits/sec    0   3.18 MBytes
+[  5]   8.00-9.00   sec  1.45 GBytes  12.4 Gbits/sec    0   3.18 MBytes
+[  5]   9.00-10.00  sec  1.49 GBytes  12.8 Gbits/sec    0   3.18 MBytes
+[  5]  10.00-11.00  sec  1.48 GBytes  12.7 Gbits/sec    0   3.18 MBytes
+[  5]  11.00-12.00  sec  1.39 GBytes  12.0 Gbits/sec    0   3.18 MBytes
+[  5]  12.00-13.00  sec  1.40 GBytes  12.0 Gbits/sec    0   3.18 MBytes
+[  5]  13.00-14.00  sec  1.53 GBytes  13.1 Gbits/sec    0   3.18 MBytes
+[  5]  14.00-15.00  sec  1.52 GBytes  13.1 Gbits/sec    0   3.18 MBytes
+[  5]  15.00-16.00  sec  1.54 GBytes  13.2 Gbits/sec    0   3.18 MBytes
+[  5]  16.00-17.00  sec  1.53 GBytes  13.2 Gbits/sec    0   3.18 MBytes
+[  5]  17.00-18.00  sec  1.47 GBytes  12.6 Gbits/sec    0   3.18 MBytes
+[  5]  18.00-19.00  sec  1.42 GBytes  12.2 Gbits/sec    0   3.18 MBytes
+[  5]  19.00-20.00  sec  1.47 GBytes  12.6 Gbits/sec    0   3.18 MBytes
+[  5]  20.00-21.00  sec  1.49 GBytes  12.8 Gbits/sec    0   3.18 MBytes
+[  5]  21.00-22.00  sec  1.52 GBytes  13.0 Gbits/sec    0   3.18 MBytes
+[  5]  22.00-23.00  sec  1.48 GBytes  12.7 Gbits/sec    0   3.18 MBytes
+[  5]  23.00-24.00  sec  1.38 GBytes  11.9 Gbits/sec    0   3.18 MBytes
+[  5]  24.00-25.00  sec  1.44 GBytes  12.3 Gbits/sec    0   3.18 MBytes
+[  5]  25.00-26.00  sec  1.47 GBytes  12.6 Gbits/sec    0   3.18 MBytes
+[  5]  26.00-27.00  sec  1.44 GBytes  12.4 Gbits/sec    0   3.18 MBytes
+[  5]  27.00-28.00  sec  1.46 GBytes  12.5 Gbits/sec    0   3.18 MBytes
+[  5]  28.00-29.00  sec  1.47 GBytes  12.6 Gbits/sec    0   3.18 MBytes
+[  5]  29.00-30.00  sec  1.42 GBytes  12.2 Gbits/sec    0   3.18 MBytes
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-30.00  sec  44.0 GBytes  12.6 Gbits/sec    0             sender
+[  5]   0.00-30.00  sec  44.0 GBytes  12.6 Gbits/sec                  receiver
+
+iperf Done.
+[firecracker-containerd]
+Connecting to host localhost, port 5201
+[  5] local ::1 port 12798 connected to ::1 port 5201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.34 GBytes  11.5 Gbits/sec    0   1.12 MBytes
+[  5]   1.00-2.00   sec  1.51 GBytes  13.0 Gbits/sec    0   1.19 MBytes
+[  5]   2.00-3.00   sec  1.52 GBytes  13.1 Gbits/sec    0   1.44 MBytes
+[  5]   3.00-4.00   sec  1.53 GBytes  13.2 Gbits/sec    0   1.75 MBytes
+[  5]   4.00-5.00   sec  1.53 GBytes  13.1 Gbits/sec    0   2.75 MBytes
+[  5]   5.00-6.00   sec  1.53 GBytes  13.1 Gbits/sec    0   2.75 MBytes
+[  5]   6.00-7.00   sec  1.54 GBytes  13.2 Gbits/sec    0   2.75 MBytes
+[  5]   7.00-8.00   sec  1.53 GBytes  13.1 Gbits/sec    0   4.18 MBytes
+[  5]   8.00-9.00   sec  1.52 GBytes  13.1 Gbits/sec    0   4.18 MBytes
+[  5]   9.00-10.00  sec  1.44 GBytes  12.4 Gbits/sec    0   4.18 MBytes
+[  5]  10.00-11.00  sec  1.40 GBytes  12.0 Gbits/sec    0   4.18 MBytes
+[  5]  11.00-12.00  sec  1.47 GBytes  12.6 Gbits/sec    0   4.18 MBytes
+[  5]  12.00-13.00  sec  1.52 GBytes  13.0 Gbits/sec    0   4.18 MBytes
+[  5]  13.00-14.00  sec  1.53 GBytes  13.1 Gbits/sec    0   4.18 MBytes
+[  5]  14.00-15.00  sec  1.53 GBytes  13.1 Gbits/sec    0   4.18 MBytes
+[  5]  15.00-16.00  sec  1.55 GBytes  13.3 Gbits/sec    0   4.18 MBytes
+[  5]  16.00-17.00  sec  1.55 GBytes  13.3 Gbits/sec    0   4.18 MBytes
+[  5]  17.00-18.00  sec  1.54 GBytes  13.3 Gbits/sec    0   4.18 MBytes
+[  5]  18.00-19.00  sec  1.53 GBytes  13.2 Gbits/sec    0   4.18 MBytes
+[  5]  19.00-20.00  sec  1.55 GBytes  13.3 Gbits/sec    0   4.18 MBytes
+[  5]  20.00-21.00  sec  1.51 GBytes  13.0 Gbits/sec    0   4.18 MBytes
+[  5]  21.00-22.00  sec  1.47 GBytes  12.7 Gbits/sec    0   4.18 MBytes
+[  5]  22.00-23.00  sec  1.51 GBytes  13.0 Gbits/sec    0   4.18 MBytes
+[  5]  23.00-24.00  sec  1.55 GBytes  13.3 Gbits/sec    0   4.18 MBytes
+[  5]  24.00-25.00  sec  1.55 GBytes  13.3 Gbits/sec    0   4.18 MBytes
+[  5]  25.00-26.00  sec  1.53 GBytes  13.2 Gbits/sec    0   4.18 MBytes
+[  5]  26.00-27.00  sec  1.52 GBytes  13.1 Gbits/sec    0   4.18 MBytes
+[  5]  27.00-28.00  sec  1.54 GBytes  13.2 Gbits/sec    0   4.18 MBytes
+[  5]  28.00-29.00  sec  1.53 GBytes  13.1 Gbits/sec    0   4.18 MBytes
+[  5]  29.00-30.00  sec  1.49 GBytes  12.8 Gbits/sec    0   4.18 MBytes
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-30.00  sec  45.4 GBytes  13.0 Gbits/sec    0             sender
+[  5]   0.00-30.00  sec  45.4 GBytes  13.0 Gbits/sec                  receiver
+
+iperf Done.
