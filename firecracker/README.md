@@ -14,29 +14,26 @@ This directory contains a collection of shell scripts to automate the setup, con
 
 ## Dependencies
 
-- Debian/Ubuntu system
-- `curl`, `wget`, `jq`, `git`, `make`, `docker`, `containerd`, `firecracker`, `firecracker-containerd`
-- Some scripts require `sudo` privileges
-- System CPU mustbe one of or newer of **Skylake, Cascade Lake, Ice Lake, Milan, Neoverse V1**
-- AES EC2, exclusively use .metal instance types, because EC2 only supports KVM on .metal instance types.
-- Supported Kernel
-        ### Host Kernel
 
-        | Host kernel | Min. version | Min. end of support |
-        | ----------: | -----------: | ------------------: |
-        |       v5.10 |       v1.0.0 |          2024-01-31 |
-        |        v6.1 |       v1.5.0 |          2025-10-12 |
+- **OS:** Debian/Ubuntu system
+- **Packages:** `curl`, `wget`, `jq`, `git`, `make`, `docker`, `containerd`, `firecracker`, `firecracker-containerd`
+- **Privileges:** Some scripts require `sudo` privileges
+- **CPU:** Must be **Skylake, Cascade Lake, Ice Lake, Milan, Neoverse V1** or newer
+- **Cloud:** On AWS EC2, use only `.metal` instance types (KVM is supported only on these)
+- **Kernel Support:**
+  - **Host Kernel:**
+    | Host kernel | Min. version | Min. end of support |
+    | ----------- | ------------ | ------------------- |
+    | v5.10       | v1.0.0       | 2024-01-31          |
+    | v6.1        | v1.5.0       | 2025-10-12          |
+  - **Guest Kernel:**
+    | Guest kernel | Min. version | Min. end of support |
+    | ------------ | ------------ | ------------------- |
+    | v5.10        | v1.0.0       | 2024-01-31          |
+    | v6.1         | v1.9.0       | 2026-09-02          |
 
-        ### Guest Kernel
-
-        | Guest kernel | Min. version | Min. end of support |
-        | -----------: | -----------: | ------------------: |
-        |        v5.10 |       v1.0.0 |          2024-01-31 |
-        |         v6.1 |       v1.9.0 |          2026-09-02 |
-
-
-### Before start Please Read
-- https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md
+> **Before you start:**
+> - Read the [Firecracker Getting Started Guide](https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md)
 
 ---
 
@@ -89,7 +86,7 @@ This directory contains a collection of shell scripts to automate the setup, con
 
 ## How To Use (Step-by-Step)
 
-Follow these steps in order to set up and benchmark Firecracker and Firecracker-containerd:
+This section provides a step-by-step guide to set up, run, and benchmark Firecracker and Firecracker-containerd. Example outputs are included for clarity.
 
 ---
 
@@ -139,7 +136,8 @@ Kernel: vmlinux-...
 Rootfs: ubuntu-...ext4
 SSH Key: ubuntu-....id_rsa
 ```
-Make sure that files exist on current dir
+
+> **Note:** Ensure the downloaded files exist in your current directory before proceeding.
 
 ---
 
@@ -183,14 +181,18 @@ _Create Rom with debian based_
 ```
 Root filesystem image 'debian_bookworm_rootfs.ext4' has been created and configured with Python 3, Node.js, Nano, Vim, Neofetch, and an alias for 'python' pointing to 'python3'.
 ```
-Make sure that files **debian_bookworm_rootfs.ext4** exist on current dir
+
+> **Note:** Ensure the file `debian_bookworm_rootfs.ext4` exists in your current directory before starting the custom ROM.
 
 ### 5. Start Debian Costum Rom
+
 ```bash
-5th-firecracker-start-debian-cusrom.sh
+sudo ./5th-firecracker-start-debian-cusrom.sh
 ```
+_Starts the custom Debian ROM in a Firecracker microVM._
+
 **Example Output:**
-```bash
+```
 Welcome to Debian ...
 root@microvm:~#
 ```
@@ -218,9 +220,13 @@ root@microvm:~#
 
 # Run firecrackers as containerd replacement
 
-### Before start Please Read
-- https://github.com/firecracker-microvm/firecracker-containerd/blob/main/docs/quickstart.md
-- https://github.com/firecracker-microvm/firecracker-containerd/blob/main/docs/getting-started.md
+---
+
+# Firecracker as a containerd Replacement
+
+> **Before you start:**
+> - Read the [Firecracker-containerd Quickstart](https://github.com/firecracker-microvm/firecracker-containerd/blob/main/docs/quickstart.md)
+> - Read the [Firecracker-containerd Getting Started](https://github.com/firecracker-microvm/firecracker-containerd/blob/main/docs/getting-started.md)
 
 ## Prerequisites
 
@@ -278,6 +284,21 @@ go version go1.23.4 linux/amd64
 sudo ./2nd-fc-ct-compile.sh
 ```
 **Example Output:**
+```
+{
+  "firecracker_binary_path": "/usr/local/bin/firecracker",
+  "cpu_template": "T2",
+  "log_fifo": "fc-logs.fifo",
+  "log_levels": ["debug"],
+  "metrics_fifo": "fc-metrics.fifo",
+  "kernel_args": "console=ttyS0 noapic reboot=k panic=1 pci=off nomodules ro systemd.unified_cgroup_hierarchy=0 systemd.journald.forward_to_console systemd.unit=firecracker.target init=/sbin/overlay-init",
+  "default_network_interfaces": [{
+    "CNIConfig": {
+      "NetworkName": "fcnet",
+      "InterfaceName": "veth0"
+    }
+  }]
+}
 ```
 #### c) Start Firecracker-containerd Daemon
 
