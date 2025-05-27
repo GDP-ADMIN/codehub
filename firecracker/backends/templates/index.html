@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firecracker Manager</title>
+    <style>
+        textarea {
+            width: 100%;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Firecracker Node.js File Editor</h1>
+    <form id="file-form">
+        <label for="file-path">File Path:</label>
+        <input type="text" id="file-path" placeholder="Enter path (e.g., /app/start.js)"><br><br>
+        
+        <label for="file-content">File Content:</label>
+        <textarea id="file-content" placeholder="Enter your Node.js code here..."></textarea><br><br>
+        
+        <button type="button" id="save-button">Save File</button>
+        <button type="button" id="recreate-image">Recreate Image</button>
+    </form>
+    
+    <script>
+        document.getElementById('save-button').addEventListener('click', function() {
+            const filePath = document.getElementById('file-path').value;
+            const content = document.getElementById('file-content').value;
+
+            fetch('/edit_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ file_path: filePath, content: content })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('recreate-image').addEventListener('click', function() {
+            const os = "alpine";   // Specify base OS
+            const runtime = "node"; // Specify runtime
+
+            fetch('/create_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ os: os, runtime: runtime })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

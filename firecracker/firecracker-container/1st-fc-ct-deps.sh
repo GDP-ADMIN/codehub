@@ -17,7 +17,8 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get \
   bc \
   gnupg \
   wget  \
-  gcc
+  gcc \
+  debootstrap 
 
 
 wget -O go1.23.4.linux-amd64.tar.gz https://go.dev/dl/go1.23.4.linux-amd64.tar.gz

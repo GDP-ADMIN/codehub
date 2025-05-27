@@ -1,3 +1,4 @@
+#!/bin/bash 
 set -xe
 TAP_DEV="tap0"
 TAP_IP="172.16.0.1"

@@ -2,7 +2,7 @@
 set -xe
 TAP_DEV="tap0"
 TAP_IP="172.16.0.1"
-MASK_SHORT="/30"
+MASK_SHORT="/24"
 
 # Setup network interface
 #sudo ip link del "$TAP_DEV" 2> /dev/null || true
