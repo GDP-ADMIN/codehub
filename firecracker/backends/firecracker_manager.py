@@ -2,176 +2,418 @@ from flask import Flask, request, jsonify, render_template
 import os
 import subprocess
 import json
-import sqlite3
+import shutil
+import uuid
 
 app = Flask(__name__)
 
-FIRECRACKER_SOCKET = "/tmp/firecracker.sock"
-DB_NAME = "vms.db"
+# Base directory to store VM configuration and data
+VM_CONFIG_DIR = "./vm_configs"
+VM_DATA_DIR = "./vm-data"
 
-# Define available base images and runtimes (removing Debian)
-BASE_IMAGES = {
-    "ubuntu": "./ubuntu-rootfs.img.gz",
-    "alpine": "./alpine-rootfs.img.gz"  # Keeping Alpine if it is still needed
-}
+# Define language-specific image paths (assuming they are stored in a base directory)
+BASE_IMAGE_DIR = "./base_images"
+NODEJS_IMAGE_PATH = f"{BASE_IMAGE_DIR}/ubuntu-24.04-nodejs.ext4"
+PYTHON_IMAGE_PATH = f"{BASE_IMAGE_DIR}/ubuntu-24.04-python3.ext4"
 
-RUNTIMES = {
-    "node": "node:latest",
-    "python": "python:latest"
-}
+# Function to initialize directories
+def init_directories():
+    for directory in [VM_CONFIG_DIR, VM_DATA_DIR]:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-# Initialize the database and create necessary tables
-def init_db():
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS vms
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  vm_id INTEGER UNIQUE,
-                  status TEXT,
-                  config TEXT)''')  # Added column to store configuration
-    conn.commit()
-    conn.close()
+# # Function to copy base image to unique VM directory
+# def copy_base_image(vm_id, image_path):
+#     vm_directory = os.path.join(VM_DATA_DIR, f"vm_{vm_id}")
+#     if not os.path.exists(vm_directory):
+#         os.makedirs(vm_directory)
 
-# Function to add or update VM info and configuration in the database
-def upsert_vm(vm_id, status, config):
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute('''INSERT INTO vms (vm_id, status, config) VALUES (?, ?, ?)
-                 ON CONFLICT(vm_id) DO UPDATE SET status=excluded.status, config=excluded.config''',
-               (vm_id, status, json.dumps(config)))
-    conn.commit()
-    conn.close()
+#     image_filename = os.path.basename(image_path)
+#     destination_path = os.path.join(vm_directory, image_filename)
+#     # shutil.copyfile(image_path, destination_path)
 
-# Function to retrieve VM info from the database
+#     # Only run the Python image creation script if the image is the Python base image
+#     if "python3" in image_filename:
+#         create_image_script = os.path.abspath("create_images_python.sh")
+#         subprocess.run(["bash", create_image_script, str(vm_id)], check=True)
+
+#         # Move the result image if it exists (ubuntu-24.04-python3_${vm_id}.ext4)
+#         result_image_name = f"ubuntu-24.04-python3_{vm_id}.ext4"
+#         result_image_path = os.path.join(os.path.dirname(image_path), result_image_name)
+#         if os.path.exists(result_image_path):
+#             final_image_path = os.path.join(vm_directory, result_image_name)
+#             shutil.move(result_image_path, final_image_path)
+#             return final_image_path
+
+
+# Function to create VM configuration file
+def create_vm_config(vm_id, vm_type):
+    # Generate a unique MAC address for this VM
+    mac_suffix = format(vm_id % 256, '02x')
+    guest_mac = f"AA:FC:00:00:00:{mac_suffix}"
+    vm_directory = os.path.join(VM_DATA_DIR, f"vm_{vm_id}")
+    if not os.path.exists(vm_directory):
+        os.makedirs(vm_directory)
+    # Determine the image path based on VM type
+    final_image_path = None
+    if vm_type == "nodejs":
+        create_image_script = os.path.abspath("create_images_nodejs.sh")
+        subprocess.run(["bash", create_image_script, str(vm_id)], check=True)
+
+        result_image_name = f"ubuntu-24.04-nodejs_{vm_id}.ext4"
+        result_image_path = os.path.join(os.getcwd(), result_image_name)
+        final_image_path = os.path.join(vm_directory, result_image_name)
+        if os.path.exists(result_image_path):
+            shutil.move(result_image_path, final_image_path)
+        else:
+            return None  # Image creation failed
+    elif vm_type == "python":
+        create_image_script = os.path.abspath("create_images_python.sh")
+        subprocess.run(["bash", create_image_script, str(vm_id)], check=True)
+
+        result_image_name = f"ubuntu-24.04-python3_{vm_id}.ext4"
+        result_image_path = os.path.join(os.getcwd(), result_image_name)
+        final_image_path = os.path.join(vm_directory, result_image_name)
+        if os.path.exists(result_image_path):
+            shutil.move(result_image_path, final_image_path)
+        else:
+            return None  # Image creation failed
+    else:
+        return None  # Unsupported VM type
+    
+    # Create the VM configuration JSON
+    config = {
+        "boot-source": {
+            "kernel_image_path": f"{BASE_IMAGE_DIR}/vmlinux-6.1.128",
+            "boot_args": "console=ttyS0 reboot=k panic=1 pci=off"
+        },
+        "drives": [
+            {
+                "drive_id": "rootfs",
+                "path_on_host": final_image_path,
+                "is_root_device": True,
+                "is_read_only": False,
+                "io_engine": "Sync",
+                "rate_limiter": None,
+                "socket": None,
+                "cache_type": "Unsafe"
+            }
+        ],
+        "network-interfaces": [
+            {
+                "iface_id": "eth0",
+                "guest_mac": guest_mac,
+                "host_dev_name": "tap0",
+                "rx_rate_limiter": None,
+                "tx_rate_limiter": None
+            }
+        ],
+        "machine-config": {
+            "vcpu_count": 2,
+            "mem_size_mib": 1024,
+            "smt": False,
+            "track_dirty_pages": False
+        },
+        "vsock": None,
+        "logger": None,
+        "metrics": None,
+        "mmds-config": None,
+        "entropy": None,
+        "balloon": None
+    }
+    
+    # Write the configuration to a file
+    config_path = os.path.join(VM_DATA_DIR, f"vm_{vm_id}", f"vmm-{vm_id}.json")
+    config_dir = os.path.dirname(config_path)
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)
+    with open(config_path, 'w') as f:
+        json.dump(config, f, indent=2)
+    
+    return config
+
+
+
+# Function to start a VM
+def start_vm(vm_id):
+    vm_directory = os.path.join(VM_DATA_DIR, f"vm_{vm_id}")
+
+    # Create start script for this VM
+    start_script_path = os.path.join(vm_directory, f"start-vm-{vm_id}.sh")
+    with open(start_script_path, 'w') as f:
+        f.write(f"""#!/bin/bash
+# Remove any existing socket file
+sudo rm /tmp/firecracker-{vm_id}.socket || true
+
+# Start firecracker with the VM configuration
+sudo firecracker --api-sock /tmp/firecracker-{vm_id}.socket --config-file {vm_directory}/vmm-{vm_id}.json
+""")
+    
+    # Make the script executable
+    os.chmod(start_script_path, 0o755)
+    
+    # Run the start script in the background
+    subprocess.Popen(f"nohup {start_script_path} > {vm_directory}/vm-{vm_id}.log 2>&1 &", shell=True)
+    # Add iptables rule to redirect SSH_PORT on host to port 22 on VM IP (tap0), if not already present
+    # Calculate VM IP and SSH port
+    vm_ip = f"172.16.0.{vm_id}"
+    if 1 <= vm_id <= 9:
+        ssh_port = int(f"2200{vm_id}")
+    else:
+        ssh_port = 220 + vm_id
+
+    # PREROUTING: Host port -> VM IP:22 via tap0
+    iptables_check_cmd = [
+        "sudo", "iptables", "-t", "nat", "-C", "PREROUTING",
+        "-p", "tcp", "-d", "127.0.0.1", "--dport", str(ssh_port),
+        "-j", "DNAT", "--to-destination", f"{vm_ip}:22", "-i", "tap0"
+    ]
+    iptables_add_cmd = [
+        "sudo", "iptables", "-t", "nat", "-A", "PREROUTING",
+        "-p", "tcp", "-d", "127.0.0.1", "--dport", str(ssh_port),
+        "-j", "DNAT", "--to-destination", f"{vm_ip}:22", "-i", "tap0"
+    ]
+    try:
+        subprocess.run(iptables_check_cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except subprocess.CalledProcessError:
+        subprocess.run(iptables_add_cmd, check=True)
+
+    # POSTROUTING: VM IP:22 -> MASQUERADE via tap0
+    iptables_check_cmd2 = [
+        "sudo", "iptables", "-t", "nat", "-C", "POSTROUTING",
+        "-p", "tcp", "-d", vm_ip, "--dport", "22",
+        "-j", "MASQUERADE", "-o", "tap0"
+    ]
+    iptables_add_cmd2 = [
+        "sudo", "iptables", "-t", "nat", "-A", "POSTROUTING",
+        "-p", "tcp", "-d", vm_ip, "--dport", "22",
+        "-j", "MASQUERADE", "-o", "tap0"
+    ]
+    try:
+        subprocess.run(iptables_check_cmd2, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except subprocess.CalledProcessError:
+        subprocess.run(iptables_add_cmd2, check=True)
+    # Calculate VM IP and HTTP port
+    vm_ip = f"172.16.0.{vm_id}"
+    http_port = 80
+    http_url = f"http://{vm_ip}:{http_port}"
+
+    # Calculate SSH port
+    if 1 <= vm_id <= 9:
+        ssh_port = int(f"2200{vm_id}")
+    else:
+        ssh_port = 220 + vm_id
+
+    # Save VM metadata
+    vm_meta = {
+        "vm_id": vm_id,
+        "status": "running",
+        "vm_type": get_vm_type(vm_id),
+        "pid": None,  # We don't track PID in this implementation
+        "socket": f"/tmp/firecracker-{vm_id}.socket",
+        "ip": vm_ip,
+        "ssh_port": ssh_port,
+        "http_port": http_port,
+        "http_url": http_url
+    }
+    
+    with open(os.path.join(VM_CONFIG_DIR, f"vm-{vm_id}.json"), 'w') as f:
+        json.dump(vm_meta, f, indent=2)
+    
+    return vm_meta
+
+# Function to get VM type from config
+def get_vm_type(vm_id):
+    meta_path = os.path.join(VM_CONFIG_DIR, f"vm-{vm_id}.json")
+    if os.path.exists(meta_path):
+        with open(meta_path, 'r') as f:
+            vm_meta = json.load(f)
+            return vm_meta.get("vm_type", "unknown")
+    return None
+
+# Function to stop a VM
+def stop_vm(vm_id):
+    # Create a script to stop the VM
+    socket_path = f"/tmp/firecracker-{vm_id}.socket"
+    
+    # Use the kill command to terminate the firecracker process
+    try:
+        subprocess.run(f"sudo pkill -f 'firecracker.*{socket_path}'", shell=True)
+        # Remove iptables rules for this VM's SSH port forwarding
+        # Calculate VM IP and SSH port
+        vm_ip = f"172.16.0.{vm_id}"
+        if 1 <= vm_id <= 9:
+            ssh_port = int(f"2200{vm_id}")
+        else:
+            ssh_port = 220 + vm_id
+
+        # Delete PREROUTING rule (must match the rule added in start_vm)
+        iptables_del_cmd = [
+            "sudo", "iptables", "-t", "nat", "-D", "PREROUTING",
+            "-p", "tcp", "-d", "127.0.0.1", "--dport", str(ssh_port),
+            "-j", "DNAT", "--to-destination", f"{vm_ip}:22", "-i", "tap0"
+        ]
+        subprocess.run(iptables_del_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        # Delete POSTROUTING rule (must match the rule added in start_vm)
+        iptables_del_cmd2 = [
+            "sudo", "iptables", "-t", "nat", "-D", "POSTROUTING",
+            "-p", "tcp", "-d", vm_ip, "--dport", "22",
+            "-j", "MASQUERADE", "-o", "tap0"
+        ]
+        subprocess.run(iptables_del_cmd2, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Update VM metadata
+        meta_path = os.path.join(VM_CONFIG_DIR, f"vm-{vm_id}.json")
+        if os.path.exists(meta_path):
+            with open(meta_path, 'r') as f:
+                vm_meta = json.load(f)
+            
+            vm_meta["status"] = "stopped"
+            
+            with open(meta_path, 'w') as f:
+                json.dump(vm_meta, f, indent=2)
+                
+        return True
+    except Exception as e:
+        print(f"Error stopping VM {vm_id}: {str(e)}")
+        return False
+
+# Function to delete a VM
+def delete_vm(vm_id):
+    # First stop the VM if it's running
+    stop_vm(vm_id)
+    
+    # Remove VM configuration files and directory
+    vm_directory = os.path.join(VM_DATA_DIR, f"vm_{vm_id}")
+    if os.path.exists(vm_directory):
+        shutil.rmtree(vm_directory)
+    
+    # Remove VM metadata
+    meta_path = os.path.join(VM_CONFIG_DIR, f"vm-{vm_id}.json")
+    if os.path.exists(meta_path):
+        os.remove(meta_path)
+    
+    return True
+
+# Function to list all VMs
 def list_vms():
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute('SELECT vm_id, status, config FROM vms')
     vms = []
-    for row in c.fetchall():
-        vms.append({"vm_id": row[0], "status": row[1], "config": json.loads(row[2])})
-    conn.close()
+    if os.path.exists(VM_CONFIG_DIR):
+        for filename in os.listdir(VM_CONFIG_DIR):
+            if filename.startswith("vm-") and filename.endswith(".json"):
+                with open(os.path.join(VM_CONFIG_DIR, filename), 'r') as f:
+                    vm_meta = json.load(f)
+                    vms.append(vm_meta)
     return vms
 
-# Initialize the database
-init_db()
+# Initialize directories
+init_directories()
 
 @app.route('/')
 def index():
     """Render the main page."""
     return render_template('index.html')
 
-@app.route('/create_vm', methods=['POST'])
-def create_vm():
-    vm_id = request.json.get("vm_id")  # Get ID from request
+@app.route('/create_vm_nodejs', methods=['POST'])
+def create_vm_nodejs():
+    vm_id = request.json.get("vm_id")
     if not vm_id:
-        return jsonify({"error": "Missing vm_id"}), 400
+        # Generate a random VM ID if not provided
+        vm_id = int(uuid.uuid4().hex[:8], 16) % 10000
+    
+    # Create VM configuration for Node.js
+    config = create_vm_config(vm_id, "nodejs")
+    if not config:
+        return jsonify({"error": "Failed to create VM configuration"}), 500
+    
+    # # Start the VM
+    # vm_meta = start_vm(vm_id)
+    
+    return jsonify({"status": "created", "vm_id": vm_id, "type": "nodejs"})
 
-    # Create a new microVM configuration
-    config = {
-        "boot-source": {
-            "kernel_image_path": "${PWD}/../vmlinux-6.1.128",
-            "boot_args": "console=ttyS0 reboot=k panic=1 pci=off"
-        },
-        "drives": [{
-            "drive_id": f"rootfs{vm_id}",
-            "path_on_host": f"./ubuntu-rootfs-{vm_id}.img.gz",  # Update to use Ubuntu rootfs
-            "is_root_device": True,
-            "is_read_only": False
-        }],
-        "network-interfaces": [{
-            "iface_id": f"eth0",
-            "host_dev_name": f"tap0-{vm_id}"
-        }]
-    }
-
-    status = "running"
-
-    # Start Firecracker instance and load configuration
-    subprocess.run([f"firecracker", "--api-sock", FIRECRACKER_SOCKET], stdout=subprocess.PIPE)
-    cmd = f"curl -X PUT --header 'Accept: application/json' --header 'Content-Type: application/json' --data-binary '{json.dumps(config)}' http://localhost:8080/microvm-{vm_id}/boot-source"
-    os.system(cmd)
-
-    # Start the microVM
-    os.system(f"curl -X PUT --header 'Accept: application/json' --header 'Content-Type: application/json' --data-binary '{{\"action\":\"Start\"}}' http://localhost:8080/microvm-{vm_id}/actions")
-
-    # Store the VM info and configuration in the database
-    upsert_vm(vm_id, status, config)
-
-    return jsonify({"status": "created", "vm_id": vm_id})
+@app.route('/create_vm_python', methods=['POST'])
+def create_vm_python():
+    vm_id = request.json.get("vm_id")
+    if not vm_id:
+        # Generate a random VM ID if not provided
+        vm_id = int(uuid.uuid4().hex[:8], 16) % 10000
+    
+    # Create VM configuration for Python
+    config = create_vm_config(vm_id, "python")
+    if not config:
+        return jsonify({"error": "Failed to create VM configuration"}), 500
+    
+    # # Start the VM
+    # vm_meta = start_vm(vm_id)
+    
+    return jsonify({"status": "created", "vm_id": vm_id, "type": "python"})
 
 @app.route('/stop_vm/<int:vm_id>', methods=['POST'])
-def stop_vm(vm_id):
-    if vm_id not in [vm['vm_id'] for vm in list_vms()]:
+def stop_vm_route(vm_id):
+    if not os.path.exists(os.path.join(VM_CONFIG_DIR, f"vm-{vm_id}.json")):
+        return jsonify({"error": "VM not found"}), 404
+    
+    if stop_vm(vm_id):
+        return jsonify({"status": "stopped", "vm_id": vm_id})
+    else:
+        return jsonify({"error": "Failed to stop VM"}), 500
+
+@app.route('/start_vm/<int:vm_id>', methods=['POST'])
+def start_vm_route(vm_id):
+    if not os.path.exists(os.path.join(VM_CONFIG_DIR, f"vm-{vm_id}.json")):
         return jsonify({"error": "VM not found"}), 404
 
-    # Stop the microVM
-    os.system(f"curl -X PUT --header 'Accept: application/json' --header 'Content-Type: application/json' --data-binary '{{\"action\":\"Stop\"}}' http://localhost:8080/microvm-{vm_id}/actions")
+    vm_meta = start_vm(vm_id)
+    if vm_meta:
+        return jsonify(vm_meta)
+    else:
+        return jsonify({"error": "Failed to start VM"}), 500
 
-    # Update the VM status in the database
-    upsert_vm(vm_id, "stopped", None)  # Optionally keep the config
-
-    return jsonify({"status": "stopped", "vm_id": vm_id})
 
 @app.route('/delete_vm/<int:vm_id>', methods=['DELETE'])
-def delete_vm(vm_id):
-    if vm_id not in [vm['vm_id'] for vm in list_vms()]:
+def delete_vm_route(vm_id):
+    if not os.path.exists(os.path.join(VM_CONFIG_DIR, f"vm-{vm_id}.json")):
         return jsonify({"error": "VM not found"}), 404
-
-    # Stop the microVM if it's running
-    if any(vm['vm_id'] == vm_id and vm['status'] == "running" for vm in list_vms()):
-        os.system(f"curl -X PUT --header 'Accept: application/json' --header 'Content-Type: application/json' --data-binary '{{\"action\":\"Stop\"}}' http://localhost:8080/microvm-{vm_id}/actions")
-
-    # Remove the VM from the database
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute('DELETE FROM vms WHERE vm_id = ?', (vm_id,))
-    conn.commit()
-    conn.close()
-
-    return jsonify({"status": "deleted", "vm_id": vm_id})
+    
+    if delete_vm(vm_id):
+        return jsonify({"status": "deleted", "vm_id": vm_id})
+    else:
+        return jsonify({"error": "Failed to delete VM"}), 500
 
 @app.route('/list_vms', methods=['GET'])
 def list_vms_route():
     """List all microVMs and their configurations."""
     return jsonify(list_vms())
 
-@app.route('/edit_file', methods=['POST'])
-def edit_file():
-    data = request.json
-    file_path = data.get("file_path")
-    content = data.get("content")
+@app.route('/vm_logs/<int:vm_id>', methods=['GET'])
+def vm_logs(vm_id):
+    """Get logs for a specific VM"""
+    log_path = os.path.join(VM_DATA_DIR, f"vm_{vm_id}/vm-{vm_id}.log")
+    if not os.path.exists(log_path):
+        return jsonify({"error": "VM logs not found"}), 404
+    
+    with open(log_path, 'r') as f:
+        logs = f.read()
+    
+    return jsonify({"vm_id": vm_id, "logs": logs})
 
-    # Save the content to the specified file
-    with open(file_path, 'w') as f:
-        f.write(content)
-
-    return jsonify({"message": "File updated successfully."})
-
-@app.route('/create_image', methods=['POST'])
-def create_image():
-    data = request.json
-    os_name = data.get("os")
-    runtime = data.get("runtime")
-
-    if os_name is None or runtime is None:
-        return jsonify({"error": "os and runtime must be specified"}), 400
-
-    if os_name not in BASE_IMAGES:
-        return jsonify({"error": "Unsupported base OS"}), 400
-
-    # Create the image using Firecracker-compatible methods
-    print(f"Creating image for {os_name} with runtime {runtime}...")
-
-    # Example command to create the base image (replace this with actual image creation command)
-    base_image_path = BASE_IMAGES[os_name]
-
-    # Simulating the image creation process
-    create_command = f"echo 'Creating image file at {base_image_path}'"  # Placeholder; replace with actual logic
-    subprocess.run(create_command, shell=True)
-
-    # Simulating the completion of image creation
-    return jsonify({"message": f"Image created at {base_image_path}"}), 201
+@app.route('/test', methods=['GET'])
+def test_endpoint():
+    return jsonify({
+        "status": "ok",
+        "vm_config_dir": VM_CONFIG_DIR,
+        "vm_data_dir": VM_DATA_DIR,
+        "nodejs_image": NODEJS_IMAGE_PATH,
+        "python_image": PYTHON_IMAGE_PATH
+    })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    # Print some diagnostic information
+    print(f"Starting Flask server with the following configuration:")
+    print(f"VM config directory: {VM_CONFIG_DIR}")
+    print(f"VM data directory: {VM_DATA_DIR}")
+    print(f"Base image directory: {BASE_IMAGE_DIR}")
+    print(f"Node.js image: {NODEJS_IMAGE_PATH}")
+    print(f"Python image: {PYTHON_IMAGE_PATH}")
+    
+    app.run(host='0.0.0.0', port=5000, debug=True)
