@@ -32,15 +32,15 @@ rm -f "$OUTPUT_IMAGE" || true
 sudo umount "$MOUNT_POINT" 2>/dev/null  || true
 sudo rmdir "$MOUNT_POINT" 2>/dev/null || true
 mkdir -p "$MOUNT_POINT"  || true
-mkdir -p "user_data/firecracker-node-$1"  || true
+mkdir -p "user_data/firecracker-nodejs-$1"  || true
 
 echo "Create a simple node HTTP server script"
 
-rsync -avzr index.js "user_data/firecracker-node-$1/index.js"
+rsync -avzr init.js "user_data/firecracker-nodejs-$1/init.js"
 
 # Create a directory for user data and write the Python script
 if [ ! -z "$2" ]; then
- rsync -avzr $2 "user_data/firecracker-node-$1/" || true
+ rsync -avzr $2 "user_data/firecracker-nodejs-$1/" || true
 fi
 
 # Create a Dockerfile to build Ubuntu with Node.js
@@ -85,10 +85,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \\
 RUN npm install -g pm2
 
 # Add inittab and hostname
-RUN echo "firecracker-node" > /etc/hostname >> /sbin/init
+RUN echo "firecracker-nodejs" > /etc/hostname >> /sbin/init
 
 # Copy a Python HTTP server script from the current directory
-COPY ./user_data/firecracker-node-$1 /app
+COPY ./user_data/firecracker-nodejs-$1 /app
 
 
 # Create a more robust init script for Firecracker
@@ -102,13 +102,13 @@ RUN echo '#!/bin/bash' > /sbin/init && \\
     echo 'ip addr add ${IP_ADDRESS}/24 dev eth0' >> /sbin/init && \\
     echo 'ip route add default via 172.16.0.1' >> /sbin/init && \\
     echo 'echo "nameserver 8.8.8.8" > /etc/resolv.conf' >> /sbin/init && \\
-    echo "echo firecracker-node-\$(node -v | grep -oP '\\d+\\.\\d+\\.\\d+' | sed 's/\\./-/g') > /etc/hostname" >> /sbin/init && \
+    echo "echo firecracker-nodejs-\$(node -v | grep -oP '\\d+\\.\\d+\\.\\d+' | sed 's/\\./-/g') > /etc/hostname" >> /sbin/init && \
     echo 'hostname -F /etc/hostname' >> /sbin/init && \\
     echo '' >> /sbin/init && \\
     echo 'echo "Welcome to Node.js on Firecracker"' >> /sbin/init && \\
     echo 'cd /app' >> /sbin/init && \\
-    echo 'node /app/index.js > /dev/null 2>&1 &' >> /sbin/init && \\
-    echo 'echo "You can run the Node.js test script with: node index.js"' >> /sbin/init && \\
+    echo 'node /app/init.js > /dev/null 2>&1 &' >> /sbin/init && \\
+    echo 'echo "You can run the Node.js test script with: node init.js"' >> /sbin/init && \\
     echo '' >> /sbin/init && \\
     echo '# Start sshd for remote access' >> /sbin/init && \\
     echo 'mkdir -p /run/sshd' >> /sbin/init && \\

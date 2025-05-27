@@ -6,54 +6,601 @@
         textarea {
             width: 100%;
             height: 200px;
+            font-family: monospace;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        select, input, button {
+            padding: 8px;
+            margin: 5px 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <h1>Firecracker Node.js File Editor</h1>
-    <form id="file-form">
-        <label for="vm-id">VM ID:</label>
-        <input type="text" id="vm-id" placeholder="Enter VM ID (e.g., 1234)"><br><br>
-        
-        <label for="file-content">File Content:</label>
-        <textarea id="file-content" placeholder="Enter your Node.js code here..."></textarea><br><br>
-        
-        <button type="button" id="save-button">Save File</button>
-        <button type="button" id="recreate-image">Recreate Image</button>
-    </form>
+    <div class="container">
+        <h1>Firecracker Environment Manager</h1>
+        <form id="file-form">
+            <div class="form-group">
+                <label for="env-type">Environment Type:</label>
+                <select id="env-type">
+                    <option value="nodejs">Node.js</option>
+                    <option value="python">Python</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="vm-id">VM ID:</label>
+                <input type="text" id="vm-id" placeholder="Enter VM ID (e.g., 1234)">
+                <button type="button" id="load-button">Load File</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="file-content">File Content:</label>
+                <textarea id="file-content" placeholder="Code will be loaded here..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <button type="button" id="save-button">Save File</button>
+                <button type="button" id="recreate-image">Recreate Image</button>
+                <button type="button" id="start-vm">Start VM</button>
+                <button type="button" id="stop-vm">Stop VM</button>
+                <button type="button" id="list-vms">List VMs</button>
+            </div>
+
+            <div id="vm-list" class="form-group" style="display: none;">
+                <h3>Available VMs</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <thead>
+                        <tr style="background-color: #f5f5f5;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">VM ID</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Type</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Status</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vm-list-body">
+                    </tbody>
+                </table>
+            </div>
+        </form>
+
+        <!-- Console/Log Window -->
+        <div id="console-window" class="form-group" style="margin-top: 20px;">
+            <h3>Console Output
+                <button id="clear-console" style="float: right; padding: 5px 10px;">Clear Console</button>
+                <button id="refresh-logs" style="float: right; padding: 5px 10px; margin-right: 10px;">Refresh Logs</button>
+            </h3>
+            <div id="console-tabs" style="margin-bottom: 10px;">
+                <button class="tab-button active" data-tab="api-responses">API Responses</button>
+                <button class="tab-button" data-tab="vm-logs">VM Logs</button>
+            </div>
+            <div id="console-output" style="
+                background-color: #1e1e1e;
+                color: #ffffff;
+                font-family: monospace;
+                padding: 15px;
+                border-radius: 5px;
+                height: 300px;
+                overflow-y: auto;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            ">
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .tab-button {
+            padding: 8px 16px;
+            margin-right: 5px;
+            border: none;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab-button.active {
+            background-color: #1e1e1e;
+            color: white;
+        }
+        .console-entry {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+        }
+        .console-timestamp {
+            color: #888;
+            font-size: 0.9em;
+        }
+        .console-content {
+            color: #fff;
+            margin-top: 5px;
+        }
+        .console-endpoint {
+            color: #4CAF50;
+        }
+        .console-error {
+            color: #ff6b6b;
+        }
+    </style>
     
     <script>
+        // Load file content when Load button is clicked
+        document.getElementById('load-button').addEventListener('click', function() {
+            const vmId = document.getElementById('vm-id').value;
+            const envType = document.getElementById('env-type').value;
+
+            if (!vmId) {
+                alert('Please enter a VM ID');
+                return;
+            }
+
+            const fileName = envType === 'nodejs' ? 'init.js' : 'init.py';
+            const filePath = `user_data/firecracker-${envType}-${vmId}/${fileName}`;
+
+            fetch('/load_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    file_path: filePath
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.content) {
+                    document.getElementById('file-content').value = data.content;
+                } else {
+                    alert('File not found or empty');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading file');
+            });
+        });
+
+        // Save file content
         document.getElementById('save-button').addEventListener('click', function() {
             const vmId = document.getElementById('vm-id').value;
+            const envType = document.getElementById('env-type').value;
             const content = document.getElementById('file-content').value;
+
+            if (!vmId || !content) {
+                alert('Please enter both VM ID and file content');
+                return;
+            }
+
+            const fileName = envType === 'nodejs' ? 'init.js' : 'init.py';
+            const filePath = `user_data/firecracker-${envType}-${vmId}/${fileName}`;
 
             fetch('/edit_file', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ vm_id: vmId, content: content })
+                body: JSON.stringify({ 
+                    file_path: filePath,
+                    content: content
+                })
             })
             .then(response => response.json())
             .then(data => alert(data.message))
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving file');
+            });
         });
 
+        // Recreate image
         document.getElementById('recreate-image').addEventListener('click', function() {
-            const os = "alpine";   // Specify base OS
-            const runtime = "node"; // Specify runtime
+            const envType = document.getElementById('env-type').value;
+            const vmId = document.getElementById('vm-id').value;
 
-            fetch('/create_image', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ os: os, runtime: runtime })
+            if (!vmId) {
+            alert('Please enter a VM ID');
+            return;
+            }
+
+            // Select endpoint and payload based on environment type
+            const endpoint = envType === 'python' ? '/create_vm_python' : '/create_vm_nodejs';
+            const payload = { vm_id: Number(vmId) };
+
+            fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'created') {
+                    const message = `VM Creation Successful!\n\n` +
+                        `VM ID: ${data.vm_id}\n` +
+                        `Type: ${data.type}\n\n` +
+                        `To start the VM, run:\n${data.command_to_start_vm}`;
+                    
+                    // Create a modal or dialog to show the response
+                    const dialog = document.createElement('div');
+                    dialog.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: white;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                        z-index: 1000;
+                        max-width: 500px;
+                        width: 90%;
+                    `;
+
+                    const content = document.createElement('div');
+                    content.style.cssText = `
+                        margin-bottom: 20px;
+                        white-space: pre-wrap;
+                        font-family: monospace;
+                    `;
+                    content.textContent = message;
+
+                    const commandDiv = document.createElement('div');
+                    commandDiv.style.cssText = `
+                        background: #f5f5f5;
+                        padding: 10px;
+                        border-radius: 4px;
+                        margin: 10px 0;
+                        font-family: monospace;
+                    `;
+                    commandDiv.textContent = data.command_to_start_vm;
+
+                    const copyButton = document.createElement('button');
+                    copyButton.textContent = 'Copy Command';
+                    copyButton.style.marginRight = '10px';
+                    copyButton.onclick = () => {
+                        navigator.clipboard.writeText(data.command_to_start_vm);
+                        copyButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.textContent = 'Copy Command';
+                        }, 2000);
+                    };
+
+                    const closeButton = document.createElement('button');
+                    closeButton.textContent = 'Close';
+                    closeButton.onclick = () => {
+                        document.body.removeChild(dialog);
+                        document.body.removeChild(overlay);
+                    };
+
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.style.textAlign = 'right';
+                    buttonContainer.appendChild(copyButton);
+                    buttonContainer.appendChild(closeButton);
+
+                    dialog.appendChild(content);
+                    dialog.appendChild(commandDiv);
+                    dialog.appendChild(buttonContainer);
+
+                    // Add overlay
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0,0,0,0.5);
+                        z-index: 999;
+                    `;
+
+                    document.body.appendChild(overlay);
+                    document.body.appendChild(dialog);
+                } else {
+                    alert(data.message || 'Error creating VM');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error creating VM');
+            });
+        });
+
+        // Update placeholder based on environment type
+        document.getElementById('env-type').addEventListener('change', function() {
+            const textarea = document.getElementById('file-content');
+            if (this.value === 'nodejs') {
+                textarea.placeholder = 'Enter your Node.js code here...';
+            } else {
+                textarea.placeholder = 'Enter your Python code here...';
+            }
+        });
+
+        // Start VM Handler
+        document.getElementById('start-vm').addEventListener('click', function() {
+            const vmId = document.getElementById('vm-id').value;
+            
+            if (!vmId) {
+                alert('Please enter a VM ID');
+                return;
+            }
+
+            fetch(`/start_vm/${vmId}`, {
+                method: 'POST'
             })
             .then(response => response.json())
-            .then(data => alert(data.message))
-            .catch(error => console.error('Error:', error));
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(`VM ${vmId} started successfully`);
+                    refreshVMList(); // Refresh the VM list after starting
+                } else {
+                    alert(data.message || 'Error starting VM');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error starting VM');
+            });
         });
+
+        // Stop VM Handler
+        document.getElementById('stop-vm').addEventListener('click', function() {
+            const vmId = document.getElementById('vm-id').value;
+            
+            if (!vmId) {
+                alert('Please enter a VM ID');
+                return;
+            }
+
+            fetch(`/stop_vm/${vmId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(`VM ${vmId} stopped successfully`);
+                    refreshVMList(); // Refresh the VM list after stopping
+                } else {
+                    alert(data.message || 'Error stopping VM');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error stopping VM');
+            });
+        });
+
+        // List VMs Handler
+        function refreshVMList() {
+            fetch('/list_vms', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const vmListDiv = document.getElementById('vm-list');
+                const vmListBody = document.getElementById('vm-list-body');
+                vmListBody.innerHTML = ''; // Clear existing entries
+
+                if (data.vms && data.vms.length > 0) {
+                    data.vms.forEach(vm => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td style="padding: 10px; border: 1px solid #ddd;">${vm.id}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">${vm.type}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">
+                                <span class="status-badge" style="
+                                    padding: 4px 8px;
+                                    border-radius: 12px;
+                                    background-color: ${vm.status === 'running' ? '#4CAF50' : '#ff9800'};
+                                    color: white;
+                                ">${vm.status}</span>
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">
+                                <button onclick="selectVM('${vm.id}')" style="margin-right: 5px;">Select</button>
+                                ${vm.status === 'running' 
+                                    ? `<button onclick="stopVM('${vm.id}')">Stop</button>`
+                                    : `<button onclick="startVM('${vm.id}')">Start</button>`
+                                }
+                            </td>
+                        `;
+                        vmListBody.appendChild(row);
+                    });
+                    vmListDiv.style.display = 'block';
+                } else {
+                    vmListDiv.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error fetching VM list');
+            });
+        }
+
+        // Helper functions for VM list actions
+        function selectVM(vmId) {
+            document.getElementById('vm-id').value = vmId;
+        }
+
+        function startVM(vmId) {
+            fetch(`/start_vm/${vmId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(`VM ${vmId} started successfully`);
+                    refreshVMList();
+                } else {
+                    alert(data.message || 'Error starting VM');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error starting VM');
+            });
+        }
+
+        function stopVM(vmId) {
+            fetch(`/stop_vm/${vmId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(`VM ${vmId} stopped successfully`);
+                    refreshVMList();
+                } else {
+                    alert(data.message || 'Error stopping VM');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error stopping VM');
+            });
+        }
+
+        // List VMs button handler
+        document.getElementById('list-vms').addEventListener('click', refreshVMList);
+
+        // Initial VM list load
+        refreshVMList();
+
+        // Console Management
+        const consoleOutput = document.getElementById('console-output');
+        let currentTab = 'api-responses';
+        let apiResponses = [];
+        let vmLogs = [];
+
+        function logToConsole(endpoint, data, isError = false) {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = {
+                timestamp,
+                endpoint,
+                data,
+                isError
+            };
+            
+            apiResponses.unshift(entry); // Add to beginning of array
+            if (apiResponses.length > 100) apiResponses.pop(); // Keep only last 100 entries
+            
+            if (currentTab === 'api-responses') {
+                updateConsoleDisplay();
+            }
+        }
+
+        function updateConsoleDisplay() {
+            const entries = currentTab === 'api-responses' ? apiResponses : vmLogs;
+            consoleOutput.innerHTML = entries.map(entry => `
+                <div class="console-entry">
+                    <div class="console-timestamp">[${entry.timestamp}]</div>
+                    ${entry.endpoint ? `<div class="console-endpoint">${entry.endpoint}</div>` : ''}
+                    <div class="console-content ${entry.isError ? 'console-error' : ''}">
+                        ${typeof entry.data === 'object' ? 
+                            JSON.stringify(entry.data, null, 2) : 
+                            entry.data}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update all API calls to use logToConsole
+        function updateAPICallHandling() {
+            // Intercept and log all fetch responses
+            const originalFetch = window.fetch;
+            window.fetch = function() {
+                const url = arguments[0];
+                const endpoint = url.split('/').slice(-2).join('/');
+                
+                return originalFetch.apply(this, arguments)
+                    .then(async response => {
+                        const clone = response.clone();
+                        try {
+                            const data = await clone.json();
+                            logToConsole(endpoint, data, !response.ok);
+                        } catch (e) {
+                            logToConsole(endpoint, await clone.text(), !response.ok);
+                        }
+                        return response;
+                    })
+                    .catch(error => {
+                        logToConsole(endpoint, error.message, true);
+                        throw error;
+                    });
+            };
+        }
+        updateAPICallHandling();
+
+        // VM Logs Management
+        async function refreshVMLogs() {
+            const vmId = document.getElementById('vm-id').value;
+            if (!vmId) return;
+
+            try {
+                const response = await fetch(`/vm_logs/${vmId}`);
+                const data = await response.json();
+                if (data.logs) {
+                    vmLogs = data.logs.map(log => ({
+                        timestamp: new Date().toLocaleTimeString(),
+                        data: log
+                    }));
+                    if (currentTab === 'vm-logs') {
+                        updateConsoleDisplay();
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching VM logs:', error);
+            }
+        }
+
+        // Tab Management
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentTab = button.dataset.tab;
+                updateConsoleDisplay();
+            });
+        });
+
+        // Clear Console
+        document.getElementById('clear-console').addEventListener('click', () => {
+            if (currentTab === 'api-responses') {
+                apiResponses = [];
+            } else {
+                vmLogs = [];
+            }
+            updateConsoleDisplay();
+        });
+
+        // Refresh Logs
+        document.getElementById('refresh-logs').addEventListener('click', () => {
+            if (currentTab === 'vm-logs') {
+                refreshVMLogs();
+            }
+        });
+
+        // Auto-refresh VM logs every 5 seconds when VM logs tab is active
+        setInterval(() => {
+            if (currentTab === 'vm-logs') {
+                refreshVMLogs();
+            }
+        }, 5000);
     </script>
 </body>
 </html>

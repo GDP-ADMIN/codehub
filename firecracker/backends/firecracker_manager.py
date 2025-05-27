@@ -259,7 +259,7 @@ def stop_vm(vm_id):
         else:
             ssh_port = 220 + vm_id
 
-        # Delete PREROUTING rule (must match the rule added in start_vm)
+        # Delete PREROUTING rule (must match the rule added)
         iptables_del_cmd = [
             "sudo", "iptables", "-t", "nat", "-D", "PREROUTING",
             "-p", "tcp", "-d", "127.0.0.1", "--dport", str(ssh_port),
@@ -267,7 +267,7 @@ def stop_vm(vm_id):
         ]
         subprocess.run(iptables_del_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        # Delete POSTROUTING rule (must match the rule added in start_vm)
+        # Delete POSTROUTING rule (must match the rule added)
         iptables_del_cmd2 = [
             "sudo", "iptables", "-t", "nat", "-D", "POSTROUTING",
             "-p", "tcp", "-d", vm_ip, "--dport", "22",
@@ -404,7 +404,7 @@ def list_vms_route():
 @app.route('/vm_logs/<int:vm_id>', methods=['GET'])
 def vm_logs(vm_id):
     """Get logs for a specific VM"""
-    log_path = os.path.join(VM_DATA_DIR, f"vm_{vm_id}/vm-{vm_id}.log")
+    log_path = os.path.join(VM_DATA_DIR, f"vm_{vm_id}/vm.log")
     if not os.path.exists(log_path):
         return jsonify({"error": "VM logs not found"}), 404
     
@@ -425,6 +425,45 @@ def test_endpoint():
         "nodejs_image": NODEJS_IMAGE_PATH,
         "python_image": PYTHON_IMAGE_PATH
     })
+
+@app.route('/load_file', methods=['POST'])
+def load_file():
+    data = request.json
+    file_path = data.get("file_path")
+    
+    if not file_path:
+        return jsonify({"error": "Missing file_path"}), 400
+
+    try:
+        with open(file_path, 'r') as f:
+            content = f.read()
+        return jsonify({"content": content})
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
+    except Exception as e:
+        return jsonify({"error": f"Error reading file: {str(e)}"}), 500
+
+@app.route('/edit_file', methods=['POST'])
+def edit_file():
+    data = request.json
+    file_path = data.get("file_path")
+    content = data.get("content")
+    
+    if not file_path or not content:
+        return jsonify({"error": "Missing file_path or content"}), 400
+
+    try:
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
+        # Write the content to the file
+        with open(file_path, 'w') as f:
+            f.write(content)
+        
+        return jsonify({"message": "File saved successfully"})
+    except Exception as e:
+        return jsonify({"error": f"Error saving file: {str(e)}"}), 500
+
 
 if __name__ == '__main__':
     # Print some diagnostic information
