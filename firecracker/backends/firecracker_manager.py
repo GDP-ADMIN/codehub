@@ -4,6 +4,7 @@ import subprocess
 import json
 import shutil
 import uuid
+import time
 
 app = Flask(__name__)
 
@@ -54,7 +55,6 @@ def create_vm_config(vm_id, vm_type):
     vm_directory = os.path.join(VM_DATA_DIR, f"vm_{vm_id}")
     if not os.path.exists(vm_directory):
         os.makedirs(vm_directory)
-    # Determine the image path based on VM type
     final_image_path = None
     if vm_type == "nodejs":
         create_image_script = os.path.abspath("create_images_nodejs.sh")
@@ -65,8 +65,6 @@ def create_vm_config(vm_id, vm_type):
         final_image_path = os.path.join(vm_directory, result_image_name)
         if os.path.exists(result_image_path):
             shutil.move(result_image_path, final_image_path)
-        else:
-            return None  # Image creation failed
     elif vm_type == "python":
         create_image_script = os.path.abspath("create_images_python.sh")
         subprocess.run(["bash", create_image_script, str(vm_id)], check=True)
@@ -76,11 +74,7 @@ def create_vm_config(vm_id, vm_type):
         final_image_path = os.path.join(vm_directory, result_image_name)
         if os.path.exists(result_image_path):
             shutil.move(result_image_path, final_image_path)
-        else:
-            return None  # Image creation failed
-    else:
-        return None  # Unsupported VM type
-    
+
     # Create the VM configuration JSON
     config = {
         "boot-source": {
@@ -123,13 +117,13 @@ def create_vm_config(vm_id, vm_type):
     }
     
     # Write the configuration to a file
-    config_path = os.path.join(VM_DATA_DIR, f"vm_{vm_id}", f"vmm-{vm_id}.json")
+    config_path = os.path.join(VM_DATA_DIR, f"vm_{vm_id}", f"vmm.json")
     config_dir = os.path.dirname(config_path)
     if not os.path.exists(config_dir):
         os.makedirs(config_dir)
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
-    
+
     return config
 
 
@@ -139,21 +133,21 @@ def start_vm(vm_id):
     vm_directory = os.path.join(VM_DATA_DIR, f"vm_{vm_id}")
 
     # Create start script for this VM
-    start_script_path = os.path.join(vm_directory, f"start-vm-{vm_id}.sh")
+    start_script_path = os.path.join(vm_directory, f"start-vm.sh")
     with open(start_script_path, 'w') as f:
         f.write(f"""#!/bin/bash
 # Remove any existing socket file
 sudo rm /tmp/firecracker-{vm_id}.socket || true
 
 # Start firecracker with the VM configuration
-sudo firecracker --api-sock /tmp/firecracker-{vm_id}.socket --config-file {vm_directory}/vmm-{vm_id}.json
+sudo firecracker --api-sock /tmp/firecracker-{vm_id}.socket --config-file {vm_directory}/vmm.json
 """)
     
     # Make the script executable
     os.chmod(start_script_path, 0o755)
     
     # Run the start script in the background
-    subprocess.Popen(f"nohup {start_script_path} > {vm_directory}/vm-{vm_id}.log 2>&1 &", shell=True)
+    subprocess.Popen(f"nohup {start_script_path} > {vm_directory}/vm.log 2>&1 &", shell=True)
     # Add iptables rule to redirect SSH_PORT on host to port 22 on VM IP (tap0), if not already present
     # Calculate VM IP and SSH port
     vm_ip = f"172.16.0.{vm_id}"
@@ -217,6 +211,24 @@ sudo firecracker --api-sock /tmp/firecracker-{vm_id}.socket --config-file {vm_di
         "http_url": http_url
     }
     
+    # Wait until the VM responds to ping (timeout 30s)
+    timeout = 30
+    start_time = time.time()
+    while True:
+        try:
+            result = subprocess.run(
+                ["ping", "-c", "1", "-W", "1", vm_ip],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            if result.returncode == 0:
+                break
+        except Exception:
+            pass
+        if time.time() - start_time > timeout:
+            print(f"Timeout: VM {vm_id} at {vm_ip} did not respond to ping within {timeout} seconds.")
+            break
+        time.sleep(1)
     with open(os.path.join(VM_CONFIG_DIR, f"vm-{vm_id}.json"), 'w') as f:
         json.dump(vm_meta, f, indent=2)
     
@@ -326,10 +338,12 @@ def create_vm_nodejs():
     if not config:
         return jsonify({"error": "Failed to create VM configuration"}), 500
     
-    # # Start the VM
-    # vm_meta = start_vm(vm_id)
-    
-    return jsonify({"status": "created", "vm_id": vm_id, "type": "nodejs"})
+    return jsonify({
+        "status": "created",
+        "vm_id": vm_id,
+        "type": "nodejs",
+        "command_to_start_vm": f"curl -X POST http://localhost:5000/start_vm/{vm_id}"
+    })
 
 @app.route('/create_vm_python', methods=['POST'])
 def create_vm_python():
@@ -343,10 +357,12 @@ def create_vm_python():
     if not config:
         return jsonify({"error": "Failed to create VM configuration"}), 500
     
-    # # Start the VM
-    # vm_meta = start_vm(vm_id)
-    
-    return jsonify({"status": "created", "vm_id": vm_id, "type": "python"})
+    return jsonify({
+        "status": "created",
+        "vm_id": vm_id,
+        "type": "python",
+        "command_to_start_vm": f"curl -X POST http://localhost:5000/start_vm/{vm_id}"
+    })
 
 @app.route('/stop_vm/<int:vm_id>', methods=['POST'])
 def stop_vm_route(vm_id):
@@ -360,8 +376,8 @@ def stop_vm_route(vm_id):
 
 @app.route('/start_vm/<int:vm_id>', methods=['POST'])
 def start_vm_route(vm_id):
-    if not os.path.exists(os.path.join(VM_CONFIG_DIR, f"vm-{vm_id}.json")):
-        return jsonify({"error": "VM not found"}), 404
+    # if not os.path.exists(os.path.join(VM_CONFIG_DIR, f"vm-{vm_id}.json")):
+    #     return jsonify({"error": "VM not found"}), 404
 
     vm_meta = start_vm(vm_id)
     if vm_meta:
@@ -392,9 +408,12 @@ def vm_logs(vm_id):
     if not os.path.exists(log_path):
         return jsonify({"error": "VM logs not found"}), 404
     
-    with open(log_path, 'r') as f:
-        logs = f.read()
-    
+    try:
+        with open(log_path, 'r', encoding='utf-8', errors='replace') as f:
+            log_lines = f.readlines()
+            logs = [line.strip() for line in log_lines if '\u0000' not in line]
+    except Exception as e:
+        return jsonify({"error": f"Failed to read VM logs: {str(e)}"}), 500
     return jsonify({"vm_id": vm_id, "logs": logs})
 
 @app.route('/test', methods=['GET'])

@@ -1,14 +1,14 @@
 #!/bin/bash
-set -e  # Exit immediately if a command exits with a non-zero status
-
+set -xe  # Exit immediately if a command exits with a non-zero status
 # Set Ubuntu version - use the same as in the Dockerfile
 UBUNTU_VERSION="24.04"
 
 # Set variables
-OUTPUT_IMAGE="./ubuntu-${UBUNTU_VERSION}-nodejs.ext4"
+OUTPUT_IMAGE="./ubuntu-${UBUNTU_VERSION}-nodejs_$1.ext4"
 IMAGE_SIZE_MB=1024  # 1GB
 DOCKER_IMAGE="ubuntu-nodejs-temp"
 MOUNT_POINT="/mnt/ext4-image"
+# Validate and set IP address and SSH port based on VM ID
 if [ "$1" -ge 2 ] && [ "$1" -le 254 ]; then
   IP_ADDRESS="172.16.0.$1"
 else
@@ -28,13 +28,30 @@ echo "Using SSH port: $SSH_PORT"
 
 # Clean up any existing files
 echo "Cleaning up previous runs..."
-rm -f "$OUTPUT_IMAGE"
-sudo umount "$MOUNT_POINT" 2>/dev/null || true
+rm -f "$OUTPUT_IMAGE" || true
+sudo umount "$MOUNT_POINT" 2>/dev/null  || true
 sudo rmdir "$MOUNT_POINT" 2>/dev/null || true
-mkdir -p "$MOUNT_POINT"
+mkdir -p "$MOUNT_POINT"  || true
+mkdir -p "user_data/firecracker-node-$1"  || true
+
+echo "Create a simple node HTTP server script"
+
+rsync -avzr index.js "user_data/firecracker-node-$1/index.js"
+
+# Create a directory for user data and write the Python script
+if [ ! -z "$2" ]; then
+ rsync -avzr $2 "user_data/firecracker-node-$1/" || true
+fi
 
 # Create a Dockerfile to build Ubuntu with Node.js
 echo "Creating Dockerfile..."
+# Add files and directories to .dockerignore to exclude them from Docker build context
+cat > .dockerignore <<EOF
+firecracker/backends/vm_configs/
+firecracker/backends/vm-data/*
+firecracker/backends/user_data/*
+EOF
+
 cat > Dockerfile << EOF
 FROM ubuntu:${UBUNTU_VERSION}
 
@@ -62,14 +79,17 @@ RUN apt-get update && \\
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \\
     apt-get install -y nodejs && \\
-    apt-get clean
+    apt-get clean && \\
+    rm -rf /var/lib/apt/lists/*
 
-# Setup a simple test file
-RUN mkdir -p /app
-RUN echo 'console.log("Hello from Node.js on Firecracker!");' > /app/index.js
+RUN npm install -g pm2
 
 # Add inittab and hostname
 RUN echo "firecracker-node" > /etc/hostname >> /sbin/init
+
+# Copy a Python HTTP server script from the current directory
+COPY ./user_data/firecracker-node-$1 /app
+
 
 # Create a more robust init script for Firecracker
 RUN echo '#!/bin/bash' > /sbin/init && \\
@@ -87,6 +107,7 @@ RUN echo '#!/bin/bash' > /sbin/init && \\
     echo '' >> /sbin/init && \\
     echo 'echo "Welcome to Node.js on Firecracker"' >> /sbin/init && \\
     echo 'cd /app' >> /sbin/init && \\
+    echo 'node /app/index.js > /dev/null 2>&1 &' >> /sbin/init && \\
     echo 'echo "You can run the Node.js test script with: node index.js"' >> /sbin/init && \\
     echo '' >> /sbin/init && \\
     echo '# Start sshd for remote access' >> /sbin/init && \\
@@ -111,7 +132,17 @@ RUN useradd -m -s /bin/bash nodeuser && \\
     adduser nodeuser sudo && \\
     echo "nodeuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/nodeuser
 
+RUN useradd -m -s /bin/bash ubuntu || true && \
+  echo "ubuntu:google.com" | chpasswd && \
+  adduser ubuntu sudo && \
+  echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu
+  
 WORKDIR /app
+
+# Expose port 80 for HTTP server
+EXPOSE 80
+
+# # Start the Python HTTP server on port 80 in the background
 CMD ["/bin/bash"]
 EOF
 
@@ -121,15 +152,15 @@ docker build -t "$DOCKER_IMAGE" .
 
 # Create an empty file for the ext4 filesystem
 echo "Creating empty file for EXT4 filesystem..."
-dd if=/dev/zero of="$OUTPUT_IMAGE" bs=1M count="$IMAGE_SIZE_MB"
+dd if=/dev/zero of="$OUTPUT_IMAGE" bs=1M count="$IMAGE_SIZE_MB" > /dev/null 2>&1
 
 # Create an ext4 filesystem
 echo "Formatting the file as EXT4..."
-mkfs.ext4 "$OUTPUT_IMAGE"
+mkfs.ext4 "$OUTPUT_IMAGE" > /dev/null 2>&1
 
 # Mount the filesystem
 echo "Mounting the EXT4 filesystem..."
-sudo mount -o loop "$OUTPUT_IMAGE" "$MOUNT_POINT"
+sudo mount -o loop "$OUTPUT_IMAGE" "$MOUNT_POINT" > /dev/null 2>&1
 
 # Create a container and export its filesystem
 echo "Exporting Docker container filesystem..."

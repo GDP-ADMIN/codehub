@@ -12,8 +12,8 @@
 <body>
     <h1>Firecracker Node.js File Editor</h1>
     <form id="file-form">
-        <label for="file-path">File Path:</label>
-        <input type="text" id="file-path" placeholder="Enter path (e.g., /app/start.js)"><br><br>
+        <label for="vm-id">VM ID:</label>
+        <input type="text" id="vm-id" placeholder="Enter VM ID (e.g., 1234)"><br><br>
         
         <label for="file-content">File Content:</label>
         <textarea id="file-content" placeholder="Enter your Node.js code here..."></textarea><br><br>
@@ -24,7 +24,7 @@
     
     <script>
         document.getElementById('save-button').addEventListener('click', function() {
-            const filePath = document.getElementById('file-path').value;
+            const vmId = document.getElementById('vm-id').value;
             const content = document.getElementById('file-content').value;
 
             fetch('/edit_file', {
@@ -32,7 +32,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ file_path: filePath, content: content })
+                body: JSON.stringify({ vm_id: vmId, content: content })
             })
             .then(response => response.json())
             .then(data => alert(data.message))

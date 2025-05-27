@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e  # Exit immediately if a command exits with a non-zero status
-
+set -xe  # Exit immediately if a command exits with a non-zero status
 # Set Ubuntu version - use the same as in the Dockerfile
 UBUNTU_VERSION="24.04"
 
@@ -9,7 +8,7 @@ OUTPUT_IMAGE="./ubuntu-${UBUNTU_VERSION}-python3_$1.ext4"
 IMAGE_SIZE_MB=1024  # 1GB
 DOCKER_IMAGE="ubuntu-python3-temp"
 MOUNT_POINT="/mnt/ext4-image"
-# Generate a random IP address in the range 172.16.0.2 - 172.16.0.254
+# Validate and set IP address and SSH port based on VM ID
 if [ "$1" -ge 2 ] && [ "$1" -le 254 ]; then
   IP_ADDRESS="172.16.0.$1"
 else
@@ -17,7 +16,7 @@ else
   exit 1
 fi
 
-# Set SSH port based on VM ID (same logic as in Python)
+# Set SSH port based on VM ID (same logic as in node)
 if [ "$1" -ge 1 ] && [ "$1" -le 9 ]; then
   SSH_PORT="2200$1"
 else
@@ -29,13 +28,31 @@ echo "Using SSH port: $SSH_PORT"
 
 # Clean up any existing files
 echo "Cleaning up previous runs..."
-rm -f "$OUTPUT_IMAGE"
-sudo umount "$MOUNT_POINT" 2>/dev/null || true
+rm -f "$OUTPUT_IMAGE" || true
+sudo umount "$MOUNT_POINT" 2>/dev/null  || true
 sudo rmdir "$MOUNT_POINT" 2>/dev/null || true
-mkdir -p "$MOUNT_POINT"
+mkdir -p "$MOUNT_POINT"  || true
+mkdir -p "user_data/firecracker-python-$1"  || true
+
+echo "Create a simple Python HTTP server script"
+
+rsync -avzr init.py "user_data/firecracker-python-$1/init.py"
+
+# Create a directory for user data and write the Python script
+if [ ! -z "$2" ]; then
+ rsync -avzr $2 "user_data/firecracker-python-$1/" || true
+fi
+
 
 # Create a Dockerfile to build Ubuntu with python
 echo "Creating Dockerfile..."
+# Add files and directories to .dockerignore to exclude them from Docker build context
+cat > .dockerignore <<EOF
+firecracker/backends/vm_configs/
+firecracker/backends/vm-data/*
+firecracker/backends/user_data/*
+EOF
+
 cat > Dockerfile << EOF
 FROM ubuntu:${UBUNTU_VERSION}
 
@@ -72,6 +89,9 @@ RUN useradd -m -s /bin/bash ubuntu || true && \
   adduser ubuntu sudo && \
   echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu
   
+# Copy a Python HTTP server script from the current directory
+COPY ./user_data/firecracker-python-$1 /app
+
 # Create a more robust init script for Firecracker
 RUN echo '#!/bin/bash' > /sbin/init && \\
     echo 'mount -t proc none /proc' >> /sbin/init && \\
@@ -89,6 +109,7 @@ RUN echo '#!/bin/bash' > /sbin/init && \\
     echo 'hostname -F /etc/hostname' >> /sbin/init && \\
     echo 'echo "Welcome to python on Firecracker"' >> /sbin/init && \\
     echo 'cd /app' >> /sbin/init && \\
+    echo 'python3 /app/init.py > /dev/null 2>&1 &' >> /sbin/init && \\
     echo 'echo "You can run the python test script with: python --version"' >> /sbin/init && \\
     echo '' >> /sbin/init && \\
     echo '# Start sshd for remote access' >> /sbin/init && \\
@@ -114,6 +135,11 @@ RUN useradd -m -s /bin/bash pythonuser && \\
     echo "pythonuser ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/pythonuser
 
 WORKDIR /app
+
+# Expose port 80 for HTTP server
+EXPOSE 80
+
+# # Start the Python HTTP server on port 80 in the background
 CMD ["/bin/bash"]
 EOF
 
@@ -123,15 +149,15 @@ docker build -t "$DOCKER_IMAGE" .
 
 # Create an empty file for the ext4 filesystem
 echo "Creating empty file for EXT4 filesystem..."
-dd if=/dev/zero of="$OUTPUT_IMAGE" bs=1M count="$IMAGE_SIZE_MB"
+dd if=/dev/zero of="$OUTPUT_IMAGE" bs=1M count="$IMAGE_SIZE_MB" > /dev/null 2>&1
 
 # Create an ext4 filesystem
 echo "Formatting the file as EXT4..."
-mkfs.ext4 "$OUTPUT_IMAGE"
+mkfs.ext4 "$OUTPUT_IMAGE" > /dev/null 2>&1
 
 # Mount the filesystem
 echo "Mounting the EXT4 filesystem..."
-sudo mount -o loop "$OUTPUT_IMAGE" "$MOUNT_POINT"
+sudo mount -o loop "$OUTPUT_IMAGE" "$MOUNT_POINT" > /dev/null 2>&1
 
 # Create a container and export its filesystem
 echo "Exporting Docker container filesystem..."
