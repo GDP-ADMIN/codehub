@@ -61,7 +61,7 @@ sudo iptables -t nat -A POSTROUTING -o "$HOST_IFACE" -j MASQUERADE
 sudo tee ${PWD}/vmm-config.json <<EOF
 {
   "boot-source": {
-    "kernel_image_path": "${PWD}/../vmlinux-6.1.128",
+    "kernel_image_path": "${PWD}/vmlinux-6.1.128",
     "boot_args": "console=ttyS0 reboot=k panic=1 pci=off"
   },
   "drives": [
