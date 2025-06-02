@@ -7,7 +7,7 @@
 # - Ubuntu: 20.04, 22.04, 24.04
 # - Debian: 11 (Bullseye), 12 (Bookworm)
 # - RHEL: 8.x, 9.x
-# - Fedora: 36, 37, 38, 39, 40
+# - Fedora: 36 and later (including 37, 38, 39, 40, 41, 42)
 # - CentOS: 8.x, 9.x
 # - macOS: 11.x (Big Sur) and later
 # - Windows: WSL2 with Ubuntu/Debian/RHEL/Fedora

@@ -1,0 +1,185 @@
+name: Test Podman Installer
+
+on:
+  push:
+    paths:
+      - "devsecops/install_podman.sh"
+  pull_request:
+    paths:
+      - "devsecops/install_podman.sh"
+
+jobs:
+  ubuntu-tests:
+    name: Ubuntu ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["20.04", "22.04", "24.04"]
+
+    container:
+      image: ubuntu:${{ matrix.version }}
+
+    steps:
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y curl sudo git
+
+      - name: Run Podman Installer
+        run: |
+          mkdir -p /tmp/repo
+          cd /tmp/repo
+          curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/devsecops/install_podman.sh
+          chmod +x install_podman.sh
+          ./install_podman.sh
+
+      - name: Validate Podman rootless mode
+        run: |
+          if podman info | grep -q "rootless: true"; then
+            echo "✅ Rootless mode confirmed"
+          else
+            echo "❌ Rootless mode NOT enabled"
+            podman info || true
+            exit 1
+          fi
+
+  debian-tests:
+    name: Debian ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["11", "12"]
+
+    container:
+      image: debian:${{ matrix.version }}
+
+    steps:
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y curl sudo git
+
+      - name: Run Podman Installer
+        run: |
+          mkdir -p /tmp/repo
+          cd /tmp/repo
+          curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/devsecops/install_podman.sh
+          chmod +x install_podman.sh
+          ./install_podman.sh
+
+      - name: Validate Podman rootless mode
+        run: |
+          if podman info | grep -q "rootless: true"; then
+            echo "✅ Rootless mode confirmed"
+          else
+            echo "❌ Rootless mode NOT enabled"
+            podman info || true
+            exit 1
+          fi
+
+  fedora-tests:
+    name: Fedora ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["38", "39", "40"]
+
+    container:
+      image: fedora:${{ matrix.version }}
+
+    steps:
+      - name: Install dependencies
+        run: dnf install -y curl sudo git
+
+      - name: Run Podman Installer
+        run: |
+          mkdir -p /tmp/repo
+          cd /tmp/repo
+          curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/devsecops/install_podman.sh
+          chmod +x install_podman.sh
+          ./install_podman.sh
+
+      - name: Validate Podman rootless mode
+        run: |
+          if podman info | grep -q "rootless: true"; then
+            echo "✅ Rootless mode confirmed"
+          else
+            echo "❌ Rootless mode NOT enabled"
+            podman info || true
+            exit 1
+          fi
+
+  centos-tests:
+    name: CentOS ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["8", "9"]
+
+    container:
+      image: quay.io/centos/centos:${{ matrix.version }}
+
+    steps:
+      - name: Install dependencies
+        run: yum install -y curl sudo git
+
+      - name: Run Podman Installer
+        run: |
+          mkdir -p /tmp/repo
+          cd /tmp/repo
+          curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/devsecops/install_podman.sh
+          chmod +x install_podman.sh
+          ./install_podman.sh
+
+      - name: Validate Podman rootless mode
+        run: |
+          if podman info | grep -q "rootless: true"; then
+            echo "✅ Rootless mode confirmed"
+          else
+            echo "❌ Rootless mode NOT enabled"
+            podman info || true
+            exit 1
+          fi
+
+  macos-test:
+    name: macOS 11 (Big Sur)
+    runs-on: macos-11
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Run Podman Installer
+        run: |
+          chmod +x devsecops/install_podman.sh
+          ./devsecops/install_podman.sh
+
+      - name: Validate Podman rootless mode
+        run: |
+          if podman info | grep -q "rootless: true"; then
+            echo "✅ Rootless mode confirmed"
+          else
+            echo "❌ Rootless mode NOT enabled"
+            podman info || true
+            exit 1
+          fi
+
+  windows-test:
+    name: Windows (Git Bash)
+    runs-on: windows-latest
+    shell: bash
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Run Podman Installer
+        run: |
+          chmod +x devsecops/install_podman.sh
+          ./devsecops/install_podman.sh
+
+      - name: Validate Podman rootless mode
+        run: |
+          if podman info | grep -q "rootless: true"; then
+            echo "✅ Rootless mode confirmed"
+          else
+            echo "❌ Rootless mode NOT enabled"
+            podman info || true
+            exit 1
+          fi
