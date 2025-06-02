@@ -1,4 +1,4 @@
-name: Test Basic
+name: Test Podman Installer
 
 on:
   push:
@@ -7,9 +7,40 @@ on:
     branches: [ main, f/add-podman ]
 
 jobs:
-  test:
-    name: Test
+  ubuntu-test:
+    name: Ubuntu 22.04
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-      - name: Hello World
-        run: echo "Hello World"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl git uidmap slirp4netns fuse-overlayfs
+
+      - name: Configure rootless
+        run: |
+          echo "$USER:100000:65536" | sudo tee -a /etc/subuid
+          echo "$USER:100000:65536" | sudo tee -a /etc/subgid
+          mkdir -p ~/.config/containers
+          mkdir -p ~/.local/share/containers/storage
+
+      - name: Run Podman Installer
+        run: |
+          chmod +x devsecops/install_podman.sh
+          yes | ./devsecops/install_podman.sh
+
+      - name: Validate Podman rootless mode
+        run: |
+          if podman info | grep -q "rootless: true"; then
+            echo "✅ Rootless mode confirmed"
+          else
+            echo "❌ Rootless mode NOT enabled"
+            podman info || true
+            exit 1
+          fi
