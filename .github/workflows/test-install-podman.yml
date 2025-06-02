@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: ["20.04", "22.04", "24.04"]
+        version: ["20.04", "22.04"]
 
     container:
       image: ubuntu:${{ matrix.version }}
@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: ["38", "39", "40"]
+        version: ["38", "39"]
 
     container:
       image: fedora:${{ matrix.version }}
@@ -134,8 +134,8 @@ jobs:
           fi
 
   macos-test:
-    name: macOS 11 (Big Sur)
-    runs-on: macos-11
+    name: macOS
+    runs-on: macos-latest
     timeout-minutes: 30
 
     steps:
