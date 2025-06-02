@@ -15,15 +15,19 @@ jobs:
     strategy:
       matrix:
         version: ["20.04", "22.04"]
+      fail-fast: false
 
     container:
       image: ubuntu:${{ matrix.version }}
+      options: --privileged
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: apt-get update && apt-get install -y sudo curl git
+        run: |
+          apt-get update
+          apt-get install -y sudo curl git
 
       - name: Run Podman Installer
         run: |
@@ -46,15 +50,19 @@ jobs:
     strategy:
       matrix:
         version: ["11", "12"]
+      fail-fast: false
 
     container:
       image: debian:${{ matrix.version }}
+      options: --privileged
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: apt-get update && apt-get install -y sudo curl git
+        run: |
+          apt-get update
+          apt-get install -y sudo curl git
 
       - name: Run Podman Installer
         run: |
@@ -77,15 +85,19 @@ jobs:
     strategy:
       matrix:
         version: ["38", "39"]
+      fail-fast: false
 
     container:
       image: fedora:${{ matrix.version }}
+      options: --privileged
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: dnf install -y sudo curl git
+        run: |
+          dnf update -y
+          dnf install -y sudo curl git
 
       - name: Run Podman Installer
         run: |
@@ -108,15 +120,19 @@ jobs:
     strategy:
       matrix:
         version: ["8", "9"]
+      fail-fast: false
 
     container:
       image: quay.io/centos/centos:stream${{ matrix.version }}
+      options: --privileged
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: yum install -y sudo curl git
+        run: |
+          yum update -y
+          yum install -y sudo curl git
 
       - name: Run Podman Installer
         run: |
@@ -139,7 +155,7 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run Podman Installer
         run: |
@@ -162,7 +178,7 @@ jobs:
     shell: bash
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run Podman Installer
         run: |
