@@ -3,6 +3,15 @@
 # Universal Podman Installer Script
 # Supports macOS, Ubuntu/Debian, and Windows (via WSL/Git Bash)
 
+# Compatibility List:
+# - Ubuntu: 20.04, 22.04, 24.04
+# - Debian: 11 (Bullseye), 12 (Bookworm)
+# - RHEL: 8.x, 9.x
+# - Fedora: 36, 37, 38, 39, 40
+# - CentOS: 8.x, 9.x
+# - macOS: 11.x (Big Sur) and later
+# - Windows: WSL2 with Ubuntu/Debian/RHEL/Fedora
+
 set -e
 
 # Colors for output
@@ -245,6 +254,41 @@ install_podman_ubuntu() {
     log_success "Podman installed successfully on Ubuntu/Debian with rootless support and Docker CLI compatibility!"
 }
 
+install_podman_rhel() {
+    log_info "Installing Podman on RHEL/Fedora/CentOS..."
+
+    # Check if Docker CLI is installed and remove it
+    if rpm -q docker-ce-cli >/dev/null 2>&1; then
+        log_info "Removing existing Docker CLI to avoid conflicts..."
+        sudo dnf remove -y docker-ce-cli
+        sudo dnf autoremove -y
+    fi
+
+    # Install required packages
+    sudo dnf install -y podman podman-docker slirp4netns fuse-overlayfs
+
+    # Add Docker alias if it doesn't exist
+    if ! grep -q "alias docker=podman" ~/.bashrc; then
+        echo "alias docker=podman" >> ~/.bashrc
+        log_info "Added 'docker=podman' alias to ~/.bashrc"
+    fi
+
+    # Configure SELinux if present
+    if command_exists sestatus; then
+        log_info "Configuring SELinux for Podman..."
+        sudo setsebool -P container_manage_cgroup 1
+    fi
+
+    configure_rootless
+
+    if ! fix_storage_conflicts; then
+        log_error "Storage conflicts detected. Please run the script again after manual cleanup."
+        exit 1
+    fi
+
+    log_success "Podman installed successfully on RHEL/Fedora/CentOS with rootless support and Docker CLI compatibility!"
+}
+
 verify_installation() {
     log_info "Verifying Podman installation..."
 
@@ -311,12 +355,7 @@ main() {
         "macos") install_podman_macos ;;
         "ubuntu") install_podman_ubuntu ;;
         "windows") install_podman_windows ;;
-        "rhel")
-            sudo dnf install -y podman podman-docker slirp4netns fuse-overlayfs
-            configure_rootless
-            fix_storage_conflicts || exit 1
-            log_success "Podman installed successfully with rootless support!"
-            ;;
+        "rhel") install_podman_rhel ;;
         *)
             log_error "Unsupported OS: $OS"
             exit 1
