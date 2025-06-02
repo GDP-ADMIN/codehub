@@ -80,25 +80,25 @@ jobs:
           
           # Configure containers.conf for rootless
           cat > ~/.config/containers/containers.conf << 'EOF'
-[containers]
-rootless = true
+          [containers]
+          rootless = true
 
-[engine]
-cgroup_manager = "cgroupfs"
-events_logger = "file"
-runtime = "crun"
+          [engine]
+          cgroup_manager = "cgroupfs"
+          events_logger = "file"
+          runtime = "crun"
 
-[network]
-network_backend = "netavark"
-EOF
+          [network]
+          network_backend = "netavark"
+          EOF
           
           # Configure storage.conf
           cat > ~/.config/containers/storage.conf << EOF
-[storage]
-driver = "overlay"
-runroot = "/run/user/$(id -u)/containers"
-graphroot = "/home/$(whoami)/.local/share/containers/storage"
-EOF
+          [storage]
+          driver = "overlay"
+          runroot = "/run/user/$(id -u)/containers"
+          graphroot = "/home/$(whoami)/.local/share/containers/storage"
+          EOF
           
           # Set proper permissions
           chmod 600 ~/.config/containers/containers.conf
@@ -154,25 +154,25 @@ EOF
           
           # Configure containers.conf for rootless
           cat > ~/.config/containers/containers.conf << 'EOF'
-[containers]
-rootless = true
+          [containers]
+          rootless = true
 
-[engine]
-cgroup_manager = "cgroupfs"
-events_logger = "file"
-runtime = "crun"
+          [engine]
+          cgroup_manager = "cgroupfs"
+          events_logger = "file"
+          runtime = "crun"
 
-[network]
-network_backend = "netavark"
-EOF
+          [network]
+          network_backend = "netavark"
+          EOF
           
           # Configure storage.conf
           cat > ~/.config/containers/storage.conf << EOF
-[storage]
-driver = "overlay"
-runroot = "/run/user/$(id -u)/containers"
-graphroot = "/home/$(whoami)/.local/share/containers/storage"
-EOF
+          [storage]
+          driver = "overlay"
+          runroot = "/run/user/$(id -u)/containers"
+          graphroot = "/home/$(whoami)/.local/share/containers/storage"
+          EOF
           
           # Set proper permissions
           chmod 600 ~/.config/containers/containers.conf
