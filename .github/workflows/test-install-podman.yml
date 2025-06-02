@@ -20,16 +20,15 @@ jobs:
       image: ubuntu:${{ matrix.version }}
 
     steps:
+      - uses: actions/checkout@v3
+
       - name: Install dependencies
-        run: apt-get update && apt-get install -y curl sudo git
+        run: apt-get update && apt-get install -y sudo curl git
 
       - name: Run Podman Installer
         run: |
-          mkdir -p /tmp/repo
-          cd /tmp/repo
-          curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/devsecops/install_podman.sh
-          chmod +x install_podman.sh
-          ./install_podman.sh
+          chmod +x devsecops/install_podman.sh
+          ./devsecops/install_podman.sh
 
       - name: Validate Podman rootless mode
         run: |
@@ -52,16 +51,15 @@ jobs:
       image: debian:${{ matrix.version }}
 
     steps:
+      - uses: actions/checkout@v3
+
       - name: Install dependencies
-        run: apt-get update && apt-get install -y curl sudo git
+        run: apt-get update && apt-get install -y sudo curl git
 
       - name: Run Podman Installer
         run: |
-          mkdir -p /tmp/repo
-          cd /tmp/repo
-          curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/devsecops/install_podman.sh
-          chmod +x install_podman.sh
-          ./install_podman.sh
+          chmod +x devsecops/install_podman.sh
+          ./devsecops/install_podman.sh
 
       - name: Validate Podman rootless mode
         run: |
@@ -84,16 +82,15 @@ jobs:
       image: fedora:${{ matrix.version }}
 
     steps:
+      - uses: actions/checkout@v3
+
       - name: Install dependencies
-        run: dnf install -y curl sudo git
+        run: dnf install -y sudo curl git
 
       - name: Run Podman Installer
         run: |
-          mkdir -p /tmp/repo
-          cd /tmp/repo
-          curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/devsecops/install_podman.sh
-          chmod +x install_podman.sh
-          ./install_podman.sh
+          chmod +x devsecops/install_podman.sh
+          ./devsecops/install_podman.sh
 
       - name: Validate Podman rootless mode
         run: |
@@ -113,19 +110,18 @@ jobs:
         version: ["8", "9"]
 
     container:
-      image: quay.io/centos/centos:${{ matrix.version }}
+      image: quay.io/centos/centos:stream${{ matrix.version }}
 
     steps:
+      - uses: actions/checkout@v3
+
       - name: Install dependencies
-        run: yum install -y curl sudo git
+        run: yum install -y sudo curl git
 
       - name: Run Podman Installer
         run: |
-          mkdir -p /tmp/repo
-          cd /tmp/repo
-          curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/devsecops/install_podman.sh
-          chmod +x install_podman.sh
-          ./install_podman.sh
+          chmod +x devsecops/install_podman.sh
+          ./devsecops/install_podman.sh
 
       - name: Validate Podman rootless mode
         run: |
@@ -140,10 +136,10 @@ jobs:
   macos-test:
     name: macOS 11 (Big Sur)
     runs-on: macos-11
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Run Podman Installer
         run: |
@@ -166,8 +162,7 @@ jobs:
     shell: bash
 
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Run Podman Installer
         run: |
