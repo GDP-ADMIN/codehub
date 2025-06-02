@@ -2,9 +2,9 @@ name: Test Basic
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, f/add-podman ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, f/add-podman ]
 
 jobs:
   test:
