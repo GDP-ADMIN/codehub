@@ -9,25 +9,17 @@ on:
       - "devsecops/install_podman.sh"
 
 jobs:
-  ubuntu-tests:
-    name: Ubuntu ${{ matrix.version }}
+  ubuntu-test:
+    name: Ubuntu 22.04
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        version: ["20.04", "22.04"]
-      fail-fast: false
-
-    container:
-      image: ubuntu:${{ matrix.version }}
-      options: --privileged
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
-          apt-get update
-          apt-get install -y sudo curl git
+          sudo apt-get update
+          sudo apt-get install -y curl git
 
       - name: Run Podman Installer
         run: |

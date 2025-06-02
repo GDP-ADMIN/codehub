@@ -12,7 +12,6 @@
 # - macOS: 11.x (Big Sur) and later
 # - Windows: WSL2 with Ubuntu/Debian/RHEL/Fedora
 
-
 set -e
 
 # Colors for output
