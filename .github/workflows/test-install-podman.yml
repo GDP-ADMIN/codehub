@@ -63,14 +63,43 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y sudo curl git uidmap slirp4netns fuse-overlayfs
+          apt-get install -y sudo curl git shadow-utils slirp4netns fuse-overlayfs
 
       - name: Configure rootless
         run: |
+          # Add user to subuid and subgid
           echo "$USER:100000:65536" | sudo tee -a /etc/subuid
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
+          
+          # Create necessary directories
           mkdir -p ~/.config/containers
           mkdir -p ~/.local/share/containers/storage
+          
+          # Configure containers.conf for rootless
+          cat > ~/.config/containers/containers.conf << 'EOF'
+[containers]
+rootless = true
+
+[engine]
+cgroup_manager = "cgroupfs"
+events_logger = "file"
+runtime = "crun"
+
+[network]
+network_backend = "netavark"
+EOF
+          
+          # Configure storage.conf
+          cat > ~/.config/containers/storage.conf << EOF
+[storage]
+driver = "overlay"
+runroot = "/run/user/$(id -u)/containers"
+graphroot = "/home/$(whoami)/.local/share/containers/storage"
+EOF
+          
+          # Set proper permissions
+          chmod 600 ~/.config/containers/containers.conf
+          chmod 600 ~/.config/containers/storage.conf
 
       - name: Run Podman Installer
         run: |
@@ -105,14 +134,43 @@ jobs:
       - name: Install dependencies
         run: |
           dnf update -y
-          dnf install -y sudo curl git uidmap slirp4netns fuse-overlayfs
+          dnf install -y sudo curl git shadow-utils slirp4netns fuse-overlayfs
 
       - name: Configure rootless
         run: |
+          # Add user to subuid and subgid
           echo "$USER:100000:65536" | sudo tee -a /etc/subuid
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
+          
+          # Create necessary directories
           mkdir -p ~/.config/containers
           mkdir -p ~/.local/share/containers/storage
+          
+          # Configure containers.conf for rootless
+          cat > ~/.config/containers/containers.conf << 'EOF'
+[containers]
+rootless = true
+
+[engine]
+cgroup_manager = "cgroupfs"
+events_logger = "file"
+runtime = "crun"
+
+[network]
+network_backend = "netavark"
+EOF
+          
+          # Configure storage.conf
+          cat > ~/.config/containers/storage.conf << EOF
+[storage]
+driver = "overlay"
+runroot = "/run/user/$(id -u)/containers"
+graphroot = "/home/$(whoami)/.local/share/containers/storage"
+EOF
+          
+          # Set proper permissions
+          chmod 600 ~/.config/containers/containers.conf
+          chmod 600 ~/.config/containers/storage.conf
 
       - name: Run Podman Installer
         run: |
