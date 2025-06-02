@@ -12,6 +12,9 @@ jobs:
   ubuntu-test:
     name: Ubuntu 22.04
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
@@ -19,12 +22,19 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl git
+          sudo apt-get install -y curl git uidmap slirp4netns fuse-overlayfs
+
+      - name: Configure rootless
+        run: |
+          echo "$USER:100000:65536" | sudo tee -a /etc/subuid
+          echo "$USER:100000:65536" | sudo tee -a /etc/subgid
+          mkdir -p ~/.config/containers
+          mkdir -p ~/.local/share/containers/storage
 
       - name: Run Podman Installer
         run: |
           chmod +x devsecops/install_podman.sh
-          ./devsecops/install_podman.sh
+          yes | ./devsecops/install_podman.sh
 
       - name: Validate Podman rootless mode
         run: |
