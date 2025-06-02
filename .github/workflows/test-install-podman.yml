@@ -25,39 +25,9 @@ jobs:
 
       - name: Configure rootless
         run: |
-          # Clean up any existing Podman storage
-          rm -rf ~/.local/share/containers/* ~/.config/containers/* /run/user/$(id -u)/containers 2>/dev/null || true
-          sudo rm -rf /var/lib/containers/* 2>/dev/null || true
-          
-          # Configure user mapping
+          # Add user to subuid and subgid
           echo "$USER:100000:65536" | sudo tee -a /etc/subuid
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
-          
-          # Create necessary directories
-          mkdir -p ~/.config/containers
-          mkdir -p ~/.local/share/containers/storage
-          
-          # Configure containers.conf for rootless
-          echo '[containers]' > ~/.config/containers/containers.conf
-          echo 'rootless = true' >> ~/.config/containers/containers.conf
-          echo '' >> ~/.config/containers/containers.conf
-          echo '[engine]' >> ~/.config/containers/containers.conf
-          echo 'cgroup_manager = "cgroupfs"' >> ~/.config/containers/containers.conf
-          echo 'events_logger = "file"' >> ~/.config/containers/containers.conf
-          echo 'runtime = "crun"' >> ~/.config/containers/containers.conf
-          echo '' >> ~/.config/containers/containers.conf
-          echo '[network]' >> ~/.config/containers/containers.conf
-          echo 'network_backend = "netavark"' >> ~/.config/containers/containers.conf
-          
-          # Configure storage.conf
-          echo '[storage]' > ~/.config/containers/storage.conf
-          echo 'driver = "overlay"' >> ~/.config/containers/storage.conf
-          echo "runroot = \"/run/user/$(id -u)/containers\"" >> ~/.config/containers/storage.conf
-          echo "graphroot = \"/home/$(whoami)/.local/share/containers/storage\"" >> ~/.config/containers/storage.conf
-          
-          # Set proper permissions
-          chmod 600 ~/.config/containers/containers.conf
-          chmod 600 ~/.config/containers/storage.conf
 
       - name: Run Podman Installer
         run: |
@@ -99,39 +69,9 @@ jobs:
 
       - name: Configure rootless
         run: |
-          # Clean up any existing Podman storage
-          rm -rf ~/.local/share/containers/* ~/.config/containers/* /run/user/$(id -u)/containers 2>/dev/null || true
-          sudo rm -rf /var/lib/containers/* 2>/dev/null || true
-          
-          # Configure user mapping
+          # Add user to subuid and subgid
           echo "$USER:100000:65536" | sudo tee -a /etc/subuid
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
-          
-          # Create necessary directories
-          mkdir -p ~/.config/containers
-          mkdir -p ~/.local/share/containers/storage
-          
-          # Configure containers.conf for rootless
-          echo '[containers]' > ~/.config/containers/containers.conf
-          echo 'rootless = true' >> ~/.config/containers/containers.conf
-          echo '' >> ~/.config/containers/containers.conf
-          echo '[engine]' >> ~/.config/containers/containers.conf
-          echo 'cgroup_manager = "cgroupfs"' >> ~/.config/containers/containers.conf
-          echo 'events_logger = "file"' >> ~/.config/containers/containers.conf
-          echo 'runtime = "crun"' >> ~/.config/containers/containers.conf
-          echo '' >> ~/.config/containers/containers.conf
-          echo '[network]' >> ~/.config/containers/containers.conf
-          echo 'network_backend = "netavark"' >> ~/.config/containers/containers.conf
-          
-          # Configure storage.conf
-          echo '[storage]' > ~/.config/containers/storage.conf
-          echo 'driver = "overlay"' >> ~/.config/containers/storage.conf
-          echo "runroot = \"/run/user/$(id -u)/containers\"" >> ~/.config/containers/storage.conf
-          echo "graphroot = \"/home/$(whoami)/.local/share/containers/storage\"" >> ~/.config/containers/storage.conf
-          
-          # Set proper permissions
-          chmod 600 ~/.config/containers/containers.conf
-          chmod 600 ~/.config/containers/storage.conf
 
       - name: Run Podman Installer
         run: |
@@ -169,43 +109,13 @@ jobs:
       - name: Install dependencies
         run: |
           dnf update -y
-          dnf install -y sudo curl git shadow-utils slirp4netns fuse-overlayfs dbus
+          dnf install -y sudo curl git shadow-utils slirp4netns fuse-overlayfs dbus-user-session
 
       - name: Configure rootless
         run: |
-          # Clean up any existing Podman storage
-          rm -rf ~/.local/share/containers/* ~/.config/containers/* /run/user/$(id -u)/containers 2>/dev/null || true
-          sudo rm -rf /var/lib/containers/* 2>/dev/null || true
-          
-          # Configure user mapping
+          # Add user to subuid and subgid
           echo "$USER:100000:65536" | sudo tee -a /etc/subuid
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
-          
-          # Create necessary directories
-          mkdir -p ~/.config/containers
-          mkdir -p ~/.local/share/containers/storage
-          
-          # Configure containers.conf for rootless
-          echo '[containers]' > ~/.config/containers/containers.conf
-          echo 'rootless = true' >> ~/.config/containers/containers.conf
-          echo '' >> ~/.config/containers/containers.conf
-          echo '[engine]' >> ~/.config/containers/containers.conf
-          echo 'cgroup_manager = "cgroupfs"' >> ~/.config/containers/containers.conf
-          echo 'events_logger = "file"' >> ~/.config/containers/containers.conf
-          echo 'runtime = "crun"' >> ~/.config/containers/containers.conf
-          echo '' >> ~/.config/containers/containers.conf
-          echo '[network]' >> ~/.config/containers/containers.conf
-          echo 'network_backend = "netavark"' >> ~/.config/containers/containers.conf
-          
-          # Configure storage.conf
-          echo '[storage]' > ~/.config/containers/storage.conf
-          echo 'driver = "overlay"' >> ~/.config/containers/storage.conf
-          echo "runroot = \"/run/user/$(id -u)/containers\"" >> ~/.config/containers/storage.conf
-          echo "graphroot = \"/home/$(whoami)/.local/share/containers/storage\"" >> ~/.config/containers/storage.conf
-          
-          # Set proper permissions
-          chmod 600 ~/.config/containers/containers.conf
-          chmod 600 ~/.config/containers/storage.conf
 
       - name: Run Podman Installer
         run: |
