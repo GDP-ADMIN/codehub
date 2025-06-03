@@ -208,32 +208,23 @@ runtime = "crun"
 
 [network]
 network_backend = "netavark"
-
-[crio]
-cgroup_manager = "cgroupfs"
 EOF
-    log_info "Created containers.conf with cgroupfs configuration"
+        log_info "Created containers.conf for rootless configuration"
+    fi
 
-    # Create fresh storage.conf with overlay driver
-    cat > ~/.config/containers/storage.conf << EOF
+    if [ ! -f ~/.config/containers/storage.conf ]; then
+        cat > ~/.config/containers/storage.conf << EOF
 [storage]
 driver = "overlay"
 runroot = "/run/user/$(id -u)/containers"
 graphroot = "/home/$(whoami)/.local/share/containers/storage"
-
-[storage.options]
-mount_program = "/usr/bin/fuse-overlayfs"
 EOF
-    log_info "Created storage.conf with overlay driver"
+        log_info "Created storage.conf with overlay driver"
+    fi
 
     # Ensure proper permissions on config files
     chmod 600 ~/.config/containers/containers.conf
     chmod 600 ~/.config/containers/storage.conf
-
-    # Create necessary directories for overlay storage
-    mkdir -p ~/.local/share/containers/storage/overlay
-    mkdir -p ~/.local/share/containers/storage/overlay-layers
-    mkdir -p ~/.local/share/containers/storage/overlay-images
 
     log_success "Rootless configuration completed"
 }
