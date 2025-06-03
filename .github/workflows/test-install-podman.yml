@@ -128,6 +128,18 @@ jobs:
           echo 'export XDG_RUNTIME_DIR="/run/user/$(id -u)"' >> ~/.bashrc
           echo 'export CONTAINERS_STORAGE_CONF="~/.config/containers/storage.conf"' >> ~/.bashrc
           . ~/.bashrc
+          # Ensure proper permissions for runtime directory
+          mkdir -p /run/user/$(id -u)
+          chmod 700 /run/user/$(id -u)
+          # Configure Podman for rootless
+          mkdir -p ~/.config/containers
+          cat > ~/.config/containers/containers.conf << EOF
+          [containers]
+          netns="slirp4netns"
+          [engine]
+          cgroup_manager = "cgroupfs"
+          events_logger = "file"
+          EOF
 
       - name: Run Podman Installer
         run: |
