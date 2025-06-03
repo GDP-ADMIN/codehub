@@ -18,6 +18,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Clean up existing Podman
+        run: |
+          sudo apt-get remove -y podman || true
+          sudo rm -rf /var/lib/containers /var/lib/cni /var/lib/podman || true
+          sudo rm -rf ~/.local/share/containers || true
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -28,6 +34,8 @@ jobs:
           # Add user to subuid and subgid
           echo "$USER:100000:65536" | sudo tee -a /etc/subuid
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
+          # Ensure proper permissions
+          sudo chmod 644 /etc/subuid /etc/subgid
 
       - name: Run Podman Installer
         run: |
@@ -56,11 +64,17 @@ jobs:
 
     container:
       image: debian:12
-      options: --privileged
+      options: --privileged --security-opt seccomp=unconfined
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Clean up existing Podman
+        run: |
+          apt-get remove -y podman || true
+          rm -rf /var/lib/containers /var/lib/cni /var/lib/podman || true
+          rm -rf ~/.local/share/containers || true
 
       - name: Install dependencies
         run: |
@@ -72,6 +86,11 @@ jobs:
           # Add user to subuid and subgid
           echo "$USER:100000:65536" | sudo tee -a /etc/subuid
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
+          # Ensure proper permissions
+          chmod 644 /etc/subuid /etc/subgid
+          # Configure user namespace
+          echo "user.max_user_namespaces=28633" | sudo tee -a /etc/sysctl.conf
+          sudo sysctl -p
 
       - name: Run Podman Installer
         run: |
@@ -100,11 +119,17 @@ jobs:
 
     container:
       image: fedora:39
-      options: --privileged
+      options: --privileged --security-opt seccomp=unconfined
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Clean up existing Podman
+        run: |
+          dnf remove -y podman || true
+          rm -rf /var/lib/containers /var/lib/cni /var/lib/podman || true
+          rm -rf ~/.local/share/containers || true
 
       - name: Install dependencies
         run: |
@@ -116,6 +141,11 @@ jobs:
           # Add user to subuid and subgid
           echo "$USER:100000:65536" | sudo tee -a /etc/subuid
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
+          # Ensure proper permissions
+          chmod 644 /etc/subuid /etc/subgid
+          # Configure user namespace
+          echo "user.max_user_namespaces=28633" | sudo tee -a /etc/sysctl.conf
+          sudo sysctl -p
 
       - name: Run Podman Installer
         run: |
