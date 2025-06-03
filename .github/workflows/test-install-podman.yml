@@ -79,7 +79,7 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y sudo curl git uidmap slirp4netns fuse-overlayfs dbus-user-session
+          apt-get install -y sudo curl git uidmap slirp4netns fuse-overlayfs dbus-user-session procps
 
       - name: Configure rootless
         run: |
@@ -134,7 +134,7 @@ jobs:
       - name: Install dependencies
         run: |
           dnf update -y
-          dnf install -y sudo curl git shadow-utils slirp4netns fuse-overlayfs dbus-user-session
+          dnf install -y sudo curl git shadow-utils slirp4netns fuse-overlayfs dbus-daemon
 
       - name: Configure rootless
         run: |
