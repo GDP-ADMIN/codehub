@@ -36,6 +36,26 @@ jobs:
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
           # Ensure proper permissions
           sudo chmod 644 /etc/subuid /etc/subgid
+          # Configure user namespace
+          echo "user.max_user_namespaces=28633" | sudo tee -a /etc/sysctl.conf
+          sudo sysctl -p
+          # Set up user namespace
+          sudo sysctl -w kernel.unprivileged_userns_clone=1
+          # Create necessary directories
+          mkdir -p ~/.config/containers
+          # Configure storage
+          cat > ~/.config/containers/storage.conf << EOF
+          [storage]
+          driver = "overlay"
+          runroot = "/run/user/$(id -u)/containers"
+          graphroot = "~/.local/share/containers/storage"
+          [storage.options]
+          mount_program = "/usr/bin/fuse-overlayfs"
+          EOF
+          # Set environment variables
+          echo 'export XDG_RUNTIME_DIR="/run/user/$(id -u)"' >> ~/.bashrc
+          echo 'export CONTAINERS_STORAGE_CONF="~/.config/containers/storage.conf"' >> ~/.bashrc
+          source ~/.bashrc
 
       - name: Run Podman Installer
         run: |
@@ -91,6 +111,23 @@ jobs:
           # Configure user namespace
           echo "user.max_user_namespaces=28633" | sudo tee -a /etc/sysctl.conf
           sudo sysctl -p
+          # Set up user namespace
+          sudo sysctl -w kernel.unprivileged_userns_clone=1
+          # Create necessary directories
+          mkdir -p ~/.config/containers
+          # Configure storage
+          cat > ~/.config/containers/storage.conf << EOF
+          [storage]
+          driver = "overlay"
+          runroot = "/run/user/$(id -u)/containers"
+          graphroot = "~/.local/share/containers/storage"
+          [storage.options]
+          mount_program = "/usr/bin/fuse-overlayfs"
+          EOF
+          # Set environment variables
+          echo 'export XDG_RUNTIME_DIR="/run/user/$(id -u)"' >> ~/.bashrc
+          echo 'export CONTAINERS_STORAGE_CONF="~/.config/containers/storage.conf"' >> ~/.bashrc
+          source ~/.bashrc
 
       - name: Run Podman Installer
         run: |
@@ -153,6 +190,21 @@ jobs:
           sudo sysctl -w kernel.unprivileged_userns_clone=1
           # Verify user namespace is working
           test -e /proc/self/ns/user || (echo "User namespace not available" && exit 1)
+          # Create necessary directories
+          mkdir -p ~/.config/containers
+          # Configure storage
+          cat > ~/.config/containers/storage.conf << EOF
+          [storage]
+          driver = "overlay"
+          runroot = "/run/user/$(id -u)/containers"
+          graphroot = "~/.local/share/containers/storage"
+          [storage.options]
+          mount_program = "/usr/bin/fuse-overlayfs"
+          EOF
+          # Set environment variables
+          echo 'export XDG_RUNTIME_DIR="/run/user/$(id -u)"' >> ~/.bashrc
+          echo 'export CONTAINERS_STORAGE_CONF="~/.config/containers/storage.conf"' >> ~/.bashrc
+          source ~/.bashrc
 
       - name: Run Podman Installer
         run: |
