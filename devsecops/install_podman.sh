@@ -12,6 +12,15 @@
 # - macOS: 11.x (Big Sur) and later
 # - Windows: WSL2 with Ubuntu/Debian/RHEL/Fedora
 
+# WARNING: This script will remove existing Docker CLI if present to avoid conflicts with Podman.
+# This is necessary because Podman provides Docker CLI compatibility and having both installed
+# can cause conflicts. Your Docker containers and images will not be affected, only the CLI.
+
+# One-Click Installation:
+# curl -sSL https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | bash
+# or
+# wget -qO- https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | bash
+
 set -e
 
 # Colors for output
@@ -67,27 +76,18 @@ fix_storage_conflicts() {
 
     if podman info 2>&1 | grep -q "User-selected graph driver.*overwritten by graph driver"; then
         log_error "Detected storage driver conflict (VFS vs Overlay)!"
-        log_warning "This requires a complete storage reset to fix."
+        log_warning "Performing complete storage reset..."
 
-        read -p "Perform complete Podman storage reset? This will remove all Podman containers/images (Y/n): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-            log_info "Performing nuclear storage reset..."
+        safe_kill_podman
+        podman system reset --force 2>/dev/null || true
+        rm -rf ~/.local/share/containers/* 2>/dev/null || true
+        rm -rf ~/.config/containers/* 2>/dev/null || true
+        rm -rf /run/user/$(id -u)/containers 2>/dev/null || true
+        sudo rm -rf /var/lib/containers/* 2>/dev/null || true
+        rm -rf /tmp/podman-* ~/.cache/containers 2>/dev/null || true
 
-            safe_kill_podman
-            podman system reset --force 2>/dev/null || true
-            rm -rf ~/.local/share/containers/* 2>/dev/null || true
-            rm -rf ~/.config/containers/* 2>/dev/null || true
-            rm -rf /run/user/$(id -u)/containers 2>/dev/null || true
-            sudo rm -rf /var/lib/containers/* 2>/dev/null || true
-            rm -rf /tmp/podman-* ~/.cache/containers 2>/dev/null || true
-
-            log_success "Complete storage reset performed"
-            return 0
-        else
-            log_error "Cannot continue with storage conflicts. Please fix manually."
-            return 1
-        fi
+        log_success "Complete storage reset performed"
+        return 0
     fi
     return 0
 }
@@ -106,15 +106,12 @@ check_existing_runtimes() {
 
             if [ -d ~/.local/share/containers/storage ]; then
                 log_warning "Detected existing Podman storage that may cause driver conflicts"
-                read -p "Completely reset Podman storage to avoid conflicts? (Y/n): " -n 1 -r
-                echo
-                if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-                    safe_kill_podman
-                    podman system reset --force 2>/dev/null || true
-                    rm -rf ~/.local/share/containers/* ~/.config/containers/* /run/user/$(id -u)/containers 2>/dev/null || true
-                    sudo rm -rf /var/lib/containers/* 2>/dev/null || true
-                    log_success "Complete Podman storage reset completed"
-                fi
+                log_info "Resetting Podman storage..."
+                safe_kill_podman
+                podman system reset --force 2>/dev/null || true
+                rm -rf ~/.local/share/containers/* ~/.config/containers/* /run/user/$(id -u)/containers 2>/dev/null || true
+                sudo rm -rf /var/lib/containers/* 2>/dev/null || true
+                log_success "Complete Podman storage reset completed"
             fi
         fi
     fi
@@ -179,6 +176,19 @@ configure_rootless() {
         fi
     fi
 
+    # Configure systemd user session and lingering
+    if command_exists systemctl; then
+        log_info "Configuring systemd user session..."
+        # Enable lingering for the current user
+        sudo loginctl enable-linger $(id -u)
+        
+        # Start user session if not running
+        if ! systemctl --user is-active --quiet; then
+            log_info "Starting systemd user session..."
+            systemctl --user start
+        fi
+    fi
+
     if [ ! -f ~/.config/containers/containers.conf ]; then
         cat > ~/.config/containers/containers.conf << 'EOF'
 [containers]
@@ -209,6 +219,13 @@ EOF
     chmod 600 ~/.config/containers/containers.conf
     chmod 600 ~/.config/containers/storage.conf
 
+    # Reset storage to ensure clean state
+    log_info "Resetting Podman storage..."
+    podman system reset --force 2>/dev/null || true
+    rm -rf ~/.local/share/containers/* 2>/dev/null || true
+    rm -rf ~/.config/containers/* 2>/dev/null || true
+    rm -rf /run/user/$(id -u)/containers 2>/dev/null || true
+
     log_success "Rootless configuration completed"
 }
 
@@ -217,7 +234,7 @@ install_podman_ubuntu() {
 
     sudo apt-get update
     sudo apt-get install -y curl wget gnupg2 software-properties-common apt-transport-https ca-certificates \
-        uidmap slirp4netns fuse-overlayfs
+        uidmap slirp4netns fuse-overlayfs crun
 
     . /etc/os-release
 
@@ -265,7 +282,7 @@ install_podman_rhel() {
     fi
 
     # Install required packages
-    sudo dnf install -y podman podman-docker slirp4netns fuse-overlayfs
+    sudo dnf install -y podman podman-docker slirp4netns fuse-overlayfs crun
 
     # Add Docker alias if it doesn't exist
     if ! grep -q "alias docker=podman" ~/.bashrc; then
@@ -346,9 +363,7 @@ main() {
     if command_exists podman; then
         log_warning "Podman is already installed!"
         log_info "Current version: $(podman --version)"
-        read -p "Do you want to continue anyway? (y/N): " -n 1 -r
-        echo
-        [[ ! $REPLY =~ ^[Yy]$ ]] && log_info "Installation cancelled." && exit 0
+        log_info "Continuing with installation..."
     fi
 
     case $OS in
