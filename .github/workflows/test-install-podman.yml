@@ -134,7 +134,7 @@ jobs:
       - name: Install dependencies
         run: |
           dnf update -y
-          dnf install -y sudo curl git shadow-utils slirp4netns fuse-overlayfs dbus-daemon
+          dnf install -y sudo curl git shadow-utils slirp4netns fuse-overlayfs dbus-daemon procps-ng
 
       - name: Configure rootless
         run: |
@@ -146,6 +146,13 @@ jobs:
           # Configure user namespace
           echo "user.max_user_namespaces=28633" | sudo tee -a /etc/sysctl.conf
           sudo sysctl -p
+          # Ensure user namespace is enabled
+          sudo modprobe overlay
+          sudo modprobe br_netfilter
+          # Set up user namespace
+          sudo sysctl -w kernel.unprivileged_userns_clone=1
+          # Verify user namespace is working
+          test -e /proc/self/ns/user || (echo "User namespace not available" && exit 1)
 
       - name: Run Podman Installer
         run: |
