@@ -127,7 +127,7 @@ jobs:
           # Set environment variables
           echo 'export XDG_RUNTIME_DIR="/run/user/$(id -u)"' >> ~/.bashrc
           echo 'export CONTAINERS_STORAGE_CONF="~/.config/containers/storage.conf"' >> ~/.bashrc
-          source ~/.bashrc
+          . ~/.bashrc
 
       - name: Run Podman Installer
         run: |
@@ -183,13 +183,8 @@ jobs:
           # Configure user namespace
           echo "user.max_user_namespaces=28633" | sudo tee -a /etc/sysctl.conf
           sudo sysctl -p
-          # Ensure user namespace is enabled
-          sudo modprobe overlay
-          sudo modprobe br_netfilter
           # Set up user namespace
           sudo sysctl -w kernel.unprivileged_userns_clone=1
-          # Verify user namespace is working
-          test -e /proc/self/ns/user || (echo "User namespace not available" && exit 1)
           # Create necessary directories
           mkdir -p ~/.config/containers
           # Configure storage
