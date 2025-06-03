@@ -18,6 +18,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Clean up existing Podman
+        run: |
+          sudo rm -rf /var/lib/containers /var/lib/cni /var/lib/podman || true
+          sudo rm -rf ~/.local/share/containers || true
+
       - name: Run Podman Installer
         run: |
           chmod +x devsecops/install_podman.sh
@@ -51,6 +56,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install sudo
+        run: |
+          apt-get update
+          apt-get install -y sudo
+
       - name: Run Podman Installer
         run: |
           chmod +x devsecops/install_podman.sh
@@ -83,6 +93,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          dnf update -y
+          dnf install -y sudo curl git shadow-utils slirp4netns fuse-overlayfs dbus-daemon
 
       - name: Run Podman Installer
         run: |
