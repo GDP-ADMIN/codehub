@@ -20,8 +20,11 @@ jobs:
 
       - name: Clean up existing Podman
         run: |
+          sudo apt-get remove -y podman || true
           sudo rm -rf /var/lib/containers /var/lib/cni /var/lib/podman || true
           sudo rm -rf ~/.local/share/containers || true
+          sudo rm -rf /etc/containers || true
+          sudo rm -rf /usr/share/containers || true
 
       - name: Run Podman Installer
         run: |
@@ -56,10 +59,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install sudo
+      - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y sudo
+          apt-get install -y sudo curl git uidmap slirp4netns fuse-overlayfs dbus-user-session
+
+      - name: Configure rootless
+        run: |
+          # Add user to subuid and subgid
+          echo "$USER:100000:65536" | sudo tee -a /etc/subuid
+          echo "$USER:100000:65536" | sudo tee -a /etc/subgid
+          # Ensure proper permissions
+          sudo chmod 644 /etc/subuid /etc/subgid
 
       - name: Run Podman Installer
         run: |
@@ -98,6 +109,14 @@ jobs:
         run: |
           dnf update -y
           dnf install -y sudo curl git shadow-utils slirp4netns fuse-overlayfs dbus-daemon
+
+      - name: Configure rootless
+        run: |
+          # Add user to subuid and subgid
+          echo "$USER:100000:65536" | sudo tee -a /etc/subuid
+          echo "$USER:100000:65536" | sudo tee -a /etc/subgid
+          # Ensure proper permissions
+          sudo chmod 644 /etc/subuid /etc/subgid
 
       - name: Run Podman Installer
         run: |
