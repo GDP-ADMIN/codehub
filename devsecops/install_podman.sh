@@ -306,6 +306,31 @@ install_podman_rhel() {
     log_success "Podman installed successfully on RHEL/Fedora/CentOS with rootless support and Docker CLI compatibility!"
 }
 
+install_podman_windows() {
+    log_info "Installing Podman on Windows (WSL2)..."
+    
+    if ! command_exists wsl; then
+        log_error "WSL2 is not installed. Please install WSL2 first."
+        exit 1
+    fi
+
+    # Check if running in WSL2
+    if ! grep -q "microsoft" /proc/version; then
+        log_error "This script must be run in WSL2."
+        exit 1
+    fi
+
+    # Detect the Linux distribution in WSL2
+    if [ -f /etc/debian_version ]; then
+        install_podman_ubuntu
+    elif [ -f /etc/redhat-release ]; then
+        install_podman_rhel
+    else
+        log_error "Unsupported Linux distribution in WSL2."
+        exit 1
+    fi
+}
+
 verify_installation() {
     log_info "Verifying Podman installation..."
 
