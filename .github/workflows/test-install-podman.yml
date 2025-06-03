@@ -71,6 +71,9 @@ jobs:
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
           # Ensure proper permissions
           sudo chmod 644 /etc/subuid /etc/subgid
+          # Configure user namespace
+          echo "user.max_user_namespaces=28633" | sudo tee -a /etc/sysctl.conf
+          sudo sysctl -p
 
       - name: Run Podman Installer
         run: |
@@ -117,6 +120,9 @@ jobs:
           echo "$USER:100000:65536" | sudo tee -a /etc/subgid
           # Ensure proper permissions
           sudo chmod 644 /etc/subuid /etc/subgid
+          # Configure user namespace
+          echo "user.max_user_namespaces=28633" | sudo tee -a /etc/sysctl.conf
+          sudo sysctl -p
 
       - name: Run Podman Installer
         run: |
