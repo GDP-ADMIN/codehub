@@ -17,11 +17,18 @@
 # can cause conflicts. Your Docker containers and images will not be affected, only the CLI.
 
 # One-Click Installation:
-# curl -sSL https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | bash
+# curl -sSL https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | sudo bash
 # or
-# wget -qO- https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | bash
+# wget -qO- https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | sudo bash
 
 set -e
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script with sudo:"
+    echo "curl -sSL https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | sudo bash"
+    exit 1
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -201,30 +208,32 @@ runtime = "crun"
 
 [network]
 network_backend = "netavark"
-EOF
-        log_info "Created containers.conf for rootless configuration"
-    fi
 
-    if [ ! -f ~/.config/containers/storage.conf ]; then
-        cat > ~/.config/containers/storage.conf << EOF
+[crio]
+cgroup_manager = "cgroupfs"
+EOF
+    log_info "Created containers.conf with cgroupfs configuration"
+
+    # Create fresh storage.conf with overlay driver
+    cat > ~/.config/containers/storage.conf << EOF
 [storage]
 driver = "overlay"
 runroot = "/run/user/$(id -u)/containers"
 graphroot = "/home/$(whoami)/.local/share/containers/storage"
+
+[storage.options]
+mount_program = "/usr/bin/fuse-overlayfs"
 EOF
-        log_info "Created storage.conf with overlay driver"
-    fi
+    log_info "Created storage.conf with overlay driver"
 
     # Ensure proper permissions on config files
     chmod 600 ~/.config/containers/containers.conf
     chmod 600 ~/.config/containers/storage.conf
 
-    # Reset storage to ensure clean state
-    log_info "Resetting Podman storage..."
-    podman system reset --force 2>/dev/null || true
-    rm -rf ~/.local/share/containers/* 2>/dev/null || true
-    rm -rf ~/.config/containers/* 2>/dev/null || true
-    rm -rf /run/user/$(id -u)/containers 2>/dev/null || true
+    # Create necessary directories for overlay storage
+    mkdir -p ~/.local/share/containers/storage/overlay
+    mkdir -p ~/.local/share/containers/storage/overlay-layers
+    mkdir -p ~/.local/share/containers/storage/overlay-images
 
     log_success "Rootless configuration completed"
 }
@@ -356,6 +365,17 @@ main() {
     echo "========================================"
     echo ""
 
+    # Get the actual user who ran sudo
+    ACTUAL_USER=$(logname || echo $SUDO_USER)
+    if [ -z "$ACTUAL_USER" ]; then
+        log_error "Could not determine the actual user. Please run this script with sudo."
+        exit 1
+    fi
+
+    # Switch to the actual user for user-specific operations
+    su - $ACTUAL_USER -c "mkdir -p ~/.local/share/containers/storage"
+    su - $ACTUAL_USER -c "mkdir -p ~/.config/containers"
+
     check_existing_runtimes
     OS=$(detect_os)
     log_info "Detected OS: $OS"
@@ -377,6 +397,8 @@ main() {
             ;;
     esac
 
+    # Switch back to actual user for verification
+    su - $ACTUAL_USER -c "podman info" || true
     verify_installation
     show_post_install_info
 }
