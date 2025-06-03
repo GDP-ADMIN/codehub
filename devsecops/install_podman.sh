@@ -7,7 +7,7 @@
 # - Ubuntu: 20.04, 22.04, 24.04
 # - Debian: 11 (Bullseye), 12 (Bookworm)
 # - RHEL: 8.x, 9.x
-# - Fedora: 36 and later (including 37, 38, 39, 40, 41, 42)
+# - Fedora: 36, 37, 38, 39, 40
 # - CentOS: 8.x, 9.x
 # - macOS: 11.x (Big Sur) and later
 # - Windows: WSL2 with Ubuntu/Debian/RHEL/Fedora
@@ -17,18 +17,11 @@
 # can cause conflicts. Your Docker containers and images will not be affected, only the CLI.
 
 # One-Click Installation:
-# curl -sSL https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | sudo bash
+# curl -sSL https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | bash
 # or
-# wget -qO- https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | sudo bash
+# wget -qO- https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | bash
 
 set -e
-
-# Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    echo "Please run this script with sudo:"
-    echo "curl -sSL https://raw.githubusercontent.com/GDP-ADMIN/codehub/main/devsecops/install_podman.sh | sudo bash"
-    exit 1
-fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -83,18 +76,27 @@ fix_storage_conflicts() {
 
     if podman info 2>&1 | grep -q "User-selected graph driver.*overwritten by graph driver"; then
         log_error "Detected storage driver conflict (VFS vs Overlay)!"
-        log_warning "Performing complete storage reset..."
+        log_warning "This requires a complete storage reset to fix."
 
-        safe_kill_podman
-        podman system reset --force 2>/dev/null || true
-        rm -rf ~/.local/share/containers/* 2>/dev/null || true
-        rm -rf ~/.config/containers/* 2>/dev/null || true
-        rm -rf /run/user/$(id -u)/containers 2>/dev/null || true
-        sudo rm -rf /var/lib/containers/* 2>/dev/null || true
-        rm -rf /tmp/podman-* ~/.cache/containers 2>/dev/null || true
+        read -p "Perform complete Podman storage reset? This will remove all Podman containers/images (Y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+            log_info "Performing nuclear storage reset..."
 
-        log_success "Complete storage reset performed"
-        return 0
+            safe_kill_podman
+            podman system reset --force 2>/dev/null || true
+            rm -rf ~/.local/share/containers/* 2>/dev/null || true
+            rm -rf ~/.config/containers/* 2>/dev/null || true
+            rm -rf /run/user/$(id -u)/containers 2>/dev/null || true
+            sudo rm -rf /var/lib/containers/* 2>/dev/null || true
+            rm -rf /tmp/podman-* ~/.cache/containers 2>/dev/null || true
+
+            log_success "Complete storage reset performed"
+            return 0
+        else
+            log_error "Cannot continue with storage conflicts. Please fix manually."
+            return 1
+        fi
     fi
     return 0
 }
@@ -113,12 +115,15 @@ check_existing_runtimes() {
 
             if [ -d ~/.local/share/containers/storage ]; then
                 log_warning "Detected existing Podman storage that may cause driver conflicts"
-                log_info "Resetting Podman storage..."
-                safe_kill_podman
-                podman system reset --force 2>/dev/null || true
-                rm -rf ~/.local/share/containers/* ~/.config/containers/* /run/user/$(id -u)/containers 2>/dev/null || true
-                sudo rm -rf /var/lib/containers/* 2>/dev/null || true
-                log_success "Complete Podman storage reset completed"
+                read -p "Completely reset Podman storage to avoid conflicts? (Y/n): " -n 1 -r
+                echo
+                if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                    safe_kill_podman
+                    podman system reset --force 2>/dev/null || true
+                    rm -rf ~/.local/share/containers/* ~/.config/containers/* /run/user/$(id -u)/containers 2>/dev/null || true
+                    sudo rm -rf /var/lib/containers/* 2>/dev/null || true
+                    log_success "Complete Podman storage reset completed"
+                fi
             fi
         fi
     fi
@@ -183,19 +188,6 @@ configure_rootless() {
         fi
     fi
 
-    # Configure systemd user session and lingering
-    if command_exists systemctl; then
-        log_info "Configuring systemd user session..."
-        # Enable lingering for the current user
-        sudo loginctl enable-linger $(id -u)
-        
-        # Start user session if not running
-        if ! systemctl --user is-active --quiet; then
-            log_info "Starting systemd user session..."
-            systemctl --user start
-        fi
-    fi
-
     if [ ! -f ~/.config/containers/containers.conf ]; then
         cat > ~/.config/containers/containers.conf << 'EOF'
 [containers]
@@ -234,7 +226,7 @@ install_podman_ubuntu() {
 
     sudo apt-get update
     sudo apt-get install -y curl wget gnupg2 software-properties-common apt-transport-https ca-certificates \
-        uidmap slirp4netns fuse-overlayfs crun
+        uidmap slirp4netns fuse-overlayfs
 
     . /etc/os-release
 
@@ -282,7 +274,7 @@ install_podman_rhel() {
     fi
 
     # Install required packages
-    sudo dnf install -y podman podman-docker slirp4netns fuse-overlayfs crun
+    sudo dnf install -y podman podman-docker slirp4netns fuse-overlayfs
 
     # Add Docker alias if it doesn't exist
     if ! grep -q "alias docker=podman" ~/.bashrc; then
@@ -304,31 +296,6 @@ install_podman_rhel() {
     fi
 
     log_success "Podman installed successfully on RHEL/Fedora/CentOS with rootless support and Docker CLI compatibility!"
-}
-
-install_podman_windows() {
-    log_info "Installing Podman on Windows (WSL2)..."
-    
-    if ! command_exists wsl; then
-        log_error "WSL2 is not installed. Please install WSL2 first."
-        exit 1
-    fi
-
-    # Check if running in WSL2
-    if ! grep -q "microsoft" /proc/version; then
-        log_error "This script must be run in WSL2."
-        exit 1
-    fi
-
-    # Detect the Linux distribution in WSL2
-    if [ -f /etc/debian_version ]; then
-        install_podman_ubuntu
-    elif [ -f /etc/redhat-release ]; then
-        install_podman_rhel
-    else
-        log_error "Unsupported Linux distribution in WSL2."
-        exit 1
-    fi
 }
 
 verify_installation() {
@@ -381,17 +348,6 @@ main() {
     echo "========================================"
     echo ""
 
-    # Get the actual user who ran sudo
-    ACTUAL_USER=$(logname || echo $SUDO_USER)
-    if [ -z "$ACTUAL_USER" ]; then
-        log_error "Could not determine the actual user. Please run this script with sudo."
-        exit 1
-    fi
-
-    # Switch to the actual user for user-specific operations
-    su - $ACTUAL_USER -c "mkdir -p ~/.local/share/containers/storage"
-    su - $ACTUAL_USER -c "mkdir -p ~/.config/containers"
-
     check_existing_runtimes
     OS=$(detect_os)
     log_info "Detected OS: $OS"
@@ -399,7 +355,9 @@ main() {
     if command_exists podman; then
         log_warning "Podman is already installed!"
         log_info "Current version: $(podman --version)"
-        log_info "Continuing with installation..."
+        read -p "Do you want to continue anyway? (y/N): " -n 1 -r
+        echo
+        [[ ! $REPLY =~ ^[Yy]$ ]] && log_info "Installation cancelled." && exit 0
     fi
 
     case $OS in
@@ -413,8 +371,6 @@ main() {
             ;;
     esac
 
-    # Switch back to actual user for verification
-    su - $ACTUAL_USER -c "podman info" || true
     verify_installation
     show_post_install_info
 }
