@@ -336,8 +336,7 @@ show_post_install_info() {
         echo ""
     fi
     log_info "Rootless daemon info:"
-    echo "  podman system service  # Start rootless API service"
-    echo "  systemctl --user status podman.socket  # Check socket status (Linux)"
+    echo "  podman info | grep rootless  # rootless: true means Podman is running in rootless mode"
     echo ""
     log_info "For more information, visit: https://podman.io/getting-started/"
 }
