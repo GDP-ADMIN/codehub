@@ -1,0 +1,3 @@
+[submodule "sglang-cpu/vllm"]
+	path = sglang-cpu/vllm
+	url = https://github.com/vllm-project/vllm.git
