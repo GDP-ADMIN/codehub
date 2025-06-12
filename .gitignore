@@ -1,0 +1,7 @@
+oauth2-proxy/*.key
+oauth2-proxy/*.pem
+oauth2-proxy/nginx
+oauth2-proxy/nginx/*.key
+oauth2-proxy/nginx/*.pem
+oauth2-proxy/.env
+oauth2-proxy/docker-compose*
