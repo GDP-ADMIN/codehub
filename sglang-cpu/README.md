@@ -186,7 +186,6 @@ RUN chmod +x entrypoint.sh
 
 # Optionally define CMD if you expect to override specific parameters
 # CMD ["--additional-arg", "value"]  # Uncomment if you want to use CMD for overrides
-rochmads@ollama-benchmark-2:~/vllm$
 ```
 
 
@@ -229,20 +228,32 @@ docker build -f docker/Dockerfile.cpu -t sglang-cpu  .
 
 ## 5. Run SGlang
 ```bash
-docker run -it -p 8000:8000 -v /tmp/.cache:~/.cache --rm --network=host vllm-cpu-env-v2 /bin/bash
+docker run -it -p 8000:8000 -v /tmp/.cache:/root/.cache --rm sglang-cpu ./entrypoint.sh 
 ```
-or run with
+or run with, 
 ```bash
-python -m sglang.launch_server --model-path Qwen/Qwen2.5-0.5B-Instruct --port 8000 --device cpu --host 0.0.0.0
+docker run -it -p 8000:8000 -v /tmp/.cache:/root/.cache --rm sglang-cpu /bin/bash
 ```
+and run inside docker with 
+```bash
+python -m sglang.launch_server --host 0.0.0.0 --port 8000 --device cpu  --model-path Qwen/Qwen2.5-0.5B-Instruct
+```
+for embedding add `--is-embedding`
 
-or
+example for complex configuration
+
 ```bash
 python3 -m sglang.launch_server --model Qwen/Qwen2.5-0.5B-Instruct --host 0.0.0.0 --port 8000 --disable-radix --trust-remote-code --device cpu --attention-backend torch_native --log-requests --disable-cuda-graph   --disable-cuda-graph-padding   --disable-outlines-disk-cache   --disable-custom-all-reduce   --disable-overlap-schedule --enable-torch-compile --sampling-backend pytorch --torch-compile-max-bs 1024 --max-running-requests 10 --stream-interval 5 --stream-output --log-level debug --enable-mixed-chunk --allow-auto-truncate --deepep-mode auto
 ```
 if error downloading, export HF_TOKEN
 ```bash
 export HF_TOKEN=xxx
+```
+
+for run VLLM inside docker and cpu mode 
+
+```bash
+python3 -m vllm.entrypoints.openai.api_server --trust-remote-code --model  intfloat/multilingual-e5-large-instruct
 ```
 
 ## Note
