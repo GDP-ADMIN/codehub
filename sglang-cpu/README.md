@@ -2,7 +2,17 @@
 
 This guide provides instructions for building and running the SGlang language server and vLLM on an x86 CPU platform using Docker. It includes a ready-to-use Dockerfile, entrypoint script, and example commands for launching the server with a pre-trained model. The setup is intended for users who want to deploy or develop SGlang and vLLM without GPU support.
 
+## TL;DR
 
+To quickly set up everything, run the following one-liner (using `wget` or `curl`):
+
+```bash
+wget -O- https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/sglang-cpu/sglang-cpu/1click.sh | bash
+# or
+curl -fsSL https://raw.githubusercontent.com/GDP-ADMIN/codehub/refs/heads/sglang-cpu/sglang-cpu/1click.sh | bash
+```
+
+This will automatically execute the setup steps described below.
 ## 1. Clone vllm Repository
 ```bash
 git clone https://github.com/vllm-project/vllm.git || true
