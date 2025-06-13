@@ -5,7 +5,7 @@ This guide provides instructions for building and running the SGlang language se
 
 ## 1. Clone vllm Repository
 ```bash
-gitt clone https://github.com/vllm-project/vllm.git || true
+git clone https://github.com/vllm-project/vllm.git || true
 cd vllm
 ```
 ## 2. edit file Dockerfile.cpu
@@ -228,17 +228,21 @@ docker build -f docker/Dockerfile.cpu -t sglang-cpu  .
 
 ## 5. Run SGlang
 ```bash
-docker run -it -p 8000:8000 -v /tmp/.cache:/root/.cache --rm sglang-cpu ./entrypoint.sh 
+docker run -it -p 8000:8000 -v /root/.cache:/root/.cache --rm sglang-cpu ./entrypoint.sh 
 ```
 or run with, 
 ```bash
-docker run -it -p 8000:8000 -v /tmp/.cache:/root/.cache --rm sglang-cpu /bin/bash
+docker run -it -p 8000:8000 -v /root/.cache:/root/.cache --rm sglang-cpu /bin/bash
 ```
 and run inside docker with 
 ```bash
 python -m sglang.launch_server --host 0.0.0.0 --port 8000 --device cpu  --model-path Qwen/Qwen2.5-0.5B-Instruct
 ```
 for embedding add `--is-embedding`
+```bash
+python -m sglang.launch_server --host 0.0.0.0 --port 8000 --device cpu  --model-path Qwen/Qwen3-Embedding-0.6B --is-embedding 
+
+```
 
 example for complex configuration
 
