@@ -3,16 +3,22 @@
 ### WIP rochmadsaputra@gmail.com
 ####
 
-set -e
-
-# Clone vllm repo if not exists
-git clone https://github.com/vllm-project/vllm.git || true
+set -xe
+current_dir=$PWD
+cd /tmp
+git clone git@github.com:GDP-ADMIN/codehub.git || true
+git checkout sglang-cpu || true
+cd codehub/sglang-cpu 
+git clean -fdx || true
+git submodule update --init --recursive || true
 
 # Clean and update repo
 cd vllm
 git clean -fdx || true
 git checkout main || true
-git submodule update --init --recursive || true
+
+cp  ../Dockerfile.cpu-patched docker/Dockerfile.cpu
+cp  ../sglang-cpu-entrypoint.sh docker/sglang-cpu-entrypoint.sh
 
 # Build Docker image
 echo "Building Docker image... with command"
